@@ -47,7 +47,7 @@ class _Segment extends StatelessWidget {
   final bool isAlive;
 
   static const _height = 10.0;
-  static const _drain = Duration(milliseconds: 900);
+  static const _drain = Motion.drain;
 
   @override
   Widget build(BuildContext context) {

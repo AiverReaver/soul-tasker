@@ -25,7 +25,7 @@ class HoldToStrike extends StatefulWidget {
 class _HoldToStrikeState extends State<HoldToStrike>
     with SingleTickerProviderStateMixin {
   static const _tickCount = 4;
-  static const _rollbackDuration = Duration(milliseconds: 250);
+  static const _rollbackDuration = Motion.quick;
 
   late final AnimationController _progress = AnimationController(
     vsync: this,

@@ -5,7 +5,7 @@ Details for each stage are in `STAGES.md`.
 ## Stage 0: Foundations
 - [x] Choose app name (Hearthrise)
 - [ ] Finalize vocabulary (§4)
-- [ ] Choose licensed fonts
+- [x] Choose licensed fonts (Cormorant Garamond + Inter, OFL)
 - [ ] Choose licensed sounds
 - [ ] Sketch home screen
 - [ ] Sketch boss screen

@@ -8,7 +8,7 @@ import 'theme.dart';
 class FallenScreen extends StatefulWidget {
   const FallenScreen({super.key});
 
-  static const _dimIn = Duration(milliseconds: 1400);
+  static const _dimIn = Motion.dim;
 
   static Future<String?> show(BuildContext context) {
     HapticFeedback.heavyImpact();
@@ -54,7 +54,7 @@ class _FallenScreenState extends State<FallenScreen> {
               Text(
                 'Fallen.',
                 textAlign: TextAlign.center,
-                style: text.displaySmall?.copyWith(fontSize: 44),
+                style: text.displayMedium,
               ),
               const SizedBox(height: 8),
               Text(
@@ -72,7 +72,7 @@ class _FallenScreenState extends State<FallenScreen> {
                 cursorColor: kEmber,
                 decoration: const InputDecoration(
                   hintText: 'One line.',
-                  hintStyle: TextStyle(color: kAshDim),
+                  hintStyle: TextStyle(color: kTextMuted),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: kAshDim),
                   ),
@@ -87,7 +87,7 @@ class _FallenScreenState extends State<FallenScreen> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Skip', style: TextStyle(color: kAshDim)),
+                    child: const Text('Skip', style: TextStyle(color: kTextMuted)),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, _lesson.text),

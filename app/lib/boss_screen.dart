@@ -72,7 +72,7 @@ class _BossScreenState extends State<BossScreen> {
                 padding: const EdgeInsets.only(top: 20, bottom: 6),
                 child: Text(
                   _boss.phases[p].name.toUpperCase(),
-                  style: text.bodySmall?.copyWith(letterSpacing: 2),
+                  style: text.labelSmall,
                 ),
               ),
               for (var t = 0; t < _boss.phases[p].tasks.length; t++)
