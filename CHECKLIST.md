@@ -1,9 +1,9 @@
-# Souls Task Tracker: Checklist
+# Hearthrise: Checklist
 
 Details for each stage are in `STAGES.md`.
 
 ## Stage 0: Foundations
-- [ ] Choose app name
+- [x] Choose app name (Hearthrise)
 - [ ] Finalize vocabulary (§4)
 - [ ] Choose licensed fonts
 - [ ] Choose licensed sounds

@@ -1,4 +1,4 @@
-package com.soultracker.soul_tracker
+package com.hearthrise.app
 
 import io.flutter.embedding.android.FlutterActivity
 

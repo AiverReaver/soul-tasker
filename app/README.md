@@ -1,4 +1,4 @@
-# soul_tracker
+# Hearthrise
 
 A new Flutter project.
 

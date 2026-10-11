@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:soul_tracker/main.dart';
-import 'package:soul_tracker/models.dart';
+import 'package:hearthrise/main.dart';
+import 'package:hearthrise/models.dart';
 
 void main() {
   test('fall raises attempt, keeps progress, keeps old lesson on skip', () {
@@ -15,7 +15,7 @@ void main() {
   });
 
   testWidgets('full hold strikes, early release does not', (tester) async {
-    await tester.pumpWidget(const SoulTrackerApp());
+    await tester.pumpWidget(const HearthriseApp());
     final row = find.text('Read chapter 4'); // Heavy: 600 ms hold
 
     var gesture = await tester.startGesture(tester.getCenter(row));

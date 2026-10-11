@@ -1,6 +1,6 @@
 # Souls-Inspired Real-Life Task Tracker: Product and Design Document
 
-Working title: *to be decided* (use an original name; avoid game trademarks)
+Name: **Hearthrise** (USPTO search clear, Oct 2026; domain hearthrise.app)
 Platforms: Android first, iOS later
 App framework: Flutter
 Backend: Node.js with PostgreSQL

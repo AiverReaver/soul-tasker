@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'boss_screen.dart';
 import 'theme.dart';
 
-void main() => runApp(const SoulTrackerApp());
+void main() => runApp(const HearthriseApp());
 
-class SoulTrackerApp extends StatelessWidget {
-  const SoulTrackerApp({super.key});
+class HearthriseApp extends StatelessWidget {
+  const HearthriseApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Soul Tracker',
+      title: 'Hearthrise',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       home: const BossScreen(),

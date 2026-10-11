@@ -1,4 +1,4 @@
-# Souls Task Tracker: Build Stages
+# Hearthrise: Build Stages
 
 Source: `souls-task-tracker-design.md`. Section numbers (§) refer to that document.
 Each stage ships something testable and ends with a gate. Do not start the next stage until the gate passes.
