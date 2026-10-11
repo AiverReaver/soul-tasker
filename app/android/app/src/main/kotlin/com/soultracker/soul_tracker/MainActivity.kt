@@ -1,0 +1,5 @@
+package com.soultracker.soul_tracker
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
