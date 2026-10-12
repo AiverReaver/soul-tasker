@@ -7,11 +7,11 @@ Details for each stage are in `STAGES.md`.
 - [ ] Finalize vocabulary (§4)
 - [x] Choose licensed fonts (Cormorant Garamond + Inter, OFL)
 - [ ] Choose licensed sounds
-- [ ] Sketch home screen
-- [ ] Sketch boss screen
-- [ ] Sketch fallen screen
-- [ ] Sketch bonfire screen
-- [ ] Sketch victory screen
+- [x] Sketch home screen
+- [x] Sketch boss screen
+- [x] Sketch fallen screen
+- [x] Sketch bonfire screen
+- [x] Sketch victory screen
 - [ ] Open Google Play developer account
 - [ ] Check current closed-testing rules
 - [ ] Start tester recruitment list
