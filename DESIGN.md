@@ -33,10 +33,13 @@ Both fonts are bundled (offline-first) under SIL Open Font License 1.1. Licenses
 | `titleMedium` | Cormorant Garamond | 22 / 500 | Prompts ("What did this teach you?"), strike lines |
 | `bodyLarge` | Inter | 16 / 400 | Inputs, long text |
 | `bodyMedium` | Inter | 15 / 400 | Task titles |
-| `bodySmall` | Inter | 13 / 400, muted | Attempt line, weights, helper text |
-| `labelSmall` | Inter | 12 / 500, muted, tracking 2 | Phase headers (uppercase) |
+| `bodySmall` | Inter | 14 / 400, muted | Attempt line, weights, helper text |
+| `labelSmall` | Inter | 13 / 500, ash, tracking 2 | Section and phase headers (uppercase) |
 
 Rules:
+- Nothing smaller than 13 px. Muted grey only for genuinely secondary text (meta, counts); anything the user should read, including headers and the screen's one-line message, uses `kAsh`.
+- Ritual screens (bonfire, fallen, victory): body text 15 px or larger.
+- No glow, gradient or texture behind text. Atmosphere goes around content, never under it.
 - Serif only for boss names and major moments. Everything else is Inter.
 - Variable fonts: always set `fontVariations` with the weight (the `_font` helper does this).
 - Respect the system text scale; layouts must survive 200% text size.

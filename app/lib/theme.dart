@@ -68,8 +68,8 @@ ThemeData buildTheme() {
       // Body sans: everything else.
       bodyLarge: _font(_body, 16, 400, kAsh, height: 1.5),
       bodyMedium: _font(_body, 15, 400, kAsh, height: 1.45),
-      bodySmall: _font(_body, 13, 400, kTextMuted, height: 1.45),
-      labelSmall: _font(_body, 12, 500, kTextMuted, spacing: 2),
+      bodySmall: _font(_body, 14, 400, kTextMuted, height: 1.45),
+      labelSmall: _font(_body, 13, 500, kAsh, spacing: 2),
     ),
   );
 }
