@@ -34,15 +34,15 @@ Details for each stage are in `STAGES.md`.
 - [ ] **Gate passed:** fail, write lesson, see it next attempt, offline
 
 ## Stage 2: Feel prototype
-- [ ] Hold-to-strike with weight durations (0.3 / 0.6 / 1.2 s)
-- [ ] Release early rolls back
-- [ ] Glow / fill line during hold
-- [ ] Building haptics and completion pulse
-- [ ] Task dims after strike
-- [ ] Segmented boss health bar with slow drain
-- [ ] Tap fallback setting
-- [ ] Palette, typography, slow fades
-- [ ] Fallen screen dim and quiet line
+- [x] Hold-to-strike with weight durations (0.3 / 0.6 / 1.2 s)
+- [x] Release early rolls back
+- [x] Glow / fill line during hold
+- [x] Building haptics and completion pulse (in code; not yet felt on a real phone)
+- [x] Task dims after strike
+- [x] Segmented boss health bar with slow drain
+- [x] Tap fallback setting
+- [x] Palette, typography, slow fades
+- [x] Fallen screen dim and quiet line
 - [ ] Test with 3 to 5 testers
 - [ ] Apply tuning from feedback
 - [ ] **Gate passed**
