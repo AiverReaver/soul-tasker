@@ -20,12 +20,14 @@ Details for each stage are in `STAGES.md`.
 ## Stage 1: Core loop, local only
 - [ ] Flutter project with Riverpod, Drift, go_router, freezed
 - [ ] Feature-based folder structure
+- [ ] Move feel prototype into feature structure; replace in-memory models with Drift
 - [ ] Boss: create, edit, status (active / waiting / defeated)
 - [ ] Boss focus pin
 - [ ] Phases: create, order, reorder
 - [ ] Tasks: weight, one-time / recurring
 - [ ] Strike and Tried outcomes
-- [ ] Attempt counter
+- [ ] Attempt counter (declared failure)
+- [ ] Per-boss reset setting: nothing / current phase / whole boss
 - [ ] Fallen flow with lesson note
 - [ ] "Attempt N. Last time: …" line
 - [ ] Rule of three prompt
@@ -53,6 +55,8 @@ Details for each stage are in `STAGES.md`.
 - [ ] Bonfire screen: tomorrow's top three
 - [ ] Daily local notification at chosen time
 - [ ] Android 13+ notification permission prompt
+- [ ] Day rollover time (default 4 AM)
+- [ ] Missed day fails attempt on every active boss, one shared lesson
 - [ ] Embers: earn on Strike and Tried
 - [ ] Embers: carried total
 - [ ] Embers: bank at bonfire
@@ -69,7 +73,8 @@ Details for each stage are in `STAGES.md`.
 - [ ] Second extension costs flask
 - [ ] Health events table; health derived from events
 - [ ] Loss by weight (1 / 2 / 3), Tried costs half
-- [ ] Death at zero health
+- [ ] Death at zero health (failed attempt on final-blow boss)
+- [ ] Rest after a fall: rise same day at bonfire
 - [ ] Freeze remaining commitments after death
 - [ ] Fallen screen with "N promised, M kept"
 - [ ] Resolve deadlines on app open

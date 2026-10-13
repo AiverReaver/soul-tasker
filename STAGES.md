@@ -24,10 +24,12 @@ Each stage ships something testable and ends with a gate. Do not start the next 
 **Goal:** fight a boss, fail, learn, try again. Fully offline.
 
 - Flutter project: Riverpod, Drift, go_router, freezed (§10.1). Feature-based structure (§10.3).
+- Move the Stage 2 feel prototype (`hold_to_strike`, `boss_health_bar`, `fallen_screen`, `theme`) into the feature structure, and replace the in-memory `models.dart` with Drift tables. Keep `feel_test.dart` passing.
 - Bosses: unlimited, active / waiting / defeated, focus pin (§5.1).
 - Phases with order and reordering (§5.2).
 - Tasks: Light / Heavy / Boss-tier, one-time or recurring, Strike or Tried (§5.3).
-- Attempts and attempt counter (§5.4).
+- Attempts and attempt counter (§5.4): declared failure now; health-death and missed-day triggers arrive with Stages 3 and 4.
+- Per-boss reset on a failed attempt: nothing (default), current phase, whole boss (§5.1).
 - Fallen flow with "What did this teach you?" lesson note (§5.5).
 - "Attempt N. Last time: …" line on the boss screen.
 - Rule of three prompt (§5.10).
@@ -58,6 +60,7 @@ Each stage ships something testable and ends with a gate. Do not start the next 
 
 - Bonfire screen: day summary, lesson field, tomorrow's top three (§5.6).
 - Daily local notification at a user-chosen time, inexact scheduling, Android 13+ permission (§10.1).
+- Day rollover time (default 4 AM); missed day fails an attempt on every active boss with one shared lesson (§5.4, §5.6).
 - Embers: earn, carry, bank at the bonfire. Gentle mode only (§5.8).
 - Flasks and light days (§5.7).
 - Settings: reminder time, haptics, sound, hold-to-tap.
@@ -73,7 +76,8 @@ Each stage ships something testable and ends with a gate. Do not start the next 
 - Commitments with deadlines; open tasks without deadlines (§5.12).
 - Free first extension; second extension costs a flask.
 - Player health derived from health events; loss by weight 1 / 2 / 3; Tried costs half.
-- Death at zero health: freeze remaining commitments, fallen screen with "N promised, M kept".
+- Death at zero health: failed attempt on the final-blow boss, freeze remaining commitments, fallen screen with "N promised, M kept".
+- Rest after a fall: rise the same day at the bonfire (§5.6).
 - Deadline resolution from stored timestamps on app open and on a schedule; "While you were away" summary; late strike.
 - Opt-in per-task deadline reminders.
 - Daily summaries and planning accuracy (daily and weekly).

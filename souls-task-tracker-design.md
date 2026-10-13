@@ -4,7 +4,7 @@ Name: **Hearthrise** (USPTO search clear, Oct 2026; domain hearthrise.app)
 Platforms: Android first, iOS later
 App framework: Flutter
 Backend: Node.js with PostgreSQL
-Status: Concept and design phase (no code yet)
+Status: Stage 2 feel prototype built (hold-to-strike, health bar, fallen screen). Stage 1 core loop not started. Progress is tracked in `STAGES.md` and `CHECKLIST.md`.
 
 ---
 
@@ -58,7 +58,7 @@ The app must make failure feel like progress instead of guilt. That is the singl
 2. **Weight.** Actions feel deliberate. Completing a task is a small committed act, not a casual checkbox tap.
 3. **Honest consequences, without shame.** Failure is acknowledged plainly and never punished harshly. Loss may exist, but it is soft, capped, and recoverable.
 4. **Atmosphere over information.** Show less on screen. Every element earns its place.
-5. **Effort is always rewarded.** Only doing nothing earns nothing.
+5. **Effort always earns embers. Health measures promises kept.** A real try is always paid in embers, even when it falls short of a promise. Only doing nothing earns nothing.
 6. **The user is in control.** Gentle mode and hardcore mode, adjustable difficulty, accessibility alternatives to every gesture.
 7. **Calm, never nagging.** One gentle reminder per day. No guilt notifications, no loss-streak alarms.
 
@@ -100,6 +100,15 @@ A boss is a big goal the user wants to defeat (finish the app, pass the certific
 - Each boss runs independently: its own phases, tasks, attempt counter, health bar, lesson notes, and bloodstain.
 - Optional status for a boss: **active** (being fought), **waiting** (paused by choice, no pressure), or **defeated**. Waiting bosses never trigger falls or reminders.
 - Optional **focus pin**: the user can pin one or more bosses to the top of the home screen. This is a convenience, never a restriction.
+- **Reset on a failed attempt**: each boss has a setting for what a failed attempt undoes, because goals differ (a fitness streak may want a clean restart, a long project should never lose finished work). Chosen when the boss is created and editable later. The app-wide default is set in Settings.
+
+| Setting | What a failed attempt does | Default |
+|---|---|---|
+| **Nothing** | Struck tasks stay struck. The health bar stays where it was. | Yes |
+| **Current phase** | Tasks in the current phase (the earliest phase not fully done) reopen. Earlier phases stay done. | |
+| **Whole boss** | Every task reopens. The boss returns to full health. | |
+
+  In every case the attempt counter rises, the lesson is kept, and embers already earned stay earned. Reopened tasks can be struck again but do not pay embers a second time.
 
 ### 5.2 Phases
 
@@ -126,7 +135,13 @@ Tasks are the small units of real-world action.
 An attempt is one real try at a boss, phase, or task.
 
 - Each boss keeps a running attempt count.
-- A failed attempt creates a **fallen log entry** with a one-line lesson.
+- A boss attempt fails, and the boss's counter rises by one, in exactly three cases:
+  1. **Declared:** the user marks the attempt as failed on the boss screen.
+  2. **Health death:** the player's health reaches zero (5.12). Only the boss of the task that dealt the final blow is affected.
+  3. **Missed day:** a day ends (see 5.6, day rollover) with no bonfire check-in. Every **active** boss is affected. Waiting bosses are not. A day covered by a flask charge or marked as a light day is not a missed day.
+- A task or phase attempt fails when the task is marked Tried or its deadline is missed. These failures feed the rule of three (5.10) and do not raise the boss counter on their own.
+- A failed attempt creates a **fallen log entry** with a one-line lesson. When one event fails several bosses at once (a missed day), the user sees one fallen moment and writes one lesson, which is stored on every affected boss.
+- What a failed attempt resets depends on the boss's reset setting (5.1).
 - The most recent lesson is shown at the start of the next attempt: "Attempt 7. Last time: rushed the second phase."
 - Attempt history is kept so the victory screen can show the full journey.
 
@@ -139,7 +154,8 @@ When an attempt fails, a day is missed, or health reaches zero (see 5.12):
 3. One prompt: **"What did this teach you?"**
 4. The user writes one short line (or skips, with a small effort penalty only on the lesson bonus, never on the attempt itself).
 5. The lesson is stored with the attempt and shown at the start of the next try.
-6. A bloodstain is created if the embers system is active (see 5.8).
+6. The boss's reset setting (5.1) is applied.
+7. A bloodstain is created if the embers system is active (see 5.8).
 
 The goal is to turn the worst moment of the loop into the most useful one.
 
@@ -157,6 +173,16 @@ A calm, once-a-day ritual screen.
 - A single gentle local notification invites the user to the bonfire at a time they choose.
 
 The bonfire is the habit anchor: the app's most important loop is "do, rest, bank, plan."
+
+**Day rollover.** A day ends at the daily check-in, or at a set rollover time if the check-in was skipped. The rollover time defaults to 4 AM local time and is adjustable in Settings, so a bonfire at 1 AM still belongs to the evening before. A day that reaches rollover without a check-in is a missed day (5.4). Health refills at rollover even when the check-in was skipped, so no one starts a day already wounded.
+
+**Rest after a fall.** After a health death (5.12), the user can rest at the bonfire the same day to rise again. A rest is shorter than the daily check-in:
+
+- Health is restored to full.
+- Carried embers are banked.
+- Remaining commitments whose deadlines have not passed are unfrozen and can cost health again. Commitments already missed stay missed.
+- No flask charge is restored, and a rest does not count as the daily check-in or as a steadfast day.
+- There is no limit on rests per day. Each death still counts as a failed attempt on the boss that dealt the final blow.
 
 ### 5.7 Flasks (recovery charges)
 
@@ -267,7 +293,7 @@ All numbers below are starting values to be tuned in testing.
 | Outcome | Health | Embers |
 |---|---|---|
 | **Strike** before the deadline | No loss | Full embers |
-| **Tried** before the deadline | Half the normal loss | Reduced embers (effort is rewarded) |
+| **Tried** before the deadline | Half the normal loss (a promise was not kept) | Reduced embers (effort is rewarded) |
 | **Extension** used (see guardrails) | No loss, deadline moves | Unchanged |
 | **Miss** (nothing marked by the deadline) | Full loss | None |
 | **Late strike** (marked done after a miss) | The health stays lost | Partial embers (doing it late beats not doing it) |
@@ -280,7 +306,9 @@ All numbers below are starting values to be tuned in testing.
 
 - When health reaches zero, the player falls.
 - The carried embers drop at a **bloodstain** on the task that dealt the final blow (on that task's boss). Recovery works as described in 5.8: return to that task and do even a small version.
-- The rest of the day's commitments are **frozen**. They cause no further health loss, and the user can still complete them for embers.
+- The boss of the task that dealt the final blow counts a failed attempt (5.4) and applies its reset setting (5.1).
+- The rest of the day's commitments are **frozen**. They cause no further health loss, and the user can still complete them for embers. New tasks added while fallen carry no health risk.
+- The user can rise the same day by resting at the bonfire (5.6, rest after a fall), which restores health and unfreezes commitments that are still before their deadline. Otherwise the fallen state lasts until the daily check-in or rollover.
 - The fallen screen (5.5) appears with the usual lesson prompt, and adds the plain numbers: "You committed to nine tasks and finished three. What will you promise tomorrow?"
 - In **gentle mode**, health loss is still shown and death still happens as a moment of reflection, but no embers drop. In **hardcore mode**, the full drop rule applies, with the softening rules from 5.8.
 
@@ -458,7 +486,7 @@ When a boss is defeated, it leaves behind a **relic**: a permanent keepsake of t
 - Banked embers, stats, flasks, planning accuracy, and the hall of relics from defeated bosses.
 
 **Settings**
-- Mode (gentle or hardcore), reminder time, sound on/off, haptics on/off, hold-to-tap accessibility option, and data export.
+- Mode (gentle or hardcore), reminder time, day rollover time (default 4 AM), default reset on a failed attempt (nothing, current phase, or whole boss), sound on/off, haptics on/off, hold-to-tap accessibility option, and data export.
 
 ### 6.2 Onboarding
 
@@ -498,6 +526,8 @@ Example lines (all original):
 | Health low | "You are wounded." |
 | Fallen from lost health | "Fallen. Nine promised, three kept. What will you promise tomorrow?" |
 | Extension used | "Time granted. Use it well." |
+| Rest after a fall | "You rest. You rise." |
+| Missed day (on next open) | "The bonfire went cold. Every fight remembers." |
 
 ---
 
@@ -591,15 +621,15 @@ This is a description of the information the app stores, not a final schema.
 
 | Entity | Purpose | Key fields |
 |---|---|---|
-| **User** | The person using the app | id, display name, mode (gentle or hardcore), reminder time, banked embers, carried embers, flask charges, current health, maximum health, level and stats, signup date (for newcomer grace) |
-| **Boss** | A big goal | id, user, title, description, status (active, waiting, defeated), attempt number, target date, created and defeated times |
+| **User** | The person using the app | id, display name, mode (gentle or hardcore), reminder time, day rollover time, default reset on a failed attempt, banked embers, carried embers, flask charges, current health, maximum health, level and stats, signup date (for newcomer grace) |
+| **Boss** | A big goal | id, user, title, description, status (active, waiting, defeated), attempt number, reset on a failed attempt (nothing, current phase, whole boss), target date, created and defeated times |
 | **Phase** | A stage of a boss | id, boss, name, order, status |
 | **Task** | A small unit of action | id, phase (or standalone), title, difficulty (light, heavy, boss-tier), recurrence, status, commitment deadline (empty for open tasks), extensions used, resolved outcome (strike, tried, missed, late strike), resolved time |
-| **Attempt** | One real try | id, boss or task, attempt number, outcome (strike, tried, fallen), embers earned, lesson note, time |
+| **Attempt** | One real try | id, boss or task, attempt number, outcome (strike, tried, fallen), cause of a fall (declared, health death, missed day), embers earned, lesson note, time |
 | **Bloodstain** | Dropped embers at a failure point | id, user, task, attempt, amount, created time, recovered time, lost time |
-| **Bonfire check-in** | The daily ritual | id, user, date, summary note, lesson, embers banked, flasks restored |
+| **Bonfire check-in** | The daily ritual, or a rest after a fall | id, user, date, kind (daily check-in or rest after a fall), summary note, lesson, embers banked, flasks restored |
 | **Flask use** | A spent recovery charge | id, user, date, reason (skip day, light day, second extension) |
-| **Health event** | One change to health | id, user, task, amount (negative for loss, positive for restore), reason (miss, tried, bonfire restore, newcomer grace), time |
+| **Health event** | One change to health | id, user, task, amount (negative for loss, positive for restore), reason (miss, tried, bonfire restore, rest after a fall, rollover restore, newcomer grace), time |
 | **Daily summary** | The day's commitment record, used for planning accuracy | id, user, date, commitments made, commitments kept on time, health lost, fell (yes or no), counted as a steadfast day (yes or no) |
 | **Reward tier** | A consistency tier the user has reached | id, user, tier, reached time, lock-in expiry, redeemed time (empty until used) |
 | **Reward redemption** | A discount actually used through a store offer | id, user, tier, store (Google Play or App Store), offer identifier, billing period, purchase verified (yes or no), time |
@@ -625,6 +655,10 @@ This is a description of the information the app stores, not a final schema.
 - Defeating a boss creates exactly one relic. A relic stores its own copy of the boss's story and is never deleted or altered by later changes to the boss, except for the user editing the final inscription.
 - Relics are permanent and never at risk, in any mode.
 - Every attempt belongs to exactly one boss or task and keeps its own lesson note.
+- A boss's attempt number rises only on a declared failure, a health death whose final blow came from that boss, or a missed day while the boss is active (5.4). A missed day writes one failed attempt per active boss, all sharing one lesson.
+- A failed attempt applies the boss's reset setting. Reopened tasks never pay embers twice, and embers already earned are never removed by a reset.
+- A day ends at the daily check-in or at the user's rollover time. Health refills at either.
+- A rest after a fall restores health, banks carried embers, and unfreezes commitments still before their deadline. It does not restore flasks or count as the daily check-in.
 - In gentle mode, bloodstains are markers only and no embers are removed.
 
 ### 9.3 Offline-first requirement
@@ -809,6 +843,7 @@ Start everyone in gentle mode and only offer hardcore after the basic loop feels
 | Deadlines depend on unreliable background tasks | Some Android phones kill background work | Resolve deadlines from stored timestamps whenever the app opens, treat reminders as a convenience only |
 | The app cannot verify that tasks were done | Users can cheat or forget to mark tasks | Accept it: honesty is on the user, and the only person cheated is the player; offer late marking |
 | Too many active bosses cause overwhelm | No limit on bosses means users may spread themselves thin and feel buried | Keep home cards minimal, offer pinning and a waiting status, use a grouped Today view, and watch in testing whether people with many bosses drop off |
+| A missed day raises every active boss's attempt count | One skipped bonfire with many active bosses can make every counter jump, which may read as a record of failure | One fallen moment and one lesson for all of them, flasks and light days prevent a missed day, waiting bosses are exempt; watch in testing whether this discourages people with many bosses |
 | Feature creep | Solo developer, limited time | Strict MVP scope; add features only after the core loop feels good |
 | Users in real distress using the app as a crutch | A task app is not mental health support | Keep language about effort and habits; do not make health or therapeutic claims |
 
@@ -816,7 +851,7 @@ Start everyone in gentle mode and only offer hardcore after the basic loop feels
 
 ## 14. Open questions
 
-1. What is the app's original name?
+1. ~~What is the app's original name?~~ Resolved: Hearthrise.
 2. Final stat names and how much they matter in the MVP.
 3. Exact flask rules: how many, and how they restore.
 4. What portion of carried embers drops in hardcore mode, and what is the cap?
@@ -825,17 +860,17 @@ Start everyone in gentle mode and only offer hardcore after the basic loop feels
 7. Pricing model: free with optional one-time upgrade, or something else?
 8. Will there be an optional community feature later, and if so how is it moderated?
 9. How are bosses and tasks backed up or exported by the user?
-10. Which sound and font assets will be used, and what are their licenses?
+10. Which sound assets will be used, and what are their licenses? (Fonts resolved: Cormorant Garamond and Inter, both SIL OFL 1.1; see `DESIGN.md`.)
 11. With multiple bosses, should bloodstains be one per boss (current design) or one per user, as in the original games? One per user is more tense but means a fall on any boss can erase a bloodstain on another.
 12. Should the app show a gentle hint when many bosses are active at once (for example "You are fighting 8 bosses"), or stay silent and leave it entirely to the user?
 13. Should the Today view limit how many tasks it shows at once so the home screen stays calm, or show everything due?
 14. Should embers earned on a boss be tracked per boss for statistics (for example "most effort went into this boss") even though spending is shared?
 15. Should health refill fully every day at the bonfire (current default), or should some damage carry over so a bad day affects tomorrow?
-16. After a health death, can the player rise again the same day, or only the next day?
+16. ~~After a health death, can the player rise again the same day, or only the next day?~~ Resolved: same day, by resting at the bonfire (5.6).
 17. What is the right starting health (currently 10) and the right loss per task weight (currently 1, 2, and 3)?
 18. Should there be a short grace window after a deadline (for example a few minutes) for users who finished the task but forgot to mark it?
 19. How long should newcomer grace last, and exactly which penalties does it remove?
-20. Should a "tried" before the deadline cost half health (current design), or nothing?
+20. ~~Should a "tried" before the deadline cost half health (current design), or nothing?~~ Resolved: half health. Principle 5 now separates embers (effort) from health (promises kept).
 21. Should open tasks without deadlines ever convert into commitments automatically (for example at the morning check-in), or only when the user chooses?
 22. What exactly counts as a steadfast day: is a bonfire check-in plus one tried task enough, and does a fallen day with a lesson note always count?
 23. What are the right tier thresholds, window length (currently 30 days), and discount sizes?
@@ -844,6 +879,8 @@ Start everyone in gentle mode and only offer hardcore after the basic loop feels
 26. What is the final split between free and paid features?
 27. What do the store policy reviews in 10.6 conclude about discounts earned through in-app behavior, and does iOS need different reward rules from Android?
 28. Should the planning accuracy requirement for the top tier be fixed, or should it ramp up gradually for newer users?
+29. Is 4 AM the right default day rollover time?
+30. Should missed-day attempts be shown differently from declared failures in the attempt history (for example "the bonfire went cold"), so the counter reads as persistence rather than neglect?
 
 ---
 
