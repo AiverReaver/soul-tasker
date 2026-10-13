@@ -2,6 +2,7 @@
 
 Source: `STAGES.md` (Stage 1) and `souls-task-tracker-design.md` (§ numbers below refer to it).
 Status: implemented 2026-10-13. Open items: 200% text check, Android device run.
+Method: TDD (see `STAGES.md`, Development method). Stage 1 was built before this rule was adopted; its tests in section 10 are the backfill. Rework and later stages are test-first.
 
 ---
 
@@ -109,6 +110,12 @@ lib/
     router.dart                 go_router routes
     clock.dart                  clock provider, dayOf(), 4 AM rollover
     ids.dart                    newId() using uuid v4
+  ui/                           stateless, reusable widgets (STAGES.md, "UI components")
+    boss_health_bar.dart        (moved from features/boss; takes segment data)
+    boss_card.dart              (moved from features/home)
+    task_row.dart               (moved from features/boss; presentation only)
+    flash_line.dart             (moved from features/boss)
+    ...                         new widgets are added here before a screen uses them
   data/
     database.dart               @DriftDatabase, schemaVersion, migrations
     tables.dart                 table classes
@@ -145,6 +152,8 @@ drift_schemas/                  schema dumps per version (drift_dev)
 ```
 
 `models.dart` is deleted once every screen reads from Drift.
+
+**UI rule:** widgets under `ui/` are stateless and take values and callbacks only; `features/` screens and containers compose them (see `STAGES.md`, "UI components"). Where this tree lists a presentational widget under `features/`, it belongs in `ui/` instead. Stateful behavior such as `hold_to_strike.dart` stays in `features/` as a container that renders a stateless `ui/` widget. Each `ui/` widget has a widget test in `test/ui/`.
 
 ---
 
@@ -412,7 +421,7 @@ On one small and one large Android screen (or emulator), in airplane mode: run t
 
 ## 11. Build order
 
-Each step ends with `flutter analyze` clean and all tests passing, and is one commit.
+Each step is test-first: write the failing tests named in "Done when" (section 10), see them fail, then write the code to pass them, then refactor. A step ends with `flutter analyze` clean and all tests passing, and is one commit. A bug found later starts with a failing test.
 
 | # | Step | Done when |
 |---|---|---|

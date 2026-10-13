@@ -1,7 +1,39 @@
 # Hearthrise: Build Stages
 
 Source: `souls-task-tracker-design.md`. Section numbers (§) refer to that document.
-Each stage ships something testable and ends with a gate. Do not start the next stage until the gate passes.
+Each stage ships something testable and ends with a gate. Do not start the next stage until the gate passes. Build every stage test-first (see Development method below).
+
+---
+
+## Development method: test-driven development
+
+Every stage, and every plan written for a stage, follows TDD. This is a standing rule, not a per-stage choice.
+
+1. **Red:** write the test for the next behavior first, run it, and see it fail for the right reason.
+2. **Green:** write the smallest code that makes it pass.
+3. **Refactor:** clean up with the tests green.
+
+Rules for every plan:
+
+- Each build-order step lists its tests first, then the code. "Done when" names the tests that must pass, not just what the screen looks like.
+- Logic goes in unit tests (in-memory Drift database, fixed clock). Each screen's main path gets a widget test. Each stage gate also gets an automated test where the gate can be scripted.
+- A bug fix starts with a failing test that reproduces the bug.
+- A step is done only when `flutter analyze` is clean and the full suite passes. One commit per step.
+- Target 80% line coverage for `lib/core` and `lib/data`.
+- Checks that cannot be automated (device feel, 200% text, real haptics) are listed as manual checks in the plan, not skipped.
+
+---
+
+## UI components: `lib/ui/`
+
+Standing rule for every stage and every plan.
+
+- All reusable visual widgets live in `app/lib/ui/`. Screens in `lib/features/` compose them; they do not build their own buttons, rows, cards, bars, sheets or text styles inline.
+- Every `lib/ui/` widget is a `StatelessWidget`. It takes plain values and callbacks (title, weight, progress, `onPressed`), and never reads Riverpod providers, Drift, the router or `Haptics`. Theme tokens (`core/theme.dart`) are the only shared input.
+- Behavior that needs state (hold timer, animation controller, providers) stays in a thin container in `lib/features/`, which passes the current values down to the stateless widget. Animation is passed in as a value (progress, `Animation<double>`), not owned.
+- Before building a screen, check `lib/ui/` for a widget that fits. Use it. If none fits, create a new one in `lib/ui/` first (with its widget test), then use it. Extend an existing one with a parameter only when the new case is the same widget; otherwise add a new one.
+- Swapping a look means editing one file in `lib/ui/`; no feature file should need to change.
+- Each `lib/ui/` widget gets a widget test (renders from given values, fires callbacks) written first, per TDD. Plans list the `ui/` widgets each step uses or adds.
 
 ---
 
@@ -43,6 +75,7 @@ Each stage ships something testable and ends with a gate. Do not start the next 
 ## Stage 2: Feel prototype
 
 **Goal:** prove the Souls feel before building more on it.
+**Detailed plan:** `STAGE2_PLAN.md`.
 
 - Hold-to-strike scaled by weight: 0.3 s / 0.6 s / 1.2 s (§7.1, §7.4).
 - Hold feedback: glow or fill line, building haptics, completion pulse (§7.2).
