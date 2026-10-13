@@ -6,6 +6,7 @@ import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/confirm_dialog.dart';
 import '../strike/hold_to_strike.dart';
 import 'rule_of_three_sheet.dart';
 
@@ -117,20 +118,7 @@ Future<bool> confirm(
 }) async {
   final answer = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: kSurface,
-      content: Text(question, style: Theme.of(context).textTheme.bodyLarge),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Not yet', style: TextStyle(color: kTextMuted)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(action),
-        ),
-      ],
-    ),
+    builder: (_) => ConfirmDialog(question: question, action: action),
   );
   return answer ?? false;
 }

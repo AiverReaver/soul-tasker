@@ -2,6 +2,8 @@
 
 Details for each stage are in `STAGES.md`.
 
+Method for every item below: test first (red, green, refactor). A box is ticked only when its tests pass and `flutter analyze` is clean.
+
 ## Stage 0: Foundations
 - [x] Choose app name (Hearthrise)
 - [ ] Finalize vocabulary (§4)
@@ -48,6 +50,14 @@ Details for each stage are in `STAGES.md`.
 - [x] Tap fallback setting
 - [x] Palette, typography, slow fades
 - [x] Fallen screen dim and quiet line
+- [ ] Haptics off switch (settings, schema v2)
+- [ ] Haptic profile by weight (Light / Heavy / Boss-tier)
+- [ ] Scroll-safe hold (moving finger cancels)
+- [ ] Strike landing sweep (longer for Boss-tier)
+- [ ] Tests for dim, health bar drain, fallen dim and haptic
+- [ ] Feel report (counts only, copy to clipboard)
+- [ ] Tester build (Android release APK)
+- [ ] Developer pass on a real phone
 - [ ] Test with 3 to 5 testers
 - [ ] Apply tuning from feedback
 - [ ] **Gate passed**

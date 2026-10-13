@@ -6,7 +6,7 @@ import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
-import '../boss/boss_health_bar.dart';
+import '../../ui/boss_card_tile.dart';
 
 /// One boss on the home list (§6.1). Long-press for pin and status.
 class BossCard extends ConsumerWidget {
@@ -69,49 +69,18 @@ class BossCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
     final boss = view.boss;
-    final isActive = boss.status == BossStatus.active;
-    return Semantics(
-      label:
-          'Boss ${boss.title}, attempt ${boss.attemptNumber}, '
-          '${(view.health * 100).round()} percent health',
-      button: true,
-      excludeSemantics: true,
-      child: Card(
-        color: kSurface,
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: kAshDim.withValues(alpha: 0.3)),
-        ),
-        child: InkWell(
-          onTap: () => context.push('/boss/${boss.id}'),
-          onLongPress: () => _actions(context, ref),
-          child: Padding(
-            padding: const EdgeInsets.all(Space.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: Text(boss.title, style: text.titleMedium)),
-                    if (boss.isPinned) Text('Pinned', style: text.bodySmall),
-                  ],
-                ),
-                const SizedBox(height: Space.xs),
-                Text(
-                  'Attempt ${boss.attemptNumber} · $_progress',
-                  style: text.bodySmall,
-                ),
-                if (isActive && view.hasSegments) ...[
-                  const SizedBox(height: Space.sm),
-                  BossHealthBar(view: view, height: 6),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
+    return BossCardTile(
+      title: boss.title,
+      attemptNumber: boss.attemptNumber,
+      progressLabel: _progress,
+      health: view.health,
+      isPinned: boss.isPinned,
+      healthGroups: boss.status == BossStatus.active && view.hasSegments
+          ? view.healthGroups
+          : null,
+      onTap: () => context.push('/boss/${boss.id}'),
+      onLongPress: () => _actions(context, ref),
     );
   }
 }

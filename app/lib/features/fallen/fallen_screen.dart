@@ -1,6 +1,6 @@
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/haptics.dart';
 import '../../core/theme.dart';
 
 /// The fallen moment (§5.5): slow dim, one quiet line, one question.
@@ -10,8 +10,8 @@ class FallenScreen extends StatefulWidget {
 
   static const _dimIn = Motion.dim;
 
-  static Future<String?> show(BuildContext context) {
-    HapticFeedback.heavyImpact();
+  static Future<String?> show(BuildContext context, Haptics haptics) {
+    haptics.heavy();
     return Navigator.of(context).push<String>(
       PageRouteBuilder(
         opaque: false,
@@ -93,7 +93,8 @@ class _FallenScreenState extends State<FallenScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.pop(context, _lesson.text),
+                    onPressed: () =>
+                        Navigator.pop(context, _lesson.text.trim()),
                     child: const Text(
                       'Rise',
                       style: TextStyle(color: kEmber, fontSize: 16),

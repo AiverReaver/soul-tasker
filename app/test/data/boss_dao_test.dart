@@ -158,4 +158,14 @@ void main() {
     expect(s.tapMode, isTrue);
     expect(s.defaultResetOnFail, ResetOnFail.wholeBoss);
   });
+
+  test('haptics default on and the choice persists', () async {
+    expect((await h.settings.watch().first).haptics, isTrue);
+
+    await h.settings.setHaptics(false);
+    expect((await h.settings.watch().first).haptics, isFalse);
+
+    await h.settings.setHaptics(true);
+    expect((await h.settings.watch().first).haptics, isTrue);
+  });
 }

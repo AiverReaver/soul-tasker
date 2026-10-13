@@ -6,6 +6,7 @@ import 'boss_dao.dart';
 import 'boss_view.dart';
 import 'database.dart';
 import 'enums.dart';
+import 'feel_report_data.dart';
 
 /// What the UI should show after a strike.
 class StrikeResult {
@@ -36,6 +37,7 @@ class AttemptDao {
     required Outcome outcome,
     required DateTime now,
     String? taskId,
+    Weight? weight,
     String? phaseId,
     FallCause? cause,
     String? lesson,
@@ -49,6 +51,7 @@ class AttemptDao {
             taskId: Value(taskId),
             bossAttempt: boss.attemptNumber,
             outcome: outcome,
+            weight: Value(weight),
             cause: Value(cause),
             phaseId: Value(phaseId),
             lesson: Value(lesson),
@@ -74,6 +77,7 @@ class AttemptDao {
         outcome: Outcome.strike,
         now: _clock(),
         taskId: taskId,
+        weight: task.weight,
       );
       final after = await _bosses.loadBoss(task.bossId);
       return StrikeResult(
@@ -92,6 +96,7 @@ class AttemptDao {
         outcome: Outcome.tried,
         now: _clock(),
         taskId: taskId,
+        weight: task.weight,
       );
       final history = await _bosses.loadAttempts(bossId: task.bossId);
       return isRuleOfThree(triesSinceStrike(taskId, history));
@@ -129,6 +134,28 @@ class AttemptDao {
       final history = await _bosses.loadAttempts(bossId: bossId);
       return isRuleOfThree(samePhaseFallRun(bossId, history));
     });
+  }
+
+  /// What the feel report counts (plan D13): outcome, weight and lesson
+  /// presence per attempt, never titles or lesson text.
+  Future<FeelReportData> feelReportData() async {
+    final attempts = await _db.select(_db.attempts).get();
+    final bosses = await _db.select(_db.bosses).get();
+    final created = bosses.map((b) => b.createdAt);
+    return FeelReportData(
+      attempts: [
+        for (final a in attempts)
+          FeelAttempt(
+            outcome: a.outcome,
+            weight: a.weight,
+            hasLesson: a.lesson != null,
+          ),
+      ],
+      since: created.isEmpty
+          ? null
+          : created.reduce((a, b) => a.isBefore(b) ? a : b),
+      settings: await _db.select(_db.settings).getSingle(),
+    );
   }
 
   Future<void> _reset(

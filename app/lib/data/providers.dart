@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/clock.dart';
+import '../core/haptics.dart';
 import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
@@ -40,4 +41,10 @@ final bossDetailProvider = StreamProvider.family<BossView?, String>(
 
 final settingsProvider = StreamProvider(
   (ref) => ref.watch(settingsDaoProvider).watch(),
+);
+
+/// Reads the setting on every haptic rather than watching it, so one object
+/// stays valid for the life of the app (D10). On while settings load.
+final hapticsProvider = Provider(
+  (ref) => Haptics(() => ref.read(settingsProvider).value?.haptics ?? true),
 );

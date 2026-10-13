@@ -7,8 +7,8 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../fallen/fallen_screen.dart';
-import 'boss_health_bar.dart';
-import 'flash_line.dart';
+import '../../ui/boss_health_bar.dart';
+import '../../ui/flash_line.dart';
 import 'rule_of_three_sheet.dart';
 import 'task_row.dart';
 
@@ -36,7 +36,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
   }
 
   Future<void> _fall() async {
-    final lesson = await FallenScreen.show(context);
+    final lesson = await FallenScreen.show(context, ref.read(hapticsProvider));
     if (!mounted) return;
     final prompt = await ref
         .read(attemptDaoProvider)
@@ -137,7 +137,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         ],
         const SizedBox(height: 20),
         if (view.hasSegments)
-          BossHealthBar(view: view)
+          BossHealthBar(groups: view.healthGroups, health: view.health)
         else
           Text('This foe is worn down by habit.', style: text.bodySmall),
         const SizedBox(height: Space.md),

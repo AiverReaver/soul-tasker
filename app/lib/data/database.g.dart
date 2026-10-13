@@ -1984,6 +1984,15 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<Weight?, int> weight =
+      GeneratedColumn<int>(
+        'weight',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<Weight?>($AttemptsTable.$converterweightn);
   static const VerificationMeta _dayMeta = const VerificationMeta('day');
   @override
   late final GeneratedColumn<String> day = GeneratedColumn<String>(
@@ -2012,6 +2021,7 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
     cause,
     phaseId,
     lesson,
+    weight,
     day,
     at,
   ];
@@ -2127,6 +2137,12 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
         DriftSqlType.string,
         data['${effectivePrefix}lesson'],
       ),
+      weight: $AttemptsTable.$converterweightn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}weight'],
+        ),
+      ),
       day: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}day'],
@@ -2149,6 +2165,10 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
       const EnumIndexConverter<FallCause>(FallCause.values);
   static JsonTypeConverter2<FallCause?, int?, int?> $convertercausen =
       JsonTypeConverter2.asNullable($convertercause);
+  static JsonTypeConverter2<Weight, int, int> $converterweight =
+      const EnumIndexConverter<Weight>(Weight.values);
+  static JsonTypeConverter2<Weight?, int?, int?> $converterweightn =
+      JsonTypeConverter2.asNullable($converterweight);
 }
 
 class Attempt extends DataClass implements Insertable<Attempt> {
@@ -2160,6 +2180,10 @@ class Attempt extends DataClass implements Insertable<Attempt> {
   final FallCause? cause;
   final String? phaseId;
   final String? lesson;
+
+  /// The task's weight when the attempt was recorded (D12). Null for falls
+  /// and for rows written before schema v2.
+  final Weight? weight;
   final String day;
   final DateTime at;
   const Attempt({
@@ -2171,6 +2195,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     this.cause,
     this.phaseId,
     this.lesson,
+    this.weight,
     required this.day,
     required this.at,
   });
@@ -2199,6 +2224,11 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     if (!nullToAbsent || lesson != null) {
       map['lesson'] = Variable<String>(lesson);
     }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<int>(
+        $AttemptsTable.$converterweightn.toSql(weight),
+      );
+    }
     map['day'] = Variable<String>(day);
     map['at'] = Variable<DateTime>(at);
     return map;
@@ -2222,6 +2252,9 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       lesson: lesson == null && nullToAbsent
           ? const Value.absent()
           : Value(lesson),
+      weight: weight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weight),
       day: Value(day),
       at: Value(at),
     );
@@ -2245,6 +2278,9 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       ),
       phaseId: serializer.fromJson<String?>(json['phaseId']),
       lesson: serializer.fromJson<String?>(json['lesson']),
+      weight: $AttemptsTable.$converterweightn.fromJson(
+        serializer.fromJson<int?>(json['weight']),
+      ),
       day: serializer.fromJson<String>(json['day']),
       at: serializer.fromJson<DateTime>(json['at']),
     );
@@ -2265,6 +2301,9 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       ),
       'phaseId': serializer.toJson<String?>(phaseId),
       'lesson': serializer.toJson<String?>(lesson),
+      'weight': serializer.toJson<int?>(
+        $AttemptsTable.$converterweightn.toJson(weight),
+      ),
       'day': serializer.toJson<String>(day),
       'at': serializer.toJson<DateTime>(at),
     };
@@ -2279,6 +2318,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     Value<FallCause?> cause = const Value.absent(),
     Value<String?> phaseId = const Value.absent(),
     Value<String?> lesson = const Value.absent(),
+    Value<Weight?> weight = const Value.absent(),
     String? day,
     DateTime? at,
   }) => Attempt(
@@ -2290,6 +2330,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     cause: cause.present ? cause.value : this.cause,
     phaseId: phaseId.present ? phaseId.value : this.phaseId,
     lesson: lesson.present ? lesson.value : this.lesson,
+    weight: weight.present ? weight.value : this.weight,
     day: day ?? this.day,
     at: at ?? this.at,
   );
@@ -2305,6 +2346,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       cause: data.cause.present ? data.cause.value : this.cause,
       phaseId: data.phaseId.present ? data.phaseId.value : this.phaseId,
       lesson: data.lesson.present ? data.lesson.value : this.lesson,
+      weight: data.weight.present ? data.weight.value : this.weight,
       day: data.day.present ? data.day.value : this.day,
       at: data.at.present ? data.at.value : this.at,
     );
@@ -2321,6 +2363,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
           ..write('cause: $cause, ')
           ..write('phaseId: $phaseId, ')
           ..write('lesson: $lesson, ')
+          ..write('weight: $weight, ')
           ..write('day: $day, ')
           ..write('at: $at')
           ..write(')'))
@@ -2337,6 +2380,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     cause,
     phaseId,
     lesson,
+    weight,
     day,
     at,
   );
@@ -2352,6 +2396,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
           other.cause == this.cause &&
           other.phaseId == this.phaseId &&
           other.lesson == this.lesson &&
+          other.weight == this.weight &&
           other.day == this.day &&
           other.at == this.at);
 }
@@ -2365,6 +2410,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
   final Value<FallCause?> cause;
   final Value<String?> phaseId;
   final Value<String?> lesson;
+  final Value<Weight?> weight;
   final Value<String> day;
   final Value<DateTime> at;
   final Value<int> rowid;
@@ -2377,6 +2423,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     this.cause = const Value.absent(),
     this.phaseId = const Value.absent(),
     this.lesson = const Value.absent(),
+    this.weight = const Value.absent(),
     this.day = const Value.absent(),
     this.at = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2390,6 +2437,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     this.cause = const Value.absent(),
     this.phaseId = const Value.absent(),
     this.lesson = const Value.absent(),
+    this.weight = const Value.absent(),
     required String day,
     required DateTime at,
     this.rowid = const Value.absent(),
@@ -2408,6 +2456,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     Expression<int>? cause,
     Expression<String>? phaseId,
     Expression<String>? lesson,
+    Expression<int>? weight,
     Expression<String>? day,
     Expression<DateTime>? at,
     Expression<int>? rowid,
@@ -2421,6 +2470,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
       if (cause != null) 'cause': cause,
       if (phaseId != null) 'phase_id': phaseId,
       if (lesson != null) 'lesson': lesson,
+      if (weight != null) 'weight': weight,
       if (day != null) 'day': day,
       if (at != null) 'at': at,
       if (rowid != null) 'rowid': rowid,
@@ -2436,6 +2486,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     Value<FallCause?>? cause,
     Value<String?>? phaseId,
     Value<String?>? lesson,
+    Value<Weight?>? weight,
     Value<String>? day,
     Value<DateTime>? at,
     Value<int>? rowid,
@@ -2449,6 +2500,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
       cause: cause ?? this.cause,
       phaseId: phaseId ?? this.phaseId,
       lesson: lesson ?? this.lesson,
+      weight: weight ?? this.weight,
       day: day ?? this.day,
       at: at ?? this.at,
       rowid: rowid ?? this.rowid,
@@ -2486,6 +2538,11 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     if (lesson.present) {
       map['lesson'] = Variable<String>(lesson.value);
     }
+    if (weight.present) {
+      map['weight'] = Variable<int>(
+        $AttemptsTable.$converterweightn.toSql(weight.value),
+      );
+    }
     if (day.present) {
       map['day'] = Variable<String>(day.value);
     }
@@ -2509,6 +2566,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
           ..write('cause: $cause, ')
           ..write('phaseId: $phaseId, ')
           ..write('lesson: $lesson, ')
+          ..write('weight: $weight, ')
           ..write('day: $day, ')
           ..write('at: $at, ')
           ..write('rowid: $rowid')
@@ -2558,8 +2616,28 @@ class $SettingsTable extends Settings
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   ).withConverter<ResetOnFail>($SettingsTable.$converterdefaultResetOnFail);
+  static const VerificationMeta _hapticsMeta = const VerificationMeta(
+    'haptics',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, tapMode, defaultResetOnFail];
+  late final GeneratedColumn<bool> haptics = GeneratedColumn<bool>(
+    'haptics',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("haptics" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    tapMode,
+    defaultResetOnFail,
+    haptics,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2579,6 +2657,12 @@ class $SettingsTable extends Settings
       context.handle(
         _tapModeMeta,
         tapMode.isAcceptableOrUnknown(data['tap_mode']!, _tapModeMeta),
+      );
+    }
+    if (data.containsKey('haptics')) {
+      context.handle(
+        _hapticsMeta,
+        haptics.isAcceptableOrUnknown(data['haptics']!, _hapticsMeta),
       );
     }
     return context;
@@ -2604,6 +2688,10 @@ class $SettingsTable extends Settings
           data['${effectivePrefix}default_reset_on_fail'],
         )!,
       ),
+      haptics: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}haptics'],
+      )!,
     );
   }
 
@@ -2622,10 +2710,12 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
   final int id;
   final bool tapMode;
   final ResetOnFail defaultResetOnFail;
+  final bool haptics;
   const AppSettings({
     required this.id,
     required this.tapMode,
     required this.defaultResetOnFail,
+    required this.haptics,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2637,6 +2727,7 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
         $SettingsTable.$converterdefaultResetOnFail.toSql(defaultResetOnFail),
       );
     }
+    map['haptics'] = Variable<bool>(haptics);
     return map;
   }
 
@@ -2645,6 +2736,7 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       id: Value(id),
       tapMode: Value(tapMode),
       defaultResetOnFail: Value(defaultResetOnFail),
+      haptics: Value(haptics),
     );
   }
 
@@ -2659,6 +2751,7 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       defaultResetOnFail: $SettingsTable.$converterdefaultResetOnFail.fromJson(
         serializer.fromJson<int>(json['defaultResetOnFail']),
       ),
+      haptics: serializer.fromJson<bool>(json['haptics']),
     );
   }
   @override
@@ -2670,6 +2763,7 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       'defaultResetOnFail': serializer.toJson<int>(
         $SettingsTable.$converterdefaultResetOnFail.toJson(defaultResetOnFail),
       ),
+      'haptics': serializer.toJson<bool>(haptics),
     };
   }
 
@@ -2677,10 +2771,12 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     int? id,
     bool? tapMode,
     ResetOnFail? defaultResetOnFail,
+    bool? haptics,
   }) => AppSettings(
     id: id ?? this.id,
     tapMode: tapMode ?? this.tapMode,
     defaultResetOnFail: defaultResetOnFail ?? this.defaultResetOnFail,
+    haptics: haptics ?? this.haptics,
   );
   AppSettings copyWithCompanion(SettingsCompanion data) {
     return AppSettings(
@@ -2689,6 +2785,7 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       defaultResetOnFail: data.defaultResetOnFail.present
           ? data.defaultResetOnFail.value
           : this.defaultResetOnFail,
+      haptics: data.haptics.present ? data.haptics.value : this.haptics,
     );
   }
 
@@ -2697,46 +2794,53 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     return (StringBuffer('AppSettings(')
           ..write('id: $id, ')
           ..write('tapMode: $tapMode, ')
-          ..write('defaultResetOnFail: $defaultResetOnFail')
+          ..write('defaultResetOnFail: $defaultResetOnFail, ')
+          ..write('haptics: $haptics')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, tapMode, defaultResetOnFail);
+  int get hashCode => Object.hash(id, tapMode, defaultResetOnFail, haptics);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AppSettings &&
           other.id == this.id &&
           other.tapMode == this.tapMode &&
-          other.defaultResetOnFail == this.defaultResetOnFail);
+          other.defaultResetOnFail == this.defaultResetOnFail &&
+          other.haptics == this.haptics);
 }
 
 class SettingsCompanion extends UpdateCompanion<AppSettings> {
   final Value<int> id;
   final Value<bool> tapMode;
   final Value<ResetOnFail> defaultResetOnFail;
+  final Value<bool> haptics;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.tapMode = const Value.absent(),
     this.defaultResetOnFail = const Value.absent(),
+    this.haptics = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     this.tapMode = const Value.absent(),
     this.defaultResetOnFail = const Value.absent(),
+    this.haptics = const Value.absent(),
   });
   static Insertable<AppSettings> custom({
     Expression<int>? id,
     Expression<bool>? tapMode,
     Expression<int>? defaultResetOnFail,
+    Expression<bool>? haptics,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (tapMode != null) 'tap_mode': tapMode,
       if (defaultResetOnFail != null)
         'default_reset_on_fail': defaultResetOnFail,
+      if (haptics != null) 'haptics': haptics,
     });
   }
 
@@ -2744,11 +2848,13 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     Value<int>? id,
     Value<bool>? tapMode,
     Value<ResetOnFail>? defaultResetOnFail,
+    Value<bool>? haptics,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       tapMode: tapMode ?? this.tapMode,
       defaultResetOnFail: defaultResetOnFail ?? this.defaultResetOnFail,
+      haptics: haptics ?? this.haptics,
     );
   }
 
@@ -2768,6 +2874,9 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
         ),
       );
     }
+    if (haptics.present) {
+      map['haptics'] = Variable<bool>(haptics.value);
+    }
     return map;
   }
 
@@ -2776,7 +2885,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     return (StringBuffer('SettingsCompanion(')
           ..write('id: $id, ')
           ..write('tapMode: $tapMode, ')
-          ..write('defaultResetOnFail: $defaultResetOnFail')
+          ..write('defaultResetOnFail: $defaultResetOnFail, ')
+          ..write('haptics: $haptics')
           ..write(')'))
         .toString();
   }
@@ -4618,6 +4728,7 @@ typedef $$AttemptsTableCreateCompanionBuilder = AttemptsCompanion Function({
   Value<FallCause?> cause,
   Value<String?> phaseId,
   Value<String?> lesson,
+  Value<Weight?> weight,
   required String day,
   required DateTime at,
   Value<int> rowid,
@@ -4631,6 +4742,7 @@ typedef $$AttemptsTableUpdateCompanionBuilder = AttemptsCompanion Function({
   Value<FallCause?> cause,
   Value<String?> phaseId,
   Value<String?> lesson,
+  Value<Weight?> weight,
   Value<String> day,
   Value<DateTime> at,
   Value<int> rowid,
@@ -4727,6 +4839,12 @@ class $$AttemptsTableFilterComposer
     column: $table.lesson,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<Weight?, Weight, int> get weight =>
+      $composableBuilder(
+        column: $table.weight,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<String> get day => $composableBuilder(
     column: $table.day,
@@ -4842,6 +4960,11 @@ class $$AttemptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get weight => $composableBuilder(
+    column: $table.weight,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get day => $composableBuilder(
     column: $table.day,
     builder: (column) => ColumnOrderings(column),
@@ -4947,6 +5070,9 @@ class $$AttemptsTableAnnotationComposer
 
   GeneratedColumn<String> get lesson =>
       $composableBuilder(column: $table.lesson, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Weight?, int> get weight =>
+      $composableBuilder(column: $table.weight, builder: (column) => column);
 
   GeneratedColumn<String> get day =>
       $composableBuilder(column: $table.day, builder: (column) => column);
@@ -5060,6 +5186,7 @@ class $$AttemptsTableTableManager
                 Value<FallCause?> cause = const Value.absent(),
                 Value<String?> phaseId = const Value.absent(),
                 Value<String?> lesson = const Value.absent(),
+                Value<Weight?> weight = const Value.absent(),
                 Value<String> day = const Value.absent(),
                 Value<DateTime> at = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -5072,6 +5199,7 @@ class $$AttemptsTableTableManager
                 cause: cause,
                 phaseId: phaseId,
                 lesson: lesson,
+                weight: weight,
                 day: day,
                 at: at,
                 rowid: rowid,
@@ -5086,6 +5214,7 @@ class $$AttemptsTableTableManager
                 Value<FallCause?> cause = const Value.absent(),
                 Value<String?> phaseId = const Value.absent(),
                 Value<String?> lesson = const Value.absent(),
+                Value<Weight?> weight = const Value.absent(),
                 required String day,
                 required DateTime at,
                 Value<int> rowid = const Value.absent(),
@@ -5098,6 +5227,7 @@ class $$AttemptsTableTableManager
                 cause: cause,
                 phaseId: phaseId,
                 lesson: lesson,
+                weight: weight,
                 day: day,
                 at: at,
                 rowid: rowid,
@@ -5194,11 +5324,13 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<bool> tapMode,
   Value<ResetOnFail> defaultResetOnFail,
+  Value<bool> haptics,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<bool> tapMode,
   Value<ResetOnFail> defaultResetOnFail,
+  Value<bool> haptics,
 });
 
 class $$SettingsTableFilterComposer
@@ -5225,6 +5357,11 @@ class $$SettingsTableFilterComposer
     column: $table.defaultResetOnFail,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
+
+  ColumnFilters<bool> get haptics => $composableBuilder(
+    column: $table.haptics,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$SettingsTableOrderingComposer
@@ -5250,6 +5387,11 @@ class $$SettingsTableOrderingComposer
     column: $table.defaultResetOnFail,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get haptics => $composableBuilder(
+    column: $table.haptics,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -5272,6 +5414,9 @@ class $$SettingsTableAnnotationComposer
         column: $table.defaultResetOnFail,
         builder: (column) => column,
       );
+
+  GeneratedColumn<bool> get haptics =>
+      $composableBuilder(column: $table.haptics, builder: (column) => column);
 }
 
 class $$SettingsTableTableManager
@@ -5308,20 +5453,24 @@ class $$SettingsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<bool> tapMode = const Value.absent(),
                 Value<ResetOnFail> defaultResetOnFail = const Value.absent(),
+                Value<bool> haptics = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 tapMode: tapMode,
                 defaultResetOnFail: defaultResetOnFail,
+                haptics: haptics,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<bool> tapMode = const Value.absent(),
                 Value<ResetOnFail> defaultResetOnFail = const Value.absent(),
+                Value<bool> haptics = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 tapMode: tapMode,
                 defaultResetOnFail: defaultResetOnFail,
+                haptics: haptics,
               ),
           withReferenceMapper: (p0) => p0
               .map(

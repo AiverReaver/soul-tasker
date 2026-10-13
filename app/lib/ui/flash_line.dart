@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/theme.dart';
+import '../core/theme.dart';
 
 /// The one quiet line a screen speaks after an action ("It is done.").
 class FlashLine extends StatelessWidget {
