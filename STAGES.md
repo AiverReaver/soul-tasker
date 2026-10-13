@@ -22,8 +22,9 @@ Each stage ships something testable and ends with a gate. Do not start the next 
 ## Stage 1: Core loop, local only
 
 **Goal:** fight a boss, fail, learn, try again. Fully offline.
+**Detailed plan:** `STAGE1_PLAN.md`.
 
-- Flutter project: Riverpod, Drift, go_router, freezed (§10.1). Feature-based structure (§10.3).
+- Flutter project: Riverpod, Drift, go_router (§10.1); freezed deferred until a type needs it (STAGE1_PLAN.md D4). Feature-based structure (§10.3).
 - Move the Stage 2 feel prototype (`hold_to_strike`, `boss_health_bar`, `fallen_screen`, `theme`) into the feature structure, and replace the in-memory `models.dart` with Drift tables. Keep `feel_test.dart` passing.
 - Bosses: unlimited, active / waiting / defeated, focus pin (§5.1).
 - Phases with order and reordering (§5.2).

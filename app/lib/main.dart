@@ -1,20 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
-import 'boss_screen.dart';
-import 'theme.dart';
+import 'app.dart';
 
-void main() => runApp(const HearthriseApp());
-
-class HearthriseApp extends StatelessWidget {
-  const HearthriseApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Hearthrise',
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
-      home: const BossScreen(),
-    );
-  }
-}
+void main() => runApp(const ProviderScope(child: HearthriseApp()));

@@ -18,22 +18,25 @@ Details for each stage are in `STAGES.md`.
 - [ ] **Gate passed**
 
 ## Stage 1: Core loop, local only
-- [ ] Flutter project with Riverpod, Drift, go_router, freezed
-- [ ] Feature-based folder structure
-- [ ] Move feel prototype into feature structure; replace in-memory models with Drift
-- [ ] Boss: create, edit, status (active / waiting / defeated)
-- [ ] Boss focus pin
-- [ ] Phases: create, order, reorder
-- [ ] Tasks: weight, one-time / recurring
-- [ ] Strike and Tried outcomes
-- [ ] Attempt counter (declared failure)
-- [ ] Per-boss reset setting: nothing / current phase / whole boss
-- [ ] Fallen flow with lesson note
-- [ ] "Attempt N. Last time: …" line
-- [ ] Rule of three prompt
-- [ ] Home boss cards
-- [ ] Today view grouped by boss, with filter
-- [ ] **Gate passed:** fail, write lesson, see it next attempt, offline
+- [x] Flutter project with Riverpod, Drift, go_router (freezed deferred, see STAGE1_PLAN.md D4)
+- [x] Feature-based folder structure
+- [x] Move feel prototype into feature structure; replace in-memory models with Drift
+- [x] Boss: create, edit, status (active / waiting / defeated)
+- [x] Boss focus pin
+- [x] Phases: create, order, reorder
+- [x] Tasks: weight, one-time / recurring
+- [x] Strike and Tried outcomes
+- [x] Attempt counter (declared failure)
+- [x] Per-boss reset setting: nothing / current phase / whole boss
+- [x] Fallen flow with lesson note
+- [x] "Attempt N. Last time: …" line
+- [x] Rule of three prompt
+- [x] Home boss cards
+- [x] Today view grouped by boss, with filter
+- [x] Reduced motion and 48 dp targets (in code)
+- [ ] 200% text scale check on a device
+- [ ] Run the gate on an Android device or emulator (no Android SDK on the dev Mac yet)
+- [x] **Gate passed:** fail, write lesson, see it next attempt, offline (gate_test.dart and iOS simulator)
 
 ## Stage 2: Feel prototype
 - [x] Hold-to-strike with weight durations (0.3 / 0.6 / 1.2 s)

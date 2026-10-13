@@ -1,0 +1,21 @@
+import 'package:go_router/go_router.dart';
+
+import '../features/boss/boss_screen.dart';
+import '../features/boss_edit/boss_edit_screen.dart';
+import '../features/home/home_screen.dart';
+
+GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
+  initialLocation: initialLocation,
+  routes: [
+    GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+    GoRoute(path: '/boss/new', builder: (_, _) => const BossEditScreen()),
+    GoRoute(
+      path: '/boss/:id',
+      builder: (_, state) => BossScreen(bossId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/boss/:id/edit',
+      builder: (_, state) => BossEditScreen(bossId: state.pathParameters['id']),
+    ),
+  ],
+);

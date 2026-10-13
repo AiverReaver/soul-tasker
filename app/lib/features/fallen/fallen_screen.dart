@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
-import 'theme.dart';
+import '../../core/theme.dart';
 
 /// The fallen moment (§5.5): slow dim, one quiet line, one question.
 /// Pops with the lesson text, or null if skipped.
@@ -15,8 +15,8 @@ class FallenScreen extends StatefulWidget {
     return Navigator.of(context).push<String>(
       PageRouteBuilder(
         opaque: false,
-        transitionDuration: _dimIn,
-        reverseTransitionDuration: kSlowFade,
+        transitionDuration: motionOf(context, _dimIn),
+        reverseTransitionDuration: motionOf(context, kSlowFade),
         pageBuilder: (_, _, _) => const FallenScreen(),
         transitionsBuilder: (_, animation, _, child) => FadeTransition(
           opacity: CurvedAnimation(parent: animation, curve: Curves.easeIn),
@@ -87,7 +87,10 @@ class _FallenScreenState extends State<FallenScreen> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Skip', style: TextStyle(color: kTextMuted)),
+                    child: const Text(
+                      'Skip',
+                      style: TextStyle(color: kTextMuted),
+                    ),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, _lesson.text),

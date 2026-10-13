@@ -1,0 +1,11 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Text timestamps keep sub-second precision, so event order is exact.
+          store_date_time_values_as_text: true
+          databases:
+            hearthrise: lib/data/database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/drift/
