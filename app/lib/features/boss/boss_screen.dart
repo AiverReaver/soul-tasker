@@ -36,7 +36,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
   }
 
   Future<void> _fall() async {
-    final lesson = await FallenScreen.show(context);
+    final lesson = await FallenScreen.show(context, ref.read(hapticsProvider));
     if (!mounted) return;
     final prompt = await ref
         .read(attemptDaoProvider)

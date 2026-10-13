@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
+import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
 
 import 'harness.dart';
@@ -208,6 +209,63 @@ void main() {
       expect(await h.attempts.fall(view.boss.id, null), isFalse);
       expect(await h.attempts.fall(view.boss.id, null), isFalse);
       expect(await h.attempts.fall(view.boss.id, null), isTrue);
+    });
+  });
+
+  group('attempt weight (D12)', () {
+    Future<List<Attempt>> rows() => h.db.select(h.db.attempts).get();
+
+    test(
+      'a strike and a tried record the task weight; a fall stores null',
+      () async {
+        final view = await h.seed();
+        await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
+        await h.attempts.tried(taskNamed(view, 'Read chapter 4').task.id);
+        await h.attempts.strike(taskNamed(view, 'Sit the exam').task.id);
+        await h.attempts.fall(view.boss.id, null);
+
+        expect((await rows()).map((a) => (a.outcome, a.weight)), [
+          (Outcome.strike, Weight.light),
+          (Outcome.tried, Weight.heavy),
+          (Outcome.strike, Weight.bossTier),
+          (Outcome.fallen, null),
+        ]);
+      },
+    );
+
+    test('editing the task weight later leaves the stored weight', () async {
+      final view = await h.seed();
+      await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
+
+      final draft = BossDraft.fromView(view);
+      await h.bosses.saveBoss(
+        draft.copyWith(
+          phases: [
+            for (final p in draft.phases)
+              p.copyWith(
+                tasks: [
+                  for (final t in p.tasks)
+                    t.title == 'Flashcards'
+                        ? t.copyWith(weight: Weight.bossTier)
+                        : t,
+                ],
+              ),
+          ],
+        ),
+      );
+
+      expect((await rows()).single.weight, Weight.light);
+    });
+
+    test('deleting the task leaves the stored weight', () async {
+      final view = await h.seed();
+      final id = taskNamed(view, 'Flashcards').task.id;
+      await h.attempts.strike(id);
+      await h.bosses.deleteTask(id);
+
+      final row = (await rows()).single;
+      expect(row.taskId, isNull);
+      expect(row.weight, Weight.light);
     });
   });
 

@@ -75,6 +75,10 @@ class Attempts extends Table {
   TextColumn get phaseId =>
       text().nullable().references(Phases, #id, onDelete: KeyAction.setNull)();
   TextColumn get lesson => text().nullable().withLength(max: 120)();
+
+  /// The task's weight when the attempt was recorded (D12). Null for falls
+  /// and for rows written before schema v2.
+  IntColumn get weight => intEnum<Weight>().nullable()();
   TextColumn get day => text()();
   DateTimeColumn get at => dateTime()();
 
@@ -88,6 +92,7 @@ class Settings extends Table {
   BoolColumn get tapMode => boolean().withDefault(const Constant(false))();
   IntColumn get defaultResetOnFail =>
       intEnum<ResetOnFail>().withDefault(const Constant(0))();
+  BoolColumn get haptics => boolean().withDefault(const Constant(true))();
 
   @override
   Set<Column> get primaryKey => {id};

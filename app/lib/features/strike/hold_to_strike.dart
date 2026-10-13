@@ -1,12 +1,15 @@
-import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart' show kTouchSlop;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme.dart';
 import '../../data/enums.dart';
+import '../../data/providers.dart';
+import 'strike_sweep.dart';
 
 /// Hold to complete (design doc §7). Release early rolls progress back.
 /// [tapMode] turns the hold into a single tap for accessibility (§7.5).
-class HoldToStrike extends StatefulWidget {
+class HoldToStrike extends ConsumerStatefulWidget {
   const HoldToStrike({
     super.key,
     required this.title,
@@ -27,13 +30,15 @@ class HoldToStrike extends StatefulWidget {
   final Widget? trailing;
 
   @override
-  State<HoldToStrike> createState() => _HoldToStrikeState();
+  ConsumerState<HoldToStrike> createState() => _HoldToStrikeState();
 }
 
-class _HoldToStrikeState extends State<HoldToStrike>
-    with SingleTickerProviderStateMixin {
-  static const _tickCount = 4;
+class _HoldToStrikeState extends ConsumerState<HoldToStrike>
+    with TickerProviderStateMixin {
   static const _rollbackDuration = Motion.quick;
+
+  /// The landing sweep (§7.2); its length is set per strike.
+  late final AnimationController _sweep = AnimationController(vsync: this);
 
   late final AnimationController _progress =
       AnimationController(
@@ -44,7 +49,10 @@ class _HoldToStrikeState extends State<HoldToStrike>
         ..addListener(_hapticTick)
         ..addStatusListener(_onStatus);
 
-  int _lastTick = 0;
+  int _lastBeat = 0;
+
+  /// Where the current press began; null once it has turned into a scroll.
+  Offset? _downAt;
 
   @override
   void didUpdateWidget(HoldToStrike old) {
@@ -57,18 +65,25 @@ class _HoldToStrikeState extends State<HoldToStrike>
   @override
   void dispose() {
     _progress.dispose();
+    _sweep.dispose();
     super.dispose();
   }
 
-  // Light ticks that build as the hold continues (§7.2, §8.3).
+  // Ticks that build as the hold continues (§7.2, §8.3). Beat n fires when
+  // the hold passes n / (beats + 1); the strike is the last step.
   void _hapticTick() {
-    final tick = (_progress.value * _tickCount).floor();
-    if (_progress.status == AnimationStatus.forward && tick > _lastTick) {
-      tick >= _tickCount - 1
-          ? HapticFeedback.mediumImpact()
-          : HapticFeedback.selectionClick();
+    final weight = widget.weight;
+    final beats = weight.buildUpTicks + (weight.hasBuildUpPulse ? 1 : 0);
+    final beat = (_progress.value * (beats + 1)).floor();
+    if (_progress.status == AnimationStatus.forward &&
+        beat > _lastBeat &&
+        beat <= beats) {
+      final haptics = ref.read(hapticsProvider);
+      beat == beats && weight.hasBuildUpPulse
+          ? haptics.medium()
+          : haptics.tick();
     }
-    _lastTick = tick;
+    _lastBeat = beat;
   }
 
   void _onStatus(AnimationStatus status) {
@@ -76,14 +91,36 @@ class _HoldToStrikeState extends State<HoldToStrike>
   }
 
   void _land() {
-    widget.weight == Weight.light
-        ? HapticFeedback.lightImpact()
-        : HapticFeedback.heavyImpact();
+    final haptics = ref.read(hapticsProvider);
+    switch (widget.weight) {
+      case Weight.light:
+        haptics.light();
+      case Weight.heavy:
+        haptics.heavy();
+      case Weight.bossTier:
+        haptics.doubleHeavy();
+    }
+    final sweepLength = motionOf(context, sweepDuration(widget.weight));
+    if (sweepLength > Duration.zero) {
+      _sweep
+        ..duration = sweepLength
+        ..forward(from: 0);
+    }
     widget.onStrike();
   }
 
-  void _start() {
+  void _start(Offset position) {
+    _downAt = position;
     if (!widget.isDone) _progress.forward();
+  }
+
+  // A finger that travels past touch slop is scrolling, not holding (§7.1).
+  void _onMove(Offset position) {
+    final downAt = _downAt;
+    if (downAt != null && (position - downAt).distance > kTouchSlop) {
+      _downAt = null;
+      _cancel();
+    }
   }
 
   void _cancel() {
@@ -93,12 +130,13 @@ class _HoldToStrikeState extends State<HoldToStrike>
   @override
   Widget build(BuildContext context) {
     final content = AnimatedBuilder(
-      animation: _progress,
+      animation: Listenable.merge([_progress, _sweep]),
       builder: (context, _) => _TaskRow(
         title: widget.title,
         weight: widget.weight,
         isDone: widget.isDone,
         progress: _progress.value,
+        sweepProgress: _sweep.isAnimating ? _sweep.value : null,
         trailing: widget.trailing,
       ),
     );
@@ -115,7 +153,8 @@ class _HoldToStrikeState extends State<HoldToStrike>
       button: true,
       label: 'Hold to complete ${widget.title}',
       child: Listener(
-        onPointerDown: (_) => _start(),
+        onPointerDown: (e) => _start(e.position),
+        onPointerMove: (e) => _onMove(e.position),
         onPointerUp: (_) => _cancel(),
         onPointerCancel: (_) => _cancel(),
         child: content,
@@ -130,6 +169,7 @@ class _TaskRow extends StatelessWidget {
     required this.weight,
     required this.isDone,
     required this.progress,
+    required this.sweepProgress,
     this.trailing,
   });
 
@@ -137,6 +177,9 @@ class _TaskRow extends StatelessWidget {
   final Weight weight;
   final bool isDone;
   final double progress;
+
+  /// Null when no sweep is running.
+  final double? sweepProgress;
   final Widget? trailing;
 
   @override
@@ -164,6 +207,16 @@ class _TaskRow extends StatelessWidget {
                 ),
               ),
             ),
+            if (sweepProgress case final sweep?)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: StrikeSweep(
+                    key: kStrikeSweepKey,
+                    progress: sweep,
+                    weight: weight,
+                  ),
+                ),
+              ),
             Padding(
               padding: EdgeInsets.only(
                 left: 16,
