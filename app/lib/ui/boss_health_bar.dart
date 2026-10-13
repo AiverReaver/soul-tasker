@@ -1,14 +1,22 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/theme.dart';
-import '../../data/boss_view.dart';
+import '../core/theme.dart';
 
 /// Segmented boss health bar (§8.1). One segment per one-time phase task,
 /// wider gaps between phases. Struck segments drain slowly.
 class BossHealthBar extends StatelessWidget {
-  const BossHealthBar({super.key, required this.view, this.height = 10});
+  const BossHealthBar({
+    super.key,
+    required this.groups,
+    required this.health,
+    this.height = 10,
+  });
 
-  final BossView view;
+  /// Alive flag per segment, grouped by phase.
+  final List<List<bool>> groups;
+
+  /// Remaining health, 0..1 (spoken label).
+  final double health;
   final double height;
 
   static const _taskGap = 2.0;
@@ -16,16 +24,8 @@ class BossHealthBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final groups = [
-      for (final p in view.phases)
-        [
-          for (final t in p.tasks)
-            if (t.isSegment) t,
-        ],
-    ].where((g) => g.isNotEmpty).toList();
-
     return Semantics(
-      label: 'Boss health ${(view.health * 100).round()} percent',
+      label: 'Boss health ${(health * 100).round()} percent',
       child: Row(
         children: [
           for (final (i, group) in groups.indexed) ...[
@@ -34,10 +34,10 @@ class BossHealthBar extends StatelessWidget {
               flex: group.length,
               child: Row(
                 children: [
-                  for (final (j, task) in group.indexed) ...[
+                  for (final (j, isAlive) in group.indexed) ...[
                     if (j > 0) const SizedBox(width: _taskGap),
                     Expanded(
-                      child: _Segment(isAlive: !task.isStruck, height: height),
+                      child: _Segment(isAlive: isAlive, height: height),
                     ),
                   ],
                 ],

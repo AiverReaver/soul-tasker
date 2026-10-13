@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
-import '../boss/flash_line.dart';
+import '../../ui/flash_line.dart';
 import '../boss/task_row.dart';
 
 /// The day's tasks for one boss, in Today order (plan §8.3): open daily

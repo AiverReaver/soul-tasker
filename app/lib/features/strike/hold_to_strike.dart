@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/strike_sweep_view.dart';
+import '../../ui/task_row_tile.dart';
 import 'strike_sweep.dart';
 
 /// Hold to complete (design doc §7). Release early rolls progress back.
@@ -131,12 +133,18 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   Widget build(BuildContext context) {
     final content = AnimatedBuilder(
       animation: Listenable.merge([_progress, _sweep]),
-      builder: (context, _) => _TaskRow(
+      builder: (context, _) => TaskRowTile(
         title: widget.title,
-        weight: widget.weight,
+        weightLabel: widget.weight.label,
         isDone: widget.isDone,
         progress: _progress.value,
-        sweepProgress: _sweep.isAnimating ? _sweep.value : null,
+        sweep: _sweep.isAnimating
+            ? StrikeSweepView(
+                key: kStrikeSweepKey,
+                progress: _sweep.value,
+                isBossTier: widget.weight == Weight.bossTier,
+              )
+            : null,
         trailing: widget.trailing,
       ),
     );
@@ -158,89 +166,6 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
         onPointerUp: (_) => _cancel(),
         onPointerCancel: (_) => _cancel(),
         child: content,
-      ),
-    );
-  }
-}
-
-class _TaskRow extends StatelessWidget {
-  const _TaskRow({
-    required this.title,
-    required this.weight,
-    required this.isDone,
-    required this.progress,
-    required this.sweepProgress,
-    this.trailing,
-  });
-
-  final String title;
-  final Weight weight;
-  final bool isDone;
-  final double progress;
-
-  /// Null when no sweep is running.
-  final double? sweepProgress;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return AnimatedOpacity(
-      opacity: isDone ? 0.35 : 1,
-      duration: motionOf(context, kSlowFade),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        constraints: const BoxConstraints(minHeight: kMinTarget),
-        decoration: BoxDecoration(
-          color: kSurface,
-          border: Border.all(color: kAshDim.withValues(alpha: 0.3)),
-        ),
-        child: Stack(
-          children: [
-            // Ember fill grows across the row during the hold.
-            Positioned.fill(
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: isDone ? 1 : progress,
-                child: ColoredBox(
-                  color: kEmber.withValues(alpha: isDone ? 0.08 : 0.25),
-                ),
-              ),
-            ),
-            if (sweepProgress case final sweep?)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: StrikeSweep(
-                    key: kStrikeSweepKey,
-                    progress: sweep,
-                    weight: weight,
-                  ),
-                ),
-              ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: trailing == null ? 16 : 0,
-                top: trailing == null ? 14 : 0,
-                bottom: trailing == null ? 14 : 0,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: text.bodyMedium?.copyWith(
-                        decoration: isDone ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                  ),
-                  Text(weight.label, style: text.bodySmall),
-                  ?trailing,
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

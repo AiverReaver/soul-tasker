@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/data/boss_view.dart';
-import 'package:hearthrise/features/boss/boss_health_bar.dart';
+import 'package:hearthrise/ui/boss_health_bar.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/harness.dart';
@@ -12,7 +12,9 @@ Widget _bar(BossView view, {bool reduceMotion = false}) => MaterialApp(
     data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
     child: child!,
   ),
-  home: Scaffold(body: BossHealthBar(view: view)),
+  home: Scaffold(
+    body: BossHealthBar(groups: view.healthGroups, health: view.health),
+  ),
 );
 
 /// Fill of each segment, left to right: 1 full, 0 empty.

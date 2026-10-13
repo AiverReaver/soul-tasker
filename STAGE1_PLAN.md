@@ -111,11 +111,14 @@ lib/
     clock.dart                  clock provider, dayOf(), 4 AM rollover
     ids.dart                    newId() using uuid v4
   ui/                           stateless, reusable widgets (STAGES.md, "UI components")
-    boss_health_bar.dart        (moved from features/boss; takes segment data)
-    boss_card.dart              (moved from features/home)
-    task_row.dart               (moved from features/boss; presentation only)
-    flash_line.dart             (moved from features/boss)
+    boss_health_bar.dart        takes alive flags per phase, not a BossView
+    boss_card_tile.dart         presentation of a home boss card
+    task_row_tile.dart          row visuals: fill, title, weight, sweep slot
+    confirm_dialog.dart         calm yes/no dialog body
+    flash_line.dart             the one quiet message line
+    strike_sweep_view.dart      landing sweep drawn from a progress value
     ...                         new widgets are added here before a screen uses them
+                                (still to extract: rule-of-three, task-edit and settings sheets, fallen screen body)
   data/
     database.dart               @DriftDatabase, schemaVersion, migrations
     tables.dart                 table classes

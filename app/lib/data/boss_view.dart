@@ -46,6 +46,17 @@ class BossView {
     for (final p in phases) ...p.tasks.where((t) => t.isSegment),
   ];
 
+  /// Alive flags per phase group, for the health bar. Phases without
+  /// segments are skipped.
+  List<List<bool>> get healthGroups => [
+    for (final p in phases)
+      if (p.tasks.any((t) => t.isSegment))
+        [
+          for (final t in p.tasks)
+            if (t.isSegment) !t.isStruck,
+        ],
+  ];
+
   bool get hasSegments => segments.isNotEmpty;
   bool get isVanquished => hasSegments && segments.every((t) => t.isStruck);
 
