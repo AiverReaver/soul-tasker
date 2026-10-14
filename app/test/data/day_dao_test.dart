@@ -12,7 +12,7 @@ void main() {
   late EmberDao embers;
   setUp(() {
     h = Harness();
-    days = DayDao(h.db, h.clock.call);
+    days = DayDao(h.db, h.clock.call, h.attempts);
     embers = EmberDao(h.db, h.clock.call);
   });
   tearDown(() => h.db.close());

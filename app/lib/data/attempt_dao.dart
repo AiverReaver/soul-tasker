@@ -17,6 +17,16 @@ class StrikeResult {
   final bool isVanquished;
 }
 
+const _maxLesson = 120;
+
+/// A lesson as stored: trimmed, at most 120 characters, empty becomes null.
+String? cleanLesson(String? raw) {
+  final trimmed = raw?.trim() ?? '';
+  return trimmed.isEmpty
+      ? null
+      : trimmed.substring(0, trimmed.length.clamp(0, _maxLesson));
+}
+
 /// Strikes, tries and falls. Attempt rows are only ever inserted.
 class AttemptDao {
   AttemptDao(this._db, this._bosses, this._clock);
@@ -25,8 +35,6 @@ class AttemptDao {
   final BossDao _bosses;
   final Clock _clock;
   late final _embers = EmberDao(_db, _clock);
-
-  static const _maxLesson = 120;
 
   Future<Task> _task(String taskId) =>
       (_db.select(_db.tasks)..where((t) => t.id.equals(taskId))).getSingle();
@@ -43,8 +51,9 @@ class AttemptDao {
     String? phaseId,
     FallCause? cause,
     String? lesson,
+    String? onDay,
   }) async {
-    final day = dayOf(now, rolloverHour: await _db.rolloverHour());
+    final day = onDay ?? dayOf(now, rolloverHour: await _db.rolloverHour());
     await _db
         .into(_db.attempts)
         .insert(
@@ -118,10 +127,22 @@ class AttemptDao {
   /// the lesson, applies the boss's reset. Returns true when the phase rule
   /// of three should prompt (D6, D11).
   Future<bool> fall(String bossId, String? lesson) {
-    final trimmed = lesson?.trim() ?? '';
-    final kept = trimmed.isEmpty
-        ? null
-        : trimmed.substring(0, trimmed.length.clamp(0, _maxLesson));
+    return _db.transaction(() async {
+      await failBoss(bossId, FallCause.declared, cleanLesson(lesson));
+      final history = await _bosses.loadAttempts(bossId: bossId);
+      return isRuleOfThree(samePhaseFallRun(bossId, history));
+    });
+  }
+
+  /// Fails one boss attempt: writes the fallen row, raises the counter and
+  /// applies the boss's reset. Shared by a declared fall and a missed day.
+  /// [onDay] is the day the attempt belongs to when it is not today.
+  Future<void> failBoss(
+    String bossId,
+    FallCause cause,
+    String? lesson, {
+    String? onDay,
+  }) {
     return _db.transaction(() async {
       final now = _clock();
       final view = (await _bosses.loadBoss(bossId))!;
@@ -132,8 +153,9 @@ class AttemptDao {
         outcome: Outcome.fallen,
         now: now,
         phaseId: current?.id,
-        cause: FallCause.declared,
-        lesson: kept,
+        cause: cause,
+        lesson: lesson,
+        onDay: onDay,
       );
 
       final next = boss.attemptNumber + 1;
@@ -141,9 +163,6 @@ class AttemptDao {
         BossesCompanion(attemptNumber: Value(next), updatedAt: Value(now)),
       );
       await _reset(view, current, next, now);
-
-      final history = await _bosses.loadAttempts(bossId: bossId);
-      return isRuleOfThree(samePhaseFallRun(bossId, history));
     });
   }
 

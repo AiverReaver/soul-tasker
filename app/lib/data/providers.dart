@@ -60,7 +60,11 @@ final emberTallyProvider = StreamProvider(
 );
 
 final dayDaoProvider = Provider(
-  (ref) => DayDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+  (ref) => DayDao(
+    ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+    ref.watch(attemptDaoProvider),
+  ),
 );
 
 final dayStatusProvider = StreamProvider(
