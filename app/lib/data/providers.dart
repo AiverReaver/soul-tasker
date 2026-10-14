@@ -6,6 +6,7 @@ import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
 import 'database.dart';
+import 'ember_dao.dart';
 import 'settings_dao.dart';
 
 /// Overridden in tests with an in-memory database.
@@ -47,4 +48,12 @@ final settingsProvider = StreamProvider(
 /// stays valid for the life of the app (D10). On while settings load.
 final hapticsProvider = Provider(
   (ref) => Haptics(() => ref.read(settingsProvider).value?.haptics ?? true),
+);
+
+final emberDaoProvider = Provider(
+  (ref) => EmberDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final emberTallyProvider = StreamProvider(
+  (ref) => ref.watch(emberDaoProvider).watchTally(),
 );

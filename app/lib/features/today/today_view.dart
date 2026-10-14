@@ -4,6 +4,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
+import '../../data/providers.dart';
+import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../boss/task_row.dart';
 
@@ -44,6 +46,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final active = widget.bosses
         .where((b) => b.boss.status == BossStatus.active)
         .toList();
+    final tally = ref.watch(emberTallyProvider).value;
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id) (b, todayTasks(b)),
@@ -52,6 +55,11 @@ class _TodayViewState extends ConsumerState<TodayView> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
       children: [
+        if (tally != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: Space.sm),
+            child: EmberTally(carried: tally.carried, banked: tally.banked),
+          ),
         if (active.length > 1)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,

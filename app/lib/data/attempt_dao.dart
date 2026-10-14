@@ -5,6 +5,7 @@ import '../core/ids.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
 import 'database.dart';
+import 'ember_dao.dart';
 import 'enums.dart';
 import 'feel_report_data.dart';
 
@@ -23,6 +24,7 @@ class AttemptDao {
   final AppDatabase _db;
   final BossDao _bosses;
   final Clock _clock;
+  late final _embers = EmberDao(_db, _clock);
 
   static const _maxLesson = 120;
 
@@ -42,6 +44,7 @@ class AttemptDao {
     FallCause? cause,
     String? lesson,
   }) async {
+    final day = dayOf(now, rolloverHour: await _db.rolloverHour());
     await _db
         .into(_db.attempts)
         .insert(
@@ -55,10 +58,18 @@ class AttemptDao {
             cause: Value(cause),
             phaseId: Value(phaseId),
             lesson: Value(lesson),
-            day: dayOf(now, rolloverHour: await _db.rolloverHour()),
+            day: day,
             at: now,
           ),
         );
+    await _embers.earn(
+      outcome: outcome,
+      weight: weight,
+      bossId: boss.id,
+      taskId: taskId,
+      day: day,
+      at: now,
+    );
     await (_db.update(_db.bosses)..where((b) => b.id.equals(boss.id))).write(
       BossesCompanion(lastFoughtAt: Value(now), updatedAt: Value(now)),
     );
