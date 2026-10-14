@@ -9,7 +9,6 @@ import '../../data/providers.dart';
 import '../../ui/bonfire_card.dart';
 import '../today/today_view.dart';
 import 'boss_card.dart';
-import 'settings_sheet.dart';
 
 enum _Tab { bosses, today }
 
@@ -38,11 +37,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.tune, color: kTextMuted),
-            onPressed: () => showModalBottomSheet<void>(
-              context: context,
-              backgroundColor: kSurface,
-              builder: (_) => const SettingsSheet(),
-            ),
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),

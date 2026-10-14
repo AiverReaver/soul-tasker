@@ -5,6 +5,7 @@ import '../features/boss/boss_screen.dart';
 import '../features/boss_edit/boss_edit_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/ritual/day_resolver.dart';
+import '../features/settings/settings_screen.dart';
 
 GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
   initialLocation: initialLocation,
@@ -13,6 +14,7 @@ GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
       path: '/',
       builder: (_, _) => const DayResolver(child: HomeScreen()),
     ),
+    GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     GoRoute(path: '/bonfire', builder: (_, _) => const BonfireScreen()),
     GoRoute(path: '/boss/new', builder: (_, _) => const BossEditScreen()),
     GoRoute(

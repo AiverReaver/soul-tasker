@@ -21,3 +21,11 @@ String dayOf(DateTime time, {int rolloverHour = kRolloverHour}) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${date.year}-${two(date.month)}-${two(date.day)}';
 }
+
+/// [minutes] from midnight as a 12-hour time, such as `9:00 PM`.
+String formatClock(int minutes) {
+  final hour = minutes ~/ 60;
+  final minute = (minutes % 60).toString().padLeft(2, '0');
+  final twelve = hour % 12 == 0 ? 12 : hour % 12;
+  return '$twelve:$minute ${hour < 12 ? 'AM' : 'PM'}';
+}
