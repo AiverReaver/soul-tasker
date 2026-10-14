@@ -2,7 +2,7 @@
 
 Source: `STAGES.md` (Stage 3) and `souls-task-tracker-design.md` (§ numbers below refer to it). Visual rules: `DESIGN.md`.
 Method: TDD (see `STAGES.md`, Development method). Every step below lists its tests first, then the code. UI follows `STAGES.md`, "UI components": new widgets go in `lib/ui/` as `StatelessWidget`s, with state in thin containers in `lib/features/`.
-Status: not started. Steps 1 to 10 need no phone. Steps 11 and 12 need a phone with the Android SDK, which the dev Mac does not have yet (same blocker as Stage 2 steps 10 to 14).
+Status: steps 1 to 10 implemented on branch `stage-3-daily-ritual` (code and tests; `flutter analyze` clean, full suite passing). Steps 11 and 12 need a phone with the Android SDK, which the dev Mac does not have yet (same blocker as Stage 2 steps 10 to 14).
 
 Prerequisite: the Stage 2 gate (testers, `STAGE2_PLAN.md` §1) is still open. Steps 1 to 10 do not depend on its outcome, so they can start now. Step 12 (the gate) must not start until Stage 2 closes.
 
@@ -234,13 +234,13 @@ The script has one order, with expected outcomes stated at each point. The bosse
 2. **Day 2:** strike a Heavy task (carried 3). **No rest.**
 3. **Day 3, 05:00, open:** assert one pending missed day (day 2) and the flask prompt. **Use the flask at the prompt.** Assert no boss falls, attempt numbers unchanged, flasks 2, `lastResolvedDay` is day 2.
 4. **Day 3, later that day:** strike a Light task (carried 4), then rest. Assert one new `bank` event of 4, banked 8, carried 0, flasks 3 (2 plus 1). A second rest the same day changes nothing.
-5. **Day 4:** mark a light day, strike a Light task, **no rest**.
+5. **Day 4:** mark a light day, strike the daily task (Heavy, carried 3), **no rest**.
 6. **Day 5, open:** day 4 is covered by the light day plus a strike. Assert nothing pending and nothing falls. **Day 5:** no activity, no rest.
 7. **Day 7, 05:00, open** (days 5 and 6 passed with nothing): assert two pending days. **Decline the flask** and write a lesson. Assert both active bosses fall exactly once (D2) with the same lesson and `FallCause.missedDay`, the waiting boss does not, flasks stay 3, carried embers are not reduced (gentle), `lastResolvedDay` is day 6.
-8. **Day 7, after the fall:** carried is still 1 (from day 4, untouched by the fall). Strike a Light task (carried 2), then rest. Assert the `bonfire` row is for day 7, one `bank` event of 2, banked 10, flasks stay 3 (cap).
-9. **Day 8:** strike a Light task, then rest at 01:00 on day 9's calendar date. Assert the rest is stored for day 8 (not day 9), one `bank` event of 1, nothing is pending (days 7 and 8 are both covered by rests), and day 9 is not judged until it ends.
+8. **Day 7, after the fall:** carried is still 3 (from day 4, untouched by the fall). Strike the daily task (Heavy, carried 6), then rest. Assert the `bonfire` row is for day 7, one `bank` event of 6, banked 14, flasks stay 3 (cap).
+9. **Day 8:** strike the daily task (Heavy, 3), then rest at 01:00 on day 9's calendar date. Assert the rest is stored for day 8 (not day 9), one `bank` event of 3, banked 17, nothing is pending (days 7 and 8 are both covered by rests), and day 9 is not judged until it ends.
 
-Together, steps 1, 4, 8 and 9 check the rest rule on four days: bank once, and +1 flask up to the cap. Banked totals run 4, 8, 10, 11.
+Together, steps 1, 4, 8 and 9 check the rest rule on four days: bank once, and +1 flask up to the cap. Banked totals run 4, 8, 14, 17.
 
 **Code:** none expected. If the test finds a hole, fix it with its own failing test first.
 

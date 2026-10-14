@@ -63,19 +63,19 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] **Gate passed**
 
 ## Stage 3: Daily ritual
-- [ ] Bonfire screen: summary
-- [ ] Bonfire screen: lesson field
-- [ ] Bonfire screen: tomorrow's top three
-- [ ] Daily local notification at chosen time
-- [ ] Android 13+ notification permission prompt
-- [ ] Day rollover time (default 4 AM)
-- [ ] Missed day fails attempt on every active boss, one shared lesson
-- [ ] Embers: earn on Strike and Tried
-- [ ] Embers: carried total
-- [ ] Embers: bank at bonfire
-- [ ] Flask charges and restore rule
-- [ ] Light day
-- [ ] Settings screen (reminder time, rollover hour, haptics, hold-to-tap; sound deferred to Stage 5)
+- [x] Bonfire screen: summary
+- [x] Bonfire screen: lesson field
+- [x] Bonfire screen: tomorrow's top three
+- [x] Daily local notification at chosen time
+- [x] Android 13+ notification permission prompt
+- [x] Day rollover time (default 4 AM)
+- [x] Missed day fails attempt on every active boss, one shared lesson
+- [x] Embers: earn on Strike and Tried
+- [x] Embers: carried total
+- [x] Embers: bank at bonfire
+- [x] Flask charges and restore rule
+- [x] Light day
+- [x] Settings screen (reminder time, rollover hour, haptics, hold-to-tap; sound deferred to Stage 5)
 - [ ] **Gate passed:** loop runs several real days
 
 ## Stage 4: Commitments and health
