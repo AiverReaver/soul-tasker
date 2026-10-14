@@ -15,17 +15,19 @@ enum ResetOnFail {
 /// Hold length and haptic build-up per weight (plan section 5). First-guess
 /// numbers, expected to move in tuning.
 enum Weight {
-  light(Duration(milliseconds: 300), 'Light', buildUpTicks: 1),
+  light(Duration(milliseconds: 300), 'Light', buildUpTicks: 1, embers: 1),
   heavy(
     Duration(milliseconds: 600),
     'Heavy',
     buildUpTicks: 3,
+    embers: 3,
     hasBuildUpPulse: true,
   ),
   bossTier(
     Duration(milliseconds: 1200),
     'Boss-tier',
     buildUpTicks: 5,
+    embers: 6,
     hasBuildUpPulse: true,
   );
 
@@ -33,10 +35,14 @@ enum Weight {
     this.holdDuration,
     this.label, {
     required this.buildUpTicks,
+    required this.embers,
     this.hasBuildUpPulse = false,
   });
   final Duration holdDuration;
   final String label;
+
+  /// Embers a strike earns (Stage 3 plan D7); a try earns half, rounded up.
+  final int embers;
 
   /// Selection ticks during the hold, spread evenly.
   final int buildUpTicks;
@@ -54,3 +60,8 @@ enum Outcome { strike, tried, fallen }
 
 /// Why a boss attempt failed (§5.4). Stage 1 writes [declared] only.
 enum FallCause { declared, healthDeath, missedDay }
+
+/// How a day was covered or kept (Stage 3 plan D3, D8).
+enum DayKind { bonfire, flask, light }
+
+enum EmberKind { earn, bank }

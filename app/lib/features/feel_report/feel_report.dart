@@ -14,11 +14,12 @@ String buildFeelReport(FeelReportData data, DateTime now, String appVersion) {
   final falls = data.attempts.where((a) => a.outcome == Outcome.fallen);
   final written = falls.where((a) => a.hasLesson).length;
   final tried = data.attempts.where((a) => a.outcome == Outcome.tried).length;
-  final end = dayOf(now);
+  final hour = data.settings.rolloverHour;
+  final end = dayOf(now, rolloverHour: hour);
   final since = data.since;
   final period = since == null
       ? 'no bosses yet (to $end)'
-      : '${dayOf(since)} to $end (since the earliest surviving boss)';
+      : '${dayOf(since, rolloverHour: hour)} to $end (since the earliest surviving boss)';
   String onOff(bool isOn) => isOn ? 'on' : 'off';
 
   return 'Hearthrise feel report\n'

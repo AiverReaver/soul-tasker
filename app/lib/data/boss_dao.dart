@@ -23,6 +23,7 @@ class BossDao {
         _db.phases,
         _db.tasks,
         _db.attempts,
+        _db.settings,
       ]),
     );
   }
@@ -36,6 +37,7 @@ class BossDao {
   Future<List<BossView>> loadAll() async {
     final bosses = await _db.select(_db.bosses).get();
     return _views(
+      await _db.rolloverHour(),
       bosses,
       await _db.select(_db.phases).get(),
       await _db.select(_db.tasks).get(),
@@ -54,7 +56,13 @@ class BossDao {
     final tasks = await (_db.select(
       _db.tasks,
     )..where((t) => t.bossId.equals(id))).get();
-    return _views([boss], phases, tasks, await loadAttempts(bossId: id)).single;
+    return _views(
+      await _db.rolloverHour(),
+      [boss],
+      phases,
+      tasks,
+      await loadAttempts(bossId: id),
+    ).single;
   }
 
   /// Attempts in time order, optionally for one boss.
@@ -66,12 +74,13 @@ class BossDao {
   }
 
   List<BossView> _views(
+    int rolloverHour,
     List<Boss> bosses,
     List<Phase> phases,
     List<Task> tasks,
     List<Attempt> attempts,
   ) {
-    final today = dayOf(_clock());
+    final today = dayOf(_clock(), rolloverHour: rolloverHour);
     return [
       for (final b in [...bosses]..sort(compareBosses))
         buildBossView(

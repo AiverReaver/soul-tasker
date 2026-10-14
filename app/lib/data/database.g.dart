@@ -2631,12 +2631,77 @@ class $SettingsTable extends Settings
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _rolloverHourMeta = const VerificationMeta(
+    'rolloverHour',
+  );
+  @override
+  late final GeneratedColumn<int> rolloverHour = GeneratedColumn<int>(
+    'rollover_hour',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(4),
+  );
+  static const VerificationMeta _reminderEnabledMeta = const VerificationMeta(
+    'reminderEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> reminderEnabled = GeneratedColumn<bool>(
+    'reminder_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("reminder_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _reminderMinutesMeta = const VerificationMeta(
+    'reminderMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> reminderMinutes = GeneratedColumn<int>(
+    'reminder_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1260),
+  );
+  static const VerificationMeta _flasksMeta = const VerificationMeta('flasks');
+  @override
+  late final GeneratedColumn<int> flasks = GeneratedColumn<int>(
+    'flasks',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(3),
+  );
+  static const VerificationMeta _lastResolvedDayMeta = const VerificationMeta(
+    'lastResolvedDay',
+  );
+  @override
+  late final GeneratedColumn<String> lastResolvedDay = GeneratedColumn<String>(
+    'last_resolved_day',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
     tapMode,
     defaultResetOnFail,
     haptics,
+    rolloverHour,
+    reminderEnabled,
+    reminderMinutes,
+    flasks,
+    lastResolvedDay,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2663,6 +2728,48 @@ class $SettingsTable extends Settings
       context.handle(
         _hapticsMeta,
         haptics.isAcceptableOrUnknown(data['haptics']!, _hapticsMeta),
+      );
+    }
+    if (data.containsKey('rollover_hour')) {
+      context.handle(
+        _rolloverHourMeta,
+        rolloverHour.isAcceptableOrUnknown(
+          data['rollover_hour']!,
+          _rolloverHourMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminder_enabled')) {
+      context.handle(
+        _reminderEnabledMeta,
+        reminderEnabled.isAcceptableOrUnknown(
+          data['reminder_enabled']!,
+          _reminderEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminder_minutes')) {
+      context.handle(
+        _reminderMinutesMeta,
+        reminderMinutes.isAcceptableOrUnknown(
+          data['reminder_minutes']!,
+          _reminderMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('flasks')) {
+      context.handle(
+        _flasksMeta,
+        flasks.isAcceptableOrUnknown(data['flasks']!, _flasksMeta),
+      );
+    }
+    if (data.containsKey('last_resolved_day')) {
+      context.handle(
+        _lastResolvedDayMeta,
+        lastResolvedDay.isAcceptableOrUnknown(
+          data['last_resolved_day']!,
+          _lastResolvedDayMeta,
+        ),
       );
     }
     return context;
@@ -2692,6 +2799,26 @@ class $SettingsTable extends Settings
         DriftSqlType.bool,
         data['${effectivePrefix}haptics'],
       )!,
+      rolloverHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rollover_hour'],
+      )!,
+      reminderEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}reminder_enabled'],
+      )!,
+      reminderMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_minutes'],
+      )!,
+      flasks: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}flasks'],
+      )!,
+      lastResolvedDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_resolved_day'],
+      ),
     );
   }
 
@@ -2711,11 +2838,28 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
   final bool tapMode;
   final ResetOnFail defaultResetOnFail;
   final bool haptics;
+
+  /// A day ends at this local hour (0 to 6); see `dayOf`.
+  final int rolloverHour;
+  final bool reminderEnabled;
+
+  /// Minutes from midnight; 1260 is 21:00.
+  final int reminderMinutes;
+  final int flasks;
+
+  /// The last day already judged for a missed bonfire. Set to the install or
+  /// upgrade day, so that day is never judged (plan D12).
+  final String? lastResolvedDay;
   const AppSettings({
     required this.id,
     required this.tapMode,
     required this.defaultResetOnFail,
     required this.haptics,
+    required this.rolloverHour,
+    required this.reminderEnabled,
+    required this.reminderMinutes,
+    required this.flasks,
+    this.lastResolvedDay,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2728,6 +2872,13 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       );
     }
     map['haptics'] = Variable<bool>(haptics);
+    map['rollover_hour'] = Variable<int>(rolloverHour);
+    map['reminder_enabled'] = Variable<bool>(reminderEnabled);
+    map['reminder_minutes'] = Variable<int>(reminderMinutes);
+    map['flasks'] = Variable<int>(flasks);
+    if (!nullToAbsent || lastResolvedDay != null) {
+      map['last_resolved_day'] = Variable<String>(lastResolvedDay);
+    }
     return map;
   }
 
@@ -2737,6 +2888,13 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       tapMode: Value(tapMode),
       defaultResetOnFail: Value(defaultResetOnFail),
       haptics: Value(haptics),
+      rolloverHour: Value(rolloverHour),
+      reminderEnabled: Value(reminderEnabled),
+      reminderMinutes: Value(reminderMinutes),
+      flasks: Value(flasks),
+      lastResolvedDay: lastResolvedDay == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastResolvedDay),
     );
   }
 
@@ -2752,6 +2910,11 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
         serializer.fromJson<int>(json['defaultResetOnFail']),
       ),
       haptics: serializer.fromJson<bool>(json['haptics']),
+      rolloverHour: serializer.fromJson<int>(json['rolloverHour']),
+      reminderEnabled: serializer.fromJson<bool>(json['reminderEnabled']),
+      reminderMinutes: serializer.fromJson<int>(json['reminderMinutes']),
+      flasks: serializer.fromJson<int>(json['flasks']),
+      lastResolvedDay: serializer.fromJson<String?>(json['lastResolvedDay']),
     );
   }
   @override
@@ -2764,6 +2927,11 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
         $SettingsTable.$converterdefaultResetOnFail.toJson(defaultResetOnFail),
       ),
       'haptics': serializer.toJson<bool>(haptics),
+      'rolloverHour': serializer.toJson<int>(rolloverHour),
+      'reminderEnabled': serializer.toJson<bool>(reminderEnabled),
+      'reminderMinutes': serializer.toJson<int>(reminderMinutes),
+      'flasks': serializer.toJson<int>(flasks),
+      'lastResolvedDay': serializer.toJson<String?>(lastResolvedDay),
     };
   }
 
@@ -2772,11 +2940,23 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     bool? tapMode,
     ResetOnFail? defaultResetOnFail,
     bool? haptics,
+    int? rolloverHour,
+    bool? reminderEnabled,
+    int? reminderMinutes,
+    int? flasks,
+    Value<String?> lastResolvedDay = const Value.absent(),
   }) => AppSettings(
     id: id ?? this.id,
     tapMode: tapMode ?? this.tapMode,
     defaultResetOnFail: defaultResetOnFail ?? this.defaultResetOnFail,
     haptics: haptics ?? this.haptics,
+    rolloverHour: rolloverHour ?? this.rolloverHour,
+    reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+    reminderMinutes: reminderMinutes ?? this.reminderMinutes,
+    flasks: flasks ?? this.flasks,
+    lastResolvedDay: lastResolvedDay.present
+        ? lastResolvedDay.value
+        : this.lastResolvedDay,
   );
   AppSettings copyWithCompanion(SettingsCompanion data) {
     return AppSettings(
@@ -2786,6 +2966,19 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
           ? data.defaultResetOnFail.value
           : this.defaultResetOnFail,
       haptics: data.haptics.present ? data.haptics.value : this.haptics,
+      rolloverHour: data.rolloverHour.present
+          ? data.rolloverHour.value
+          : this.rolloverHour,
+      reminderEnabled: data.reminderEnabled.present
+          ? data.reminderEnabled.value
+          : this.reminderEnabled,
+      reminderMinutes: data.reminderMinutes.present
+          ? data.reminderMinutes.value
+          : this.reminderMinutes,
+      flasks: data.flasks.present ? data.flasks.value : this.flasks,
+      lastResolvedDay: data.lastResolvedDay.present
+          ? data.lastResolvedDay.value
+          : this.lastResolvedDay,
     );
   }
 
@@ -2795,13 +2988,28 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
           ..write('id: $id, ')
           ..write('tapMode: $tapMode, ')
           ..write('defaultResetOnFail: $defaultResetOnFail, ')
-          ..write('haptics: $haptics')
+          ..write('haptics: $haptics, ')
+          ..write('rolloverHour: $rolloverHour, ')
+          ..write('reminderEnabled: $reminderEnabled, ')
+          ..write('reminderMinutes: $reminderMinutes, ')
+          ..write('flasks: $flasks, ')
+          ..write('lastResolvedDay: $lastResolvedDay')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, tapMode, defaultResetOnFail, haptics);
+  int get hashCode => Object.hash(
+    id,
+    tapMode,
+    defaultResetOnFail,
+    haptics,
+    rolloverHour,
+    reminderEnabled,
+    reminderMinutes,
+    flasks,
+    lastResolvedDay,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2809,7 +3017,12 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
           other.id == this.id &&
           other.tapMode == this.tapMode &&
           other.defaultResetOnFail == this.defaultResetOnFail &&
-          other.haptics == this.haptics);
+          other.haptics == this.haptics &&
+          other.rolloverHour == this.rolloverHour &&
+          other.reminderEnabled == this.reminderEnabled &&
+          other.reminderMinutes == this.reminderMinutes &&
+          other.flasks == this.flasks &&
+          other.lastResolvedDay == this.lastResolvedDay);
 }
 
 class SettingsCompanion extends UpdateCompanion<AppSettings> {
@@ -2817,23 +3030,43 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
   final Value<bool> tapMode;
   final Value<ResetOnFail> defaultResetOnFail;
   final Value<bool> haptics;
+  final Value<int> rolloverHour;
+  final Value<bool> reminderEnabled;
+  final Value<int> reminderMinutes;
+  final Value<int> flasks;
+  final Value<String?> lastResolvedDay;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.tapMode = const Value.absent(),
     this.defaultResetOnFail = const Value.absent(),
     this.haptics = const Value.absent(),
+    this.rolloverHour = const Value.absent(),
+    this.reminderEnabled = const Value.absent(),
+    this.reminderMinutes = const Value.absent(),
+    this.flasks = const Value.absent(),
+    this.lastResolvedDay = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     this.tapMode = const Value.absent(),
     this.defaultResetOnFail = const Value.absent(),
     this.haptics = const Value.absent(),
+    this.rolloverHour = const Value.absent(),
+    this.reminderEnabled = const Value.absent(),
+    this.reminderMinutes = const Value.absent(),
+    this.flasks = const Value.absent(),
+    this.lastResolvedDay = const Value.absent(),
   });
   static Insertable<AppSettings> custom({
     Expression<int>? id,
     Expression<bool>? tapMode,
     Expression<int>? defaultResetOnFail,
     Expression<bool>? haptics,
+    Expression<int>? rolloverHour,
+    Expression<bool>? reminderEnabled,
+    Expression<int>? reminderMinutes,
+    Expression<int>? flasks,
+    Expression<String>? lastResolvedDay,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2841,6 +3074,11 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
       if (defaultResetOnFail != null)
         'default_reset_on_fail': defaultResetOnFail,
       if (haptics != null) 'haptics': haptics,
+      if (rolloverHour != null) 'rollover_hour': rolloverHour,
+      if (reminderEnabled != null) 'reminder_enabled': reminderEnabled,
+      if (reminderMinutes != null) 'reminder_minutes': reminderMinutes,
+      if (flasks != null) 'flasks': flasks,
+      if (lastResolvedDay != null) 'last_resolved_day': lastResolvedDay,
     });
   }
 
@@ -2849,12 +3087,22 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     Value<bool>? tapMode,
     Value<ResetOnFail>? defaultResetOnFail,
     Value<bool>? haptics,
+    Value<int>? rolloverHour,
+    Value<bool>? reminderEnabled,
+    Value<int>? reminderMinutes,
+    Value<int>? flasks,
+    Value<String?>? lastResolvedDay,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       tapMode: tapMode ?? this.tapMode,
       defaultResetOnFail: defaultResetOnFail ?? this.defaultResetOnFail,
       haptics: haptics ?? this.haptics,
+      rolloverHour: rolloverHour ?? this.rolloverHour,
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      reminderMinutes: reminderMinutes ?? this.reminderMinutes,
+      flasks: flasks ?? this.flasks,
+      lastResolvedDay: lastResolvedDay ?? this.lastResolvedDay,
     );
   }
 
@@ -2877,6 +3125,21 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     if (haptics.present) {
       map['haptics'] = Variable<bool>(haptics.value);
     }
+    if (rolloverHour.present) {
+      map['rollover_hour'] = Variable<int>(rolloverHour.value);
+    }
+    if (reminderEnabled.present) {
+      map['reminder_enabled'] = Variable<bool>(reminderEnabled.value);
+    }
+    if (reminderMinutes.present) {
+      map['reminder_minutes'] = Variable<int>(reminderMinutes.value);
+    }
+    if (flasks.present) {
+      map['flasks'] = Variable<int>(flasks.value);
+    }
+    if (lastResolvedDay.present) {
+      map['last_resolved_day'] = Variable<String>(lastResolvedDay.value);
+    }
     return map;
   }
 
@@ -2886,7 +3149,1040 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
           ..write('id: $id, ')
           ..write('tapMode: $tapMode, ')
           ..write('defaultResetOnFail: $defaultResetOnFail, ')
-          ..write('haptics: $haptics')
+          ..write('haptics: $haptics, ')
+          ..write('rolloverHour: $rolloverHour, ')
+          ..write('reminderEnabled: $reminderEnabled, ')
+          ..write('reminderMinutes: $reminderMinutes, ')
+          ..write('flasks: $flasks, ')
+          ..write('lastResolvedDay: $lastResolvedDay')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DayLogsTable extends DayLogs with TableInfo<$DayLogsTable, DayLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DayLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DayKind, int> kind =
+      GeneratedColumn<int>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<DayKind>($DayLogsTable.$converterkind);
+  static const VerificationMeta _lessonMeta = const VerificationMeta('lesson');
+  @override
+  late final GeneratedColumn<String> lesson = GeneratedColumn<String>(
+    'lesson',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 120),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [day, kind, lesson, at];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'day_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DayLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('lesson')) {
+      context.handle(
+        _lessonMeta,
+        lesson.isAcceptableOrUnknown(data['lesson']!, _lessonMeta),
+      );
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {day, kind};
+  @override
+  DayLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DayLog(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      kind: $DayLogsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      lesson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lesson'],
+      ),
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+    );
+  }
+
+  @override
+  $DayLogsTable createAlias(String alias) {
+    return $DayLogsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<DayKind, int, int> $converterkind =
+      const EnumIndexConverter<DayKind>(DayKind.values);
+}
+
+class DayLog extends DataClass implements Insertable<DayLog> {
+  final String day;
+  final DayKind kind;
+
+  /// Only on a bonfire row.
+  final String? lesson;
+  final DateTime at;
+  const DayLog({
+    required this.day,
+    required this.kind,
+    this.lesson,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    {
+      map['kind'] = Variable<int>($DayLogsTable.$converterkind.toSql(kind));
+    }
+    if (!nullToAbsent || lesson != null) {
+      map['lesson'] = Variable<String>(lesson);
+    }
+    map['at'] = Variable<DateTime>(at);
+    return map;
+  }
+
+  DayLogsCompanion toCompanion(bool nullToAbsent) {
+    return DayLogsCompanion(
+      day: Value(day),
+      kind: Value(kind),
+      lesson: lesson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lesson),
+      at: Value(at),
+    );
+  }
+
+  factory DayLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DayLog(
+      day: serializer.fromJson<String>(json['day']),
+      kind: $DayLogsTable.$converterkind.fromJson(
+        serializer.fromJson<int>(json['kind']),
+      ),
+      lesson: serializer.fromJson<String?>(json['lesson']),
+      at: serializer.fromJson<DateTime>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'day': serializer.toJson<String>(day),
+      'kind': serializer.toJson<int>($DayLogsTable.$converterkind.toJson(kind)),
+      'lesson': serializer.toJson<String?>(lesson),
+      'at': serializer.toJson<DateTime>(at),
+    };
+  }
+
+  DayLog copyWith({
+    String? day,
+    DayKind? kind,
+    Value<String?> lesson = const Value.absent(),
+    DateTime? at,
+  }) => DayLog(
+    day: day ?? this.day,
+    kind: kind ?? this.kind,
+    lesson: lesson.present ? lesson.value : this.lesson,
+    at: at ?? this.at,
+  );
+  DayLog copyWithCompanion(DayLogsCompanion data) {
+    return DayLog(
+      day: data.day.present ? data.day.value : this.day,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      lesson: data.lesson.present ? data.lesson.value : this.lesson,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayLog(')
+          ..write('day: $day, ')
+          ..write('kind: $kind, ')
+          ..write('lesson: $lesson, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(day, kind, lesson, at);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DayLog &&
+          other.day == this.day &&
+          other.kind == this.kind &&
+          other.lesson == this.lesson &&
+          other.at == this.at);
+}
+
+class DayLogsCompanion extends UpdateCompanion<DayLog> {
+  final Value<String> day;
+  final Value<DayKind> kind;
+  final Value<String?> lesson;
+  final Value<DateTime> at;
+  final Value<int> rowid;
+  const DayLogsCompanion({
+    this.day = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.lesson = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DayLogsCompanion.insert({
+    required String day,
+    required DayKind kind,
+    this.lesson = const Value.absent(),
+    required DateTime at,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day),
+       kind = Value(kind),
+       at = Value(at);
+  static Insertable<DayLog> custom({
+    Expression<String>? day,
+    Expression<int>? kind,
+    Expression<String>? lesson,
+    Expression<DateTime>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (kind != null) 'kind': kind,
+      if (lesson != null) 'lesson': lesson,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DayLogsCompanion copyWith({
+    Value<String>? day,
+    Value<DayKind>? kind,
+    Value<String?>? lesson,
+    Value<DateTime>? at,
+    Value<int>? rowid,
+  }) {
+    return DayLogsCompanion(
+      day: day ?? this.day,
+      kind: kind ?? this.kind,
+      lesson: lesson ?? this.lesson,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<int>(
+        $DayLogsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (lesson.present) {
+      map['lesson'] = Variable<String>(lesson.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayLogsCompanion(')
+          ..write('day: $day, ')
+          ..write('kind: $kind, ')
+          ..write('lesson: $lesson, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EmberEventsTable extends EmberEvents
+    with TableInfo<$EmberEventsTable, EmberEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EmberEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<EmberKind, int> kind =
+      GeneratedColumn<int>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<EmberKind>($EmberEventsTable.$converterkind);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bossIdMeta = const VerificationMeta('bossId');
+  @override
+  late final GeneratedColumn<String> bossId = GeneratedColumn<String>(
+    'boss_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bosses (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    amount,
+    bossId,
+    taskId,
+    day,
+    at,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'ember_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EmberEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('boss_id')) {
+      context.handle(
+        _bossIdMeta,
+        bossId.isAcceptableOrUnknown(data['boss_id']!, _bossIdMeta),
+      );
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    }
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EmberEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EmberEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: $EmberEventsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      bossId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boss_id'],
+      ),
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      ),
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+    );
+  }
+
+  @override
+  $EmberEventsTable createAlias(String alias) {
+    return $EmberEventsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<EmberKind, int, int> $converterkind =
+      const EnumIndexConverter<EmberKind>(EmberKind.values);
+}
+
+class EmberEvent extends DataClass implements Insertable<EmberEvent> {
+  final String id;
+  final EmberKind kind;
+  final int amount;
+  final String? bossId;
+  final String? taskId;
+  final String day;
+  final DateTime at;
+  const EmberEvent({
+    required this.id,
+    required this.kind,
+    required this.amount,
+    this.bossId,
+    this.taskId,
+    required this.day,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['kind'] = Variable<int>($EmberEventsTable.$converterkind.toSql(kind));
+    }
+    map['amount'] = Variable<int>(amount);
+    if (!nullToAbsent || bossId != null) {
+      map['boss_id'] = Variable<String>(bossId);
+    }
+    if (!nullToAbsent || taskId != null) {
+      map['task_id'] = Variable<String>(taskId);
+    }
+    map['day'] = Variable<String>(day);
+    map['at'] = Variable<DateTime>(at);
+    return map;
+  }
+
+  EmberEventsCompanion toCompanion(bool nullToAbsent) {
+    return EmberEventsCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      amount: Value(amount),
+      bossId: bossId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bossId),
+      taskId: taskId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taskId),
+      day: Value(day),
+      at: Value(at),
+    );
+  }
+
+  factory EmberEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EmberEvent(
+      id: serializer.fromJson<String>(json['id']),
+      kind: $EmberEventsTable.$converterkind.fromJson(
+        serializer.fromJson<int>(json['kind']),
+      ),
+      amount: serializer.fromJson<int>(json['amount']),
+      bossId: serializer.fromJson<String?>(json['bossId']),
+      taskId: serializer.fromJson<String?>(json['taskId']),
+      day: serializer.fromJson<String>(json['day']),
+      at: serializer.fromJson<DateTime>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<int>(
+        $EmberEventsTable.$converterkind.toJson(kind),
+      ),
+      'amount': serializer.toJson<int>(amount),
+      'bossId': serializer.toJson<String?>(bossId),
+      'taskId': serializer.toJson<String?>(taskId),
+      'day': serializer.toJson<String>(day),
+      'at': serializer.toJson<DateTime>(at),
+    };
+  }
+
+  EmberEvent copyWith({
+    String? id,
+    EmberKind? kind,
+    int? amount,
+    Value<String?> bossId = const Value.absent(),
+    Value<String?> taskId = const Value.absent(),
+    String? day,
+    DateTime? at,
+  }) => EmberEvent(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    amount: amount ?? this.amount,
+    bossId: bossId.present ? bossId.value : this.bossId,
+    taskId: taskId.present ? taskId.value : this.taskId,
+    day: day ?? this.day,
+    at: at ?? this.at,
+  );
+  EmberEvent copyWithCompanion(EmberEventsCompanion data) {
+    return EmberEvent(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      bossId: data.bossId.present ? data.bossId.value : this.bossId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      day: data.day.present ? data.day.value : this.day,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmberEvent(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('amount: $amount, ')
+          ..write('bossId: $bossId, ')
+          ..write('taskId: $taskId, ')
+          ..write('day: $day, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, kind, amount, bossId, taskId, day, at);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EmberEvent &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.amount == this.amount &&
+          other.bossId == this.bossId &&
+          other.taskId == this.taskId &&
+          other.day == this.day &&
+          other.at == this.at);
+}
+
+class EmberEventsCompanion extends UpdateCompanion<EmberEvent> {
+  final Value<String> id;
+  final Value<EmberKind> kind;
+  final Value<int> amount;
+  final Value<String?> bossId;
+  final Value<String?> taskId;
+  final Value<String> day;
+  final Value<DateTime> at;
+  final Value<int> rowid;
+  const EmberEventsCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.bossId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.day = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EmberEventsCompanion.insert({
+    required String id,
+    required EmberKind kind,
+    required int amount,
+    this.bossId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    required String day,
+    required DateTime at,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       amount = Value(amount),
+       day = Value(day),
+       at = Value(at);
+  static Insertable<EmberEvent> custom({
+    Expression<String>? id,
+    Expression<int>? kind,
+    Expression<int>? amount,
+    Expression<String>? bossId,
+    Expression<String>? taskId,
+    Expression<String>? day,
+    Expression<DateTime>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (amount != null) 'amount': amount,
+      if (bossId != null) 'boss_id': bossId,
+      if (taskId != null) 'task_id': taskId,
+      if (day != null) 'day': day,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EmberEventsCompanion copyWith({
+    Value<String>? id,
+    Value<EmberKind>? kind,
+    Value<int>? amount,
+    Value<String?>? bossId,
+    Value<String?>? taskId,
+    Value<String>? day,
+    Value<DateTime>? at,
+    Value<int>? rowid,
+  }) {
+    return EmberEventsCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      amount: amount ?? this.amount,
+      bossId: bossId ?? this.bossId,
+      taskId: taskId ?? this.taskId,
+      day: day ?? this.day,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<int>(
+        $EmberEventsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (bossId.present) {
+      map['boss_id'] = Variable<String>(bossId.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmberEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('amount: $amount, ')
+          ..write('bossId: $bossId, ')
+          ..write('taskId: $taskId, ')
+          ..write('day: $day, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PlanPicksTable extends PlanPicks
+    with TableInfo<$PlanPicksTable, PlanPick> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlanPicksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _taskIdMeta = const VerificationMeta('taskId');
+  @override
+  late final GeneratedColumn<String> taskId = GeneratedColumn<String>(
+    'task_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tasks (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [day, taskId, position];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'plan_picks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PlanPick> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('task_id')) {
+      context.handle(
+        _taskIdMeta,
+        taskId.isAcceptableOrUnknown(data['task_id']!, _taskIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_taskIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {day, taskId};
+  @override
+  PlanPick map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlanPick(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+    );
+  }
+
+  @override
+  $PlanPicksTable createAlias(String alias) {
+    return $PlanPicksTable(attachedDatabase, alias);
+  }
+}
+
+class PlanPick extends DataClass implements Insertable<PlanPick> {
+  final String day;
+  final String taskId;
+  final int position;
+  const PlanPick({
+    required this.day,
+    required this.taskId,
+    required this.position,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    map['task_id'] = Variable<String>(taskId);
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  PlanPicksCompanion toCompanion(bool nullToAbsent) {
+    return PlanPicksCompanion(
+      day: Value(day),
+      taskId: Value(taskId),
+      position: Value(position),
+    );
+  }
+
+  factory PlanPick.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlanPick(
+      day: serializer.fromJson<String>(json['day']),
+      taskId: serializer.fromJson<String>(json['taskId']),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'day': serializer.toJson<String>(day),
+      'taskId': serializer.toJson<String>(taskId),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  PlanPick copyWith({String? day, String? taskId, int? position}) => PlanPick(
+    day: day ?? this.day,
+    taskId: taskId ?? this.taskId,
+    position: position ?? this.position,
+  );
+  PlanPick copyWithCompanion(PlanPicksCompanion data) {
+    return PlanPick(
+      day: data.day.present ? data.day.value : this.day,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlanPick(')
+          ..write('day: $day, ')
+          ..write('taskId: $taskId, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(day, taskId, position);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlanPick &&
+          other.day == this.day &&
+          other.taskId == this.taskId &&
+          other.position == this.position);
+}
+
+class PlanPicksCompanion extends UpdateCompanion<PlanPick> {
+  final Value<String> day;
+  final Value<String> taskId;
+  final Value<int> position;
+  final Value<int> rowid;
+  const PlanPicksCompanion({
+    this.day = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PlanPicksCompanion.insert({
+    required String day,
+    required String taskId,
+    required int position,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day),
+       taskId = Value(taskId),
+       position = Value(position);
+  static Insertable<PlanPick> custom({
+    Expression<String>? day,
+    Expression<String>? taskId,
+    Expression<int>? position,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (taskId != null) 'task_id': taskId,
+      if (position != null) 'position': position,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PlanPicksCompanion copyWith({
+    Value<String>? day,
+    Value<String>? taskId,
+    Value<int>? position,
+    Value<int>? rowid,
+  }) {
+    return PlanPicksCompanion(
+      day: day ?? this.day,
+      taskId: taskId ?? this.taskId,
+      position: position ?? this.position,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlanPicksCompanion(')
+          ..write('day: $day, ')
+          ..write('taskId: $taskId, ')
+          ..write('position: $position, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -2900,6 +4196,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TasksTable tasks = $TasksTable(this);
   late final $AttemptsTable attempts = $AttemptsTable(this);
   late final $SettingsTable settings = $SettingsTable(this);
+  late final $DayLogsTable dayLogs = $DayLogsTable(this);
+  late final $EmberEventsTable emberEvents = $EmberEventsTable(this);
+  late final $PlanPicksTable planPicks = $PlanPicksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2910,6 +4209,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tasks,
     attempts,
     settings,
+    dayLogs,
+    emberEvents,
+    planPicks,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2954,6 +4256,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('attempts', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'bosses',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('ember_events', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tasks',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('ember_events', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tasks',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('plan_picks', kind: UpdateKind.delete)],
     ),
   ]);
   @override
@@ -3050,6 +4373,24 @@ final class $$BossesTableReferences
     ).filter((f) => f.bossId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_attemptsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$EmberEventsTable, List<EmberEvent>>
+  _emberEventsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.emberEvents,
+    aliasName: 'bosses__id__ember_events__boss_id',
+  );
+
+  $$EmberEventsTableProcessedTableManager get emberEventsRefs {
+    final manager = $$EmberEventsTableTableManager(
+      $_db,
+      $_db.emberEvents,
+    ).filter((f) => f.bossId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_emberEventsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3198,6 +4539,31 @@ class $$BossesTableFilterComposer
           }) => $$AttemptsTableFilterComposer(
             $db: $db,
             $table: $db.attempts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> emberEventsRefs(
+    Expression<bool> Function($$EmberEventsTableFilterComposer f) f,
+  ) {
+    final $$EmberEventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.emberEvents,
+      getReferencedColumn: (t) => t.bossId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmberEventsTableFilterComposer(
+            $db: $db,
+            $table: $db.emberEvents,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3420,6 +4786,31 @@ class $$BossesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> emberEventsRefs<T extends Object>(
+    Expression<T> Function($$EmberEventsTableAnnotationComposer a) f,
+  ) {
+    final $$EmberEventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.emberEvents,
+      getReferencedColumn: (t) => t.bossId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmberEventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.emberEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BossesTableTableManager
@@ -3439,6 +4830,7 @@ class $$BossesTableTableManager
             bool phasesRefs,
             bool tasksRefs,
             bool attemptsRefs,
+            bool emberEventsRefs,
           })
         > {
   $$BossesTableTableManager(_$AppDatabase db, $BossesTable table)
@@ -3525,13 +4917,19 @@ class $$BossesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({phasesRefs = false, tasksRefs = false, attemptsRefs = false}) {
+              ({
+                phasesRefs = false,
+                tasksRefs = false,
+                attemptsRefs = false,
+                emberEventsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (phasesRefs) db.phases,
                     if (tasksRefs) db.tasks,
                     if (attemptsRefs) db.attempts,
+                    if (emberEventsRefs) db.emberEvents,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3579,6 +4977,27 @@ class $$BossesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (emberEventsRefs)
+                        await $_getPrefetchedData<
+                          Boss,
+                          $BossesTable,
+                          EmberEvent
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BossesTableReferences
+                              ._emberEventsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BossesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).emberEventsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bossId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3603,6 +5022,7 @@ typedef $$BossesTableProcessedTableManager =
         bool phasesRefs,
         bool tasksRefs,
         bool attemptsRefs,
+        bool emberEventsRefs,
       })
     >;
 typedef $$PhasesTableCreateCompanionBuilder = PhasesCompanion Function({
@@ -4218,6 +5638,42 @@ final class $$TasksTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$EmberEventsTable, List<EmberEvent>>
+  _emberEventsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.emberEvents,
+    aliasName: 'tasks__id__ember_events__task_id',
+  );
+
+  $$EmberEventsTableProcessedTableManager get emberEventsRefs {
+    final manager = $$EmberEventsTableTableManager(
+      $_db,
+      $_db.emberEvents,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_emberEventsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PlanPicksTable, List<PlanPick>>
+  _planPicksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.planPicks,
+    aliasName: 'tasks__id__plan_picks__task_id',
+  );
+
+  $$PlanPicksTableProcessedTableManager get planPicksRefs {
+    final manager = $$PlanPicksTableTableManager(
+      $_db,
+      $_db.planPicks,
+    ).filter((f) => f.taskId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_planPicksRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
@@ -4332,6 +5788,56 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
           }) => $$AttemptsTableFilterComposer(
             $db: $db,
             $table: $db.attempts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> emberEventsRefs(
+    Expression<bool> Function($$EmberEventsTableFilterComposer f) f,
+  ) {
+    final $$EmberEventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.emberEvents,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmberEventsTableFilterComposer(
+            $db: $db,
+            $table: $db.emberEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> planPicksRefs(
+    Expression<bool> Function($$PlanPicksTableFilterComposer f) f,
+  ) {
+    final $$PlanPicksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.planPicks,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlanPicksTableFilterComposer(
+            $db: $db,
+            $table: $db.planPicks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4544,6 +6050,56 @@ class $$TasksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> emberEventsRefs<T extends Object>(
+    Expression<T> Function($$EmberEventsTableAnnotationComposer a) f,
+  ) {
+    final $$EmberEventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.emberEvents,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EmberEventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.emberEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> planPicksRefs<T extends Object>(
+    Expression<T> Function($$PlanPicksTableAnnotationComposer a) f,
+  ) {
+    final $$PlanPicksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.planPicks,
+      getReferencedColumn: (t) => t.taskId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PlanPicksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.planPicks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$TasksTableTableManager
@@ -4559,7 +6115,13 @@ class $$TasksTableTableManager
           $$TasksTableUpdateCompanionBuilder,
           (Task, $$TasksTableReferences),
           Task,
-          PrefetchHooks Function({bool bossId, bool phaseId, bool attemptsRefs})
+          PrefetchHooks Function({
+            bool bossId,
+            bool phaseId,
+            bool attemptsRefs,
+            bool emberEventsRefs,
+            bool planPicksRefs,
+          })
         > {
   $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
     : super(
@@ -4633,10 +6195,20 @@ class $$TasksTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({bossId = false, phaseId = false, attemptsRefs = false}) {
+              ({
+                bossId = false,
+                phaseId = false,
+                attemptsRefs = false,
+                emberEventsRefs = false,
+                planPicksRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [if (attemptsRefs) db.attempts],
+                  explicitlyWatchedTables: [
+                    if (attemptsRefs) db.attempts,
+                    if (emberEventsRefs) db.emberEvents,
+                    if (planPicksRefs) db.planPicks,
+                  ],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -4697,6 +6269,44 @@ class $$TasksTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (emberEventsRefs)
+                        await $_getPrefetchedData<
+                          Task,
+                          $TasksTable,
+                          EmberEvent
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._emberEventsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).emberEventsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (planPicksRefs)
+                        await $_getPrefetchedData<Task, $TasksTable, PlanPick>(
+                          currentTable: table,
+                          referencedTable: $$TasksTableReferences
+                              ._planPicksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TasksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).planPicksRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.taskId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4717,7 +6327,13 @@ typedef $$TasksTableProcessedTableManager =
       $$TasksTableUpdateCompanionBuilder,
       (Task, $$TasksTableReferences),
       Task,
-      PrefetchHooks Function({bool bossId, bool phaseId, bool attemptsRefs})
+      PrefetchHooks Function({
+        bool bossId,
+        bool phaseId,
+        bool attemptsRefs,
+        bool emberEventsRefs,
+        bool planPicksRefs,
+      })
     >;
 typedef $$AttemptsTableCreateCompanionBuilder = AttemptsCompanion Function({
   required String id,
@@ -5325,12 +6941,22 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<bool> tapMode,
   Value<ResetOnFail> defaultResetOnFail,
   Value<bool> haptics,
+  Value<int> rolloverHour,
+  Value<bool> reminderEnabled,
+  Value<int> reminderMinutes,
+  Value<int> flasks,
+  Value<String?> lastResolvedDay,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<bool> tapMode,
   Value<ResetOnFail> defaultResetOnFail,
   Value<bool> haptics,
+  Value<int> rolloverHour,
+  Value<bool> reminderEnabled,
+  Value<int> reminderMinutes,
+  Value<int> flasks,
+  Value<String?> lastResolvedDay,
 });
 
 class $$SettingsTableFilterComposer
@@ -5360,6 +6986,31 @@ class $$SettingsTableFilterComposer
 
   ColumnFilters<bool> get haptics => $composableBuilder(
     column: $table.haptics,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rolloverHour => $composableBuilder(
+    column: $table.rolloverHour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get reminderEnabled => $composableBuilder(
+    column: $table.reminderEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reminderMinutes => $composableBuilder(
+    column: $table.reminderMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get flasks => $composableBuilder(
+    column: $table.flasks,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastResolvedDay => $composableBuilder(
+    column: $table.lastResolvedDay,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5392,6 +7043,31 @@ class $$SettingsTableOrderingComposer
     column: $table.haptics,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get rolloverHour => $composableBuilder(
+    column: $table.rolloverHour,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get reminderEnabled => $composableBuilder(
+    column: $table.reminderEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reminderMinutes => $composableBuilder(
+    column: $table.reminderMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get flasks => $composableBuilder(
+    column: $table.flasks,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastResolvedDay => $composableBuilder(
+    column: $table.lastResolvedDay,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -5417,6 +7093,29 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get haptics =>
       $composableBuilder(column: $table.haptics, builder: (column) => column);
+
+  GeneratedColumn<int> get rolloverHour => $composableBuilder(
+    column: $table.rolloverHour,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get reminderEnabled => $composableBuilder(
+    column: $table.reminderEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reminderMinutes => $composableBuilder(
+    column: $table.reminderMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get flasks =>
+      $composableBuilder(column: $table.flasks, builder: (column) => column);
+
+  GeneratedColumn<String> get lastResolvedDay => $composableBuilder(
+    column: $table.lastResolvedDay,
+    builder: (column) => column,
+  );
 }
 
 class $$SettingsTableTableManager
@@ -5454,11 +7153,21 @@ class $$SettingsTableTableManager
                 Value<bool> tapMode = const Value.absent(),
                 Value<ResetOnFail> defaultResetOnFail = const Value.absent(),
                 Value<bool> haptics = const Value.absent(),
+                Value<int> rolloverHour = const Value.absent(),
+                Value<bool> reminderEnabled = const Value.absent(),
+                Value<int> reminderMinutes = const Value.absent(),
+                Value<int> flasks = const Value.absent(),
+                Value<String?> lastResolvedDay = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 tapMode: tapMode,
                 defaultResetOnFail: defaultResetOnFail,
                 haptics: haptics,
+                rolloverHour: rolloverHour,
+                reminderEnabled: reminderEnabled,
+                reminderMinutes: reminderMinutes,
+                flasks: flasks,
+                lastResolvedDay: lastResolvedDay,
               ),
           createCompanionCallback:
               ({
@@ -5466,11 +7175,21 @@ class $$SettingsTableTableManager
                 Value<bool> tapMode = const Value.absent(),
                 Value<ResetOnFail> defaultResetOnFail = const Value.absent(),
                 Value<bool> haptics = const Value.absent(),
+                Value<int> rolloverHour = const Value.absent(),
+                Value<bool> reminderEnabled = const Value.absent(),
+                Value<int> reminderMinutes = const Value.absent(),
+                Value<int> flasks = const Value.absent(),
+                Value<String?> lastResolvedDay = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 tapMode: tapMode,
                 defaultResetOnFail: defaultResetOnFail,
                 haptics: haptics,
+                rolloverHour: rolloverHour,
+                reminderEnabled: reminderEnabled,
+                reminderMinutes: reminderMinutes,
+                flasks: flasks,
+                lastResolvedDay: lastResolvedDay,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5503,6 +7222,902 @@ typedef $$SettingsTableProcessedTableManager =
       AppSettings,
       PrefetchHooks Function()
     >;
+typedef $$DayLogsTableCreateCompanionBuilder = DayLogsCompanion Function({
+  required String day,
+  required DayKind kind,
+  Value<String?> lesson,
+  required DateTime at,
+  Value<int> rowid,
+});
+typedef $$DayLogsTableUpdateCompanionBuilder = DayLogsCompanion Function({
+  Value<String> day,
+  Value<DayKind> kind,
+  Value<String?> lesson,
+  Value<DateTime> at,
+  Value<int> rowid,
+});
+
+class $$DayLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $DayLogsTable> {
+  $$DayLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DayKind, DayKind, int> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get lesson => $composableBuilder(
+    column: $table.lesson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DayLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DayLogsTable> {
+  $$DayLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lesson => $composableBuilder(
+    column: $table.lesson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DayLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DayLogsTable> {
+  $$DayLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DayKind, int> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get lesson =>
+      $composableBuilder(column: $table.lesson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+}
+
+class $$DayLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DayLogsTable,
+          DayLog,
+          $$DayLogsTableFilterComposer,
+          $$DayLogsTableOrderingComposer,
+          $$DayLogsTableAnnotationComposer,
+          $$DayLogsTableCreateCompanionBuilder,
+          $$DayLogsTableUpdateCompanionBuilder,
+          (DayLog, BaseReferences<_$AppDatabase, $DayLogsTable, DayLog>),
+          DayLog,
+          PrefetchHooks Function()
+        > {
+  $$DayLogsTableTableManager(_$AppDatabase db, $DayLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DayLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DayLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DayLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> day = const Value.absent(),
+                Value<DayKind> kind = const Value.absent(),
+                Value<String?> lesson = const Value.absent(),
+                Value<DateTime> at = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DayLogsCompanion(
+                day: day,
+                kind: kind,
+                lesson: lesson,
+                at: at,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String day,
+                required DayKind kind,
+                Value<String?> lesson = const Value.absent(),
+                required DateTime at,
+                Value<int> rowid = const Value.absent(),
+              }) => DayLogsCompanion.insert(
+                day: day,
+                kind: kind,
+                lesson: lesson,
+                at: at,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DayLogsTable, DayLog>(table),
+                  BaseReferences<_$AppDatabase, $DayLogsTable, DayLog>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DayLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DayLogsTable,
+      DayLog,
+      $$DayLogsTableFilterComposer,
+      $$DayLogsTableOrderingComposer,
+      $$DayLogsTableAnnotationComposer,
+      $$DayLogsTableCreateCompanionBuilder,
+      $$DayLogsTableUpdateCompanionBuilder,
+      (DayLog, BaseReferences<_$AppDatabase, $DayLogsTable, DayLog>),
+      DayLog,
+      PrefetchHooks Function()
+    >;
+typedef $$EmberEventsTableCreateCompanionBuilder =
+    EmberEventsCompanion Function({
+      required String id,
+      required EmberKind kind,
+      required int amount,
+      Value<String?> bossId,
+      Value<String?> taskId,
+      required String day,
+      required DateTime at,
+      Value<int> rowid,
+    });
+typedef $$EmberEventsTableUpdateCompanionBuilder =
+    EmberEventsCompanion Function({
+      Value<String> id,
+      Value<EmberKind> kind,
+      Value<int> amount,
+      Value<String?> bossId,
+      Value<String?> taskId,
+      Value<String> day,
+      Value<DateTime> at,
+      Value<int> rowid,
+    });
+
+final class $$EmberEventsTableReferences
+    extends BaseReferences<_$AppDatabase, $EmberEventsTable, EmberEvent> {
+  $$EmberEventsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BossesTable _bossIdTable(_$AppDatabase db) =>
+      db.bosses.createAlias('ember_events__boss_id__bosses__id');
+
+  $$BossesTableProcessedTableManager? get bossId {
+    final $_column = $_itemColumn<String>('boss_id');
+    if ($_column == null) return null;
+    final manager = $$BossesTableTableManager(
+      $_db,
+      $_db.bosses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bossIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('ember_events__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager? get taskId {
+    final $_column = $_itemColumn<String>('task_id');
+    if ($_column == null) return null;
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$EmberEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $EmberEventsTable> {
+  $$EmberEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<EmberKind, EmberKind, int> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BossesTableFilterComposer get bossId {
+    final $$BossesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bossId,
+      referencedTable: $db.bosses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BossesTableFilterComposer(
+            $db: $db,
+            $table: $db.bosses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EmberEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EmberEventsTable> {
+  $$EmberEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BossesTableOrderingComposer get bossId {
+    final $$BossesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bossId,
+      referencedTable: $db.bosses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BossesTableOrderingComposer(
+            $db: $db,
+            $table: $db.bosses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EmberEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EmberEventsTable> {
+  $$EmberEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<EmberKind, int> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  $$BossesTableAnnotationComposer get bossId {
+    final $$BossesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bossId,
+      referencedTable: $db.bosses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BossesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bosses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$EmberEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EmberEventsTable,
+          EmberEvent,
+          $$EmberEventsTableFilterComposer,
+          $$EmberEventsTableOrderingComposer,
+          $$EmberEventsTableAnnotationComposer,
+          $$EmberEventsTableCreateCompanionBuilder,
+          $$EmberEventsTableUpdateCompanionBuilder,
+          (EmberEvent, $$EmberEventsTableReferences),
+          EmberEvent,
+          PrefetchHooks Function({bool bossId, bool taskId})
+        > {
+  $$EmberEventsTableTableManager(_$AppDatabase db, $EmberEventsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EmberEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EmberEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EmberEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<EmberKind> kind = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<String?> bossId = const Value.absent(),
+                Value<String?> taskId = const Value.absent(),
+                Value<String> day = const Value.absent(),
+                Value<DateTime> at = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EmberEventsCompanion(
+                id: id,
+                kind: kind,
+                amount: amount,
+                bossId: bossId,
+                taskId: taskId,
+                day: day,
+                at: at,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required EmberKind kind,
+                required int amount,
+                Value<String?> bossId = const Value.absent(),
+                Value<String?> taskId = const Value.absent(),
+                required String day,
+                required DateTime at,
+                Value<int> rowid = const Value.absent(),
+              }) => EmberEventsCompanion.insert(
+                id: id,
+                kind: kind,
+                amount: amount,
+                bossId: bossId,
+                taskId: taskId,
+                day: day,
+                at: at,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$EmberEventsTable, EmberEvent>(table),
+                  $$EmberEventsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bossId = false, taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bossId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.bossId,
+                        referencedTable: $$EmberEventsTableReferences
+                            ._bossIdTable(db),
+                        referencedColumn: $$EmberEventsTableReferences
+                            ._bossIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (taskId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.taskId,
+                        referencedTable: $$EmberEventsTableReferences
+                            ._taskIdTable(db),
+                        referencedColumn: $$EmberEventsTableReferences
+                            ._taskIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$EmberEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EmberEventsTable,
+      EmberEvent,
+      $$EmberEventsTableFilterComposer,
+      $$EmberEventsTableOrderingComposer,
+      $$EmberEventsTableAnnotationComposer,
+      $$EmberEventsTableCreateCompanionBuilder,
+      $$EmberEventsTableUpdateCompanionBuilder,
+      (EmberEvent, $$EmberEventsTableReferences),
+      EmberEvent,
+      PrefetchHooks Function({bool bossId, bool taskId})
+    >;
+typedef $$PlanPicksTableCreateCompanionBuilder = PlanPicksCompanion Function({
+  required String day,
+  required String taskId,
+  required int position,
+  Value<int> rowid,
+});
+typedef $$PlanPicksTableUpdateCompanionBuilder = PlanPicksCompanion Function({
+  Value<String> day,
+  Value<String> taskId,
+  Value<int> position,
+  Value<int> rowid,
+});
+
+final class $$PlanPicksTableReferences
+    extends BaseReferences<_$AppDatabase, $PlanPicksTable, PlanPick> {
+  $$PlanPicksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TasksTable _taskIdTable(_$AppDatabase db) =>
+      db.tasks.createAlias('plan_picks__task_id__tasks__id');
+
+  $$TasksTableProcessedTableManager get taskId {
+    final $_column = $_itemColumn<String>('task_id')!;
+
+    final manager = $$TasksTableTableManager(
+      $_db,
+      $_db.tasks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_taskIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PlanPicksTableFilterComposer
+    extends Composer<_$AppDatabase, $PlanPicksTable> {
+  $$PlanPicksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TasksTableFilterComposer get taskId {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableFilterComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PlanPicksTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlanPicksTable> {
+  $$PlanPicksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TasksTableOrderingComposer get taskId {
+    final $$TasksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PlanPicksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlanPicksTable> {
+  $$PlanPicksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  $$TasksTableAnnotationComposer get taskId {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.taskId,
+      referencedTable: $db.tasks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PlanPicksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PlanPicksTable,
+          PlanPick,
+          $$PlanPicksTableFilterComposer,
+          $$PlanPicksTableOrderingComposer,
+          $$PlanPicksTableAnnotationComposer,
+          $$PlanPicksTableCreateCompanionBuilder,
+          $$PlanPicksTableUpdateCompanionBuilder,
+          (PlanPick, $$PlanPicksTableReferences),
+          PlanPick,
+          PrefetchHooks Function({bool taskId})
+        > {
+  $$PlanPicksTableTableManager(_$AppDatabase db, $PlanPicksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlanPicksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlanPicksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlanPicksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> day = const Value.absent(),
+                Value<String> taskId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PlanPicksCompanion(
+                day: day,
+                taskId: taskId,
+                position: position,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String day,
+                required String taskId,
+                required int position,
+                Value<int> rowid = const Value.absent(),
+              }) => PlanPicksCompanion.insert(
+                day: day,
+                taskId: taskId,
+                position: position,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PlanPicksTable, PlanPick>(table),
+                  $$PlanPicksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({taskId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (taskId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.taskId,
+                        referencedTable: $$PlanPicksTableReferences
+                            ._taskIdTable(db),
+                        referencedColumn: $$PlanPicksTableReferences
+                            ._taskIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PlanPicksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PlanPicksTable,
+      PlanPick,
+      $$PlanPicksTableFilterComposer,
+      $$PlanPicksTableOrderingComposer,
+      $$PlanPicksTableAnnotationComposer,
+      $$PlanPicksTableCreateCompanionBuilder,
+      $$PlanPicksTableUpdateCompanionBuilder,
+      (PlanPick, $$PlanPicksTableReferences),
+      PlanPick,
+      PrefetchHooks Function({bool taskId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5517,4 +8132,10 @@ class $AppDatabaseManager {
       $$AttemptsTableTableManager(_db, _db.attempts);
   $$SettingsTableTableManager get settings =>
       $$SettingsTableTableManager(_db, _db.settings);
+  $$DayLogsTableTableManager get dayLogs =>
+      $$DayLogsTableTableManager(_db, _db.dayLogs);
+  $$EmberEventsTableTableManager get emberEvents =>
+      $$EmberEventsTableTableManager(_db, _db.emberEvents);
+  $$PlanPicksTableTableManager get planPicks =>
+      $$PlanPicksTableTableManager(_db, _db.planPicks);
 }

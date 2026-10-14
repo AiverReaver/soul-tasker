@@ -29,9 +29,10 @@ class Harness {
 
   factory Harness([QueryExecutor? executor, StepClock? clock]) {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+    final theClock = clock ?? StepClock();
     return Harness._(
-      AppDatabase(executor ?? NativeDatabase.memory()),
-      clock ?? StepClock(),
+      AppDatabase(executor ?? NativeDatabase.memory(), clock: theClock.call),
+      theClock,
     );
   }
 

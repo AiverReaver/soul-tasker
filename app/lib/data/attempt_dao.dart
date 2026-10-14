@@ -55,7 +55,7 @@ class AttemptDao {
             cause: Value(cause),
             phaseId: Value(phaseId),
             lesson: Value(lesson),
-            day: dayOf(now),
+            day: dayOf(now, rolloverHour: await _db.rolloverHour()),
             at: now,
           ),
         );
