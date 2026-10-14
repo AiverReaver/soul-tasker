@@ -7,6 +7,7 @@ import 'boss_dao.dart';
 import 'boss_view.dart';
 import 'database.dart';
 import 'day_dao.dart';
+import 'plan_pick_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
 
@@ -69,4 +70,16 @@ final dayDaoProvider = Provider(
 
 final dayStatusProvider = StreamProvider(
   (ref) => ref.watch(dayDaoProvider).watchToday(),
+);
+
+final planPickDaoProvider = Provider(
+  (ref) => PlanPickDao(
+    ref.watch(databaseProvider),
+    ref.watch(bossDaoProvider),
+    ref.watch(clockProvider),
+  ),
+);
+
+final todayPicksProvider = StreamProvider(
+  (ref) => ref.watch(planPickDaoProvider).watchToday(),
 );

@@ -7,6 +7,7 @@ import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
+import '../../ui/plan_banner.dart';
 import '../boss/task_row.dart';
 
 /// The day's tasks for one boss, in Today order (plan §8.3): open daily
@@ -47,6 +48,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
         .where((b) => b.boss.status == BossStatus.active)
         .toList();
     final tally = ref.watch(emberTallyProvider).value;
+    final picks = ref.watch(todayPicksProvider).value ?? const [];
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id) (b, todayTasks(b)),
@@ -59,6 +61,20 @@ class _TodayViewState extends ConsumerState<TodayView> {
           Padding(
             padding: const EdgeInsets.only(bottom: Space.sm),
             child: EmberTally(carried: tally.carried, banked: tally.banked),
+          ),
+        if (picks.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: Space.md),
+            child: PlanBanner(
+              items: [
+                for (final p in picks)
+                  PlanItem(
+                    title: p.task.title,
+                    bossTitle: p.bossTitle,
+                    isDone: p.isStruck,
+                  ),
+              ],
+            ),
           ),
         if (active.length > 1)
           SingleChildScrollView(
