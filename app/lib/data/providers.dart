@@ -6,6 +6,7 @@ import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
 import 'database.dart';
+import 'day_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
 
@@ -56,4 +57,12 @@ final emberDaoProvider = Provider(
 
 final emberTallyProvider = StreamProvider(
   (ref) => ref.watch(emberDaoProvider).watchTally(),
+);
+
+final dayDaoProvider = Provider(
+  (ref) => DayDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final dayStatusProvider = StreamProvider(
+  (ref) => ref.watch(dayDaoProvider).watchToday(),
 );
