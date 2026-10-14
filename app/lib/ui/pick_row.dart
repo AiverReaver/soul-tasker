@@ -29,7 +29,10 @@ class PickRow extends StatelessWidget {
       value: isSelected,
       onChanged: isEnabled ? (v) => onChanged(v ?? false) : null,
       title: Text(title, style: text.bodyMedium),
-      subtitle: Text(bossTitle, style: text.bodySmall),
+      subtitle: Text(
+        bossTitle,
+        style: text.bodyMedium?.copyWith(color: kTextMuted),
+      ),
     );
   }
 }

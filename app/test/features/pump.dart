@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/app.dart';
 import 'package:hearthrise/core/clock.dart';
@@ -16,12 +17,14 @@ Future<void> pumpApp(
   WidgetTester tester,
   Harness h, {
   String location = '/',
+  List<Override> overrides = const [],
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(h.db),
         clockProvider.overrideWithValue(h.clock.call),
+        ...overrides,
       ],
       child: HearthriseApp(initialLocation: location),
     ),

@@ -84,6 +84,64 @@ void main() {
     });
   });
 
+  group('rest with a plan', () {
+    test('saves the picks for the next day (D11)', () async {
+      final view = await h.seed();
+      final ids = [
+        taskNamed(view, 'Walk').task.id,
+        taskNamed(view, 'Book the room').task.id,
+      ];
+      await days.rest(pickTaskIds: ids);
+
+      final rows = await h.db.select(h.db.planPicks).get();
+      expect(rows.map((r) => r.day).toSet(), {'2026-10-14'});
+      expect(rows.map((r) => r.taskId), ids);
+    });
+
+    test('a fourth pick throws and the rest is not written', () async {
+      final view = await h.seed();
+      final ids = [for (final t in view.allTasks.take(4)) t.task.id];
+      await expectLater(days.rest(pickTaskIds: ids), throwsArgumentError);
+      expect(await logs(), isEmpty);
+      expect(await flasks(), 3);
+    });
+
+    test('a rest at 01:00 plans for the calendar day it falls on', () async {
+      final view = await h.seed();
+      h.clock.now = DateTime(2026, 10, 14, 1);
+      await days.rest(pickTaskIds: [taskNamed(view, 'Walk').task.id]);
+      final row = (await h.db.select(h.db.planPicks).get()).single;
+      expect(row.day, '2026-10-14');
+    });
+  });
+
+  group('summary', () {
+    test('counts the day, lists its lessons and carries the embers', () async {
+      final view = await h.seed();
+      await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
+      await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+      await h.attempts.tried(taskNamed(view, 'Walk').task.id);
+      await h.attempts.fall(view.boss.id, 'Start earlier.');
+
+      final s = await days.summary();
+      expect(s.strikes, 2);
+      expect(s.tried, 1);
+      expect(s.falls, 1);
+      expect(s.lessons, ['Start earlier.']);
+      expect(s.embers.carried, 1 + 3 + 2); // Light, Heavy, tried Heavy
+    });
+
+    test('leaves out other days, and follows the rollover hour', () async {
+      final view = await h.seed();
+      h.clock.now = DateTime(2026, 10, 14, 1);
+      await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
+      h.clock.now = DateTime(2026, 10, 14, 3); // still day 13
+      expect((await days.summary()).strikes, 1);
+      h.clock.now = DateTime(2026, 10, 14, 5); // day 14
+      expect((await days.summary()).strikes, 0);
+    });
+  });
+
   group('skipToday', () {
     test('spends one flask and writes a flask row', () async {
       expect(await days.skipToday(), isTrue);

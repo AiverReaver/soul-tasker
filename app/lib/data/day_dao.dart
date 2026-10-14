@@ -7,6 +7,7 @@ import 'attempt_dao.dart';
 import 'database.dart';
 import 'ember_dao.dart';
 import 'enums.dart';
+import 'plan_pick_dao.dart';
 
 /// Flask charges never exceed this (Stage 3 plan D5).
 const kFlaskCap = 3;
@@ -24,6 +25,24 @@ class DayStatus {
 
   /// A flask or a rest already covers today.
   bool get isCovered => isRested || kinds.contains(DayKind.flask);
+}
+
+/// What the day held, for the bonfire.
+@immutable
+class DaySummaryData {
+  const DaySummaryData({
+    required this.strikes,
+    required this.tried,
+    required this.falls,
+    required this.lessons,
+    required this.embers,
+  });
+
+  final int strikes;
+  final int tried;
+  final int falls;
+  final List<String> lessons;
+  final EmberTally embers;
 }
 
 /// Days that ended with no cover, and who falls for them.
@@ -97,15 +116,52 @@ class DayDao {
   }
 
   /// Rests at the bonfire: banks the carried embers, restores one flask, keeps
-  /// the lesson. Returns false, changing nothing, if today was already rested.
-  Future<bool> rest({String? lesson}) => _db.transaction(() async {
+  /// the lesson, and saves [pickTaskIds] as tomorrow's three. Returns false,
+  /// changing nothing, if today was already rested. Throws, changing nothing,
+  /// for more than three picks.
+  Future<bool> rest({String? lesson, List<String> pickTaskIds = const []}) =>
+      _db.transaction(() async {
+        final day = await _today();
+        if ((await _kindsOn(day)).contains(DayKind.bonfire)) return false;
+        await _log(day, DayKind.bonfire, _clock(), cleanLesson(lesson));
+        await _embers.bank();
+        await _setFlasks(await _flasks() + 1);
+        if (pickTaskIds.isNotEmpty) {
+          await writePicks(_db, shiftDay(day, 1), pickTaskIds);
+        }
+        return true;
+      });
+
+  Future<DaySummaryData> summary() async {
     final day = await _today();
-    if ((await _kindsOn(day)).contains(DayKind.bonfire)) return false;
-    await _log(day, DayKind.bonfire, _clock(), cleanLesson(lesson));
-    await _embers.bank();
-    await _setFlasks(await _flasks() + 1);
-    return true;
-  });
+    final rows = await (_db.select(
+      _db.attempts,
+    )..where((a) => a.day.equals(day))).get();
+    int count(Outcome o) => rows.where((a) => a.outcome == o).length;
+    return DaySummaryData(
+      strikes: count(Outcome.strike),
+      tried: count(Outcome.tried),
+      falls: count(Outcome.fallen),
+      lessons: [
+        for (final a in rows)
+          if (a.outcome == Outcome.fallen && a.lesson != null) a.lesson!,
+      ],
+      embers: await _embers.tally(),
+    );
+  }
+
+  Stream<DaySummaryData> watchSummary() async* {
+    yield await summary();
+    yield* _db
+        .tableUpdates(
+          TableUpdateQuery.onAllTables([
+            _db.attempts,
+            _db.emberEvents,
+            _db.settings,
+          ]),
+        )
+        .asyncMap((_) => summary());
+  }
 
   /// Spends a flask to cover today. False if none is left or today is
   /// already covered.

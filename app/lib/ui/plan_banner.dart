@@ -18,9 +18,14 @@ class PlanItem {
 
 /// "Today's three": the tasks picked at last night's bonfire.
 class PlanBanner extends StatelessWidget {
-  const PlanBanner({super.key, required this.items});
+  const PlanBanner({
+    super.key,
+    required this.items,
+    this.title = "TODAY'S THREE",
+  });
 
   final List<PlanItem> items;
+  final String title;
 
   static const _icon = 16.0;
 
@@ -31,7 +36,7 @@ class PlanBanner extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("TODAY'S THREE", style: text.labelSmall),
+        Text(title, style: text.labelSmall),
         const SizedBox(height: Space.sm),
         for (final item in items)
           Padding(

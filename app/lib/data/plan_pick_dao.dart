@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
 import '../core/clock.dart';
+import '../core/missed_days.dart';
 import 'boss_dao.dart';
 import 'database.dart';
 import 'enums.dart';
@@ -39,6 +40,24 @@ class PlannedTask {
   final bool isStruck;
 }
 
+/// Replaces the picks for [day]. At most [kMaxPicks], in the given order.
+/// Call inside a transaction to make it part of a larger write.
+Future<void> writePicks(
+  AppDatabase db,
+  String day,
+  List<String> taskIds,
+) async {
+  if (taskIds.length > kMaxPicks) {
+    throw ArgumentError('A day holds at most $kMaxPicks picks.');
+  }
+  await (db.delete(db.planPicks)..where((p) => p.day.equals(day))).go();
+  for (final (i, id) in taskIds.indexed) {
+    await db
+        .into(db.planPicks)
+        .insert(PlanPicksCompanion.insert(day: day, taskId: id, position: i));
+  }
+}
+
 /// Tomorrow's three (Stage 3 plan D11).
 class PlanPickDao {
   PlanPickDao(this._db, this._bosses, this._clock);
@@ -61,22 +80,8 @@ class PlanPickDao {
             ),
   ];
 
-  /// Replaces the picks for [day]. At most [kMaxPicks], in the given order.
-  Future<void> setPicks(String day, List<String> taskIds) {
-    if (taskIds.length > kMaxPicks) {
-      throw ArgumentError('A day holds at most $kMaxPicks picks.');
-    }
-    return _db.transaction(() async {
-      await (_db.delete(_db.planPicks)..where((p) => p.day.equals(day))).go();
-      for (final (i, id) in taskIds.indexed) {
-        await _db
-            .into(_db.planPicks)
-            .insert(
-              PlanPicksCompanion.insert(day: day, taskId: id, position: i),
-            );
-      }
-    });
-  }
+  Future<void> setPicks(String day, List<String> taskIds) =>
+      _db.transaction(() => writePicks(_db, day, taskIds));
 
   Future<List<PlannedTask>> picksFor(String day) async {
     final rows =
@@ -98,6 +103,11 @@ class PlanPickDao {
 
   Future<List<PlannedTask>> _today() async =>
       picksFor(dayOf(_clock(), rolloverHour: await _db.rolloverHour()));
+
+  /// The picks made for the day after the current one.
+  Future<List<PlannedTask>> tomorrow() async => picksFor(
+    shiftDay(dayOf(_clock(), rolloverHour: await _db.rolloverHour()), 1),
+  );
 
   /// Today's picks, again after any change to plans, tasks or strikes.
   Stream<List<PlannedTask>> watchToday() async* {

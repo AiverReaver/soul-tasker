@@ -6,6 +6,7 @@ import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/bonfire_card.dart';
 import '../today/today_view.dart';
 import 'boss_card.dart';
 import 'settings_sheet.dart';
@@ -48,6 +49,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.sm),
+              child: BonfireCard(
+                isRested: ref.watch(dayStatusProvider).value?.isRested ?? false,
+                onTap: () => context.push('/bonfire'),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SegmentedButton<_Tab>(
