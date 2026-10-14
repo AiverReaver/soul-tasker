@@ -105,6 +105,11 @@ class DayDao {
             ),
           );
 
+  /// How many bonfire rests there have been, ever.
+  Future<int> restCount() async => (await (_db.select(
+    _db.dayLogs,
+  )..where((l) => l.kind.equalsValue(DayKind.bonfire))).get()).length;
+
   Future<DayStatus> today() async =>
       DayStatus(kinds: await _kindsOn(await _today()), flasks: await _flasks());
 

@@ -9,6 +9,8 @@ class SettingsDao {
 
   final AppDatabase _db;
 
+  Future<AppSettings> read() => _db.select(_db.settings).getSingle();
+
   Stream<AppSettings> watch() => _db.select(_db.settings).watchSingle();
 
   Future<void> setTapMode(bool isOn) =>

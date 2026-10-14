@@ -7,6 +7,7 @@ import 'package:hearthrise/data/providers.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
+import '../support/fake_reminders.dart';
 
 // The in-memory database runs synchronously on this isolate, so its futures
 // complete as microtasks inside the widget test's fake async zone. Do not
@@ -18,12 +19,14 @@ Future<void> pumpApp(
   Harness h, {
   String location = '/',
   List<Override> overrides = const [],
+  FakeReminders? reminders,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(h.db),
         clockProvider.overrideWithValue(h.clock.call),
+        (reminders ?? FakeReminders()).asOverride, // never the real plugin
         ...overrides,
       ],
       child: HearthriseApp(initialLocation: location),

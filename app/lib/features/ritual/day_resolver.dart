@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../data/providers.dart';
 import '../../ui/flask_choice.dart';
 import '../fallen/fallen_screen.dart';
+import 'reminder_coordinator.dart';
 
 /// Judges the days that ended while the app was closed, on start and on
 /// resume (Stage 3 plan D1). Wraps the home screen; shows nothing unless a
@@ -28,7 +29,10 @@ class _DayResolverState extends ConsumerState<DayResolver>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _check());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(reminderCoordinatorProvider).rearm();
+      _check();
+    });
   }
 
   @override

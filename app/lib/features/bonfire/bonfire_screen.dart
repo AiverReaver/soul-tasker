@@ -11,7 +11,9 @@ import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/flask_pips.dart';
 import '../../ui/pick_row.dart';
+import '../../ui/reminder_invite.dart';
 import '../../ui/plan_banner.dart';
+import '../ritual/reminder_coordinator.dart';
 
 /// The bonfire (§5.6): review the day, write one lesson, pick tomorrow's
 /// three, rest. Holds the lesson field and the picks; the widgets are in `ui/`.
@@ -46,9 +48,31 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen> {
 
   Future<void> _rest() async {
     ref.read(hapticsProvider).medium();
-    await ref
-        .read(dayDaoProvider)
-        .rest(lesson: _lesson.text, pickTaskIds: List.of(_picked));
+    final days = ref.read(dayDaoProvider);
+    final didRest = await days.rest(
+      lesson: _lesson.text,
+      pickTaskIds: List.of(_picked),
+    );
+    if (!didRest || !mounted) return;
+    await _inviteReminder(days);
+  }
+
+  /// Once, after the very first rest, if the reminder is still off (D6).
+  Future<void> _inviteReminder(DayDao days) async {
+    final isOn = (await ref.read(settingsDaoProvider).read()).reminderEnabled;
+    if (isOn || await days.restCount() != 1 || !mounted) return;
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (dialog) => ReminderInvite(
+        onAccept: () => Navigator.pop(dialog, true),
+        onDecline: () => Navigator.pop(dialog, false),
+      ),
+    );
+    if (!(accepted ?? false) || !mounted) return;
+    final isGranted = await ref.read(reminderCoordinatorProvider).enable();
+    if (!isGranted && mounted) {
+      setState(() => _flash = 'No reminder without permission.');
+    }
   }
 
   @override
@@ -71,6 +95,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen> {
                 children: [
                   if (isRested) ...[
                     Text('You have rested.', style: text.titleMedium),
+                    FlashLine(_flash),
                     const SizedBox(height: Space.md),
                   ],
                   DaySummary(
