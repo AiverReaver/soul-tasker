@@ -22,6 +22,16 @@ String dayOf(DateTime time, {int rolloverHour = kRolloverHour}) {
   return '${date.year}-${two(date.month)}-${two(date.day)}';
 }
 
+/// Day number of [day] counting [firstDay] as day 1.
+int dayNumber(String firstDay, String day) {
+  DateTime parse(String d) {
+    final p = d.split('-').map(int.parse).toList();
+    return DateTime.utc(p[0], p[1], p[2]);
+  }
+
+  return parse(day).difference(parse(firstDay)).inDays + 1;
+}
+
 /// [minutes] from midnight as a 12-hour time, such as `9:00 PM`.
 String formatClock(int minutes) {
   final hour = minutes ~/ 60;

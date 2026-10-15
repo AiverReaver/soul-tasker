@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../core/check_in.dart';
 import '../core/clock.dart';
 import '../core/ids.dart';
 import '../core/signals.dart';
@@ -84,5 +85,12 @@ class SignalDao {
       tapMode: settings.tapMode,
       haptics: settings.haptics,
     );
+  }
+
+  /// The check-in window due at today's bonfire, or null.
+  Future<int?> checkInDue() async {
+    final input = await this.input();
+    final today = dayOf(_clock(), rolloverHour: input.rolloverHour);
+    return dueCheckIn(input.firstDay, today, input.marks);
   }
 }

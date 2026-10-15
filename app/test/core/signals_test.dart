@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/core/clock.dart';
 import 'package:hearthrise/core/signals.dart';
 import 'package:hearthrise/data/enums.dart';
 

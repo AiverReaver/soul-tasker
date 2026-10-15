@@ -147,16 +147,6 @@ class Signals {
   double? get triedPerStrike => strikes == 0 ? null : tried / strikes;
 }
 
-/// Day number of [day] counting [firstDay] as day 1.
-int dayNumber(String firstDay, String day) {
-  DateTime parse(String d) {
-    final p = d.split('-').map(int.parse).toList();
-    return DateTime.utc(p[0], p[1], p[2]);
-  }
-
-  return parse(day).difference(parse(firstDay)).inDays + 1;
-}
-
 /// The §12 signals as of [today] (Stage 6 plan D5 to D7).
 Signals computeSignals(SignalInput input, String today) {
   final visits = input.visitDays.toSet();

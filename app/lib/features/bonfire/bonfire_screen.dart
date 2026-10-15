@@ -5,9 +5,11 @@ import '../../core/commitment_resolver.dart';
 import '../../core/sounds.dart';
 import '../../core/theme.dart';
 import '../../data/day_dao.dart';
+import '../../data/enums.dart';
 import '../../data/plan_pick_dao.dart';
 import '../../data/providers.dart';
 import '../../ui/accuracy_line.dart';
+import '../../ui/check_in_card.dart';
 import '../../ui/day_summary.dart';
 import '../../ui/ember_button.dart';
 import '../../ui/ember_tally.dart';
@@ -33,6 +35,11 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
   final _lesson = TextEditingController();
   final _picked = <String>[];
   String? _flash;
+
+  /// The check-in line after answering or dismissing; the card then leaves
+  /// for this visit (Stage 6 plan D6).
+  bool _isCheckInDone = false;
+  String? _checkInLine;
 
   // Held here: ref is not safe to read in dispose.
   late final Sounds _sounds = ref.read(soundsProvider);
@@ -84,6 +91,17 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     await _inviteReminder(days);
   }
 
+  Future<void> _checkIn(CheckInAnswer? answer) async {
+    setState(() {
+      _isCheckInDone = true;
+      _checkInLine = answer == null ? null : 'Thank you.';
+    });
+    final signals = ref.read(signalDaoProvider);
+    await (answer == null
+        ? signals.add(SignalKind.checkInDismissed)
+        : signals.add(SignalKind.checkIn, value: answer.index));
+  }
+
   /// Rest after a fall (§5.6): full health and banked embers, nothing more.
   Future<void> _rise() async {
     ref.read(hapticsProvider).medium();
@@ -117,6 +135,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     final health = ref.watch(healthProvider).value;
     final isFallen = health == 0;
     final accuracy = ref.watch(accuracyProvider).value;
+    final checkIn = ref.watch(checkInDueProvider).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -140,6 +159,14 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
                     falls: summary.falls,
                     lessons: summary.lessons,
                   ),
+                  if (checkIn != null && !_isCheckInDone && !isFallen) ...[
+                    const SizedBox(height: Space.md),
+                    CheckInCard(
+                      onAnswer: _checkIn,
+                      onDismiss: () => _checkIn(null),
+                    ),
+                  ],
+                  if (_checkInLine != null) FlashLine(_checkInLine),
                   const SizedBox(height: Space.md),
                   EmberTally(
                     carried: summary.embers.carried,
