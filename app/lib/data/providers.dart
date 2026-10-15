@@ -10,6 +10,8 @@ import 'database.dart';
 import 'day_dao.dart';
 import 'health_dao.dart';
 import 'plan_pick_dao.dart';
+import 'profile_dao.dart';
+import 'relic_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
 
@@ -132,3 +134,20 @@ final tomorrowPicksProvider = FutureProvider.autoDispose((ref) {
   ref.watch(dayStatusProvider);
   return ref.watch(planPickDaoProvider).tomorrow();
 });
+
+final relicDaoProvider = Provider(
+  (ref) => RelicDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final relicListProvider = StreamProvider(
+  (ref) => ref.watch(relicDaoProvider).watchAll(),
+);
+
+final relicProvider = StreamProvider.family<RelicView?, String>(
+  (ref, id) => ref.watch(relicDaoProvider).watch(id),
+);
+
+final profileProvider = StreamProvider(
+  (ref) =>
+      ProfileDao(ref.watch(databaseProvider), ref.watch(clockProvider)).watch(),
+);
