@@ -6,6 +6,7 @@ import 'package:hearthrise/data/day_dao.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/health_dao.dart';
 import 'package:hearthrise/data/signal_dao.dart';
+import 'package:hearthrise/data/visit_dao.dart';
 
 import 'harness.dart';
 
@@ -142,5 +143,36 @@ void main() {
       expect((await signals.events()).map((e) => e.value), [1, 0]);
       expect((await h.settings.read()).tapMode, isFalse);
     });
+  });
+
+  test('input gathers counts from a seeded database, no text', () async {
+    final view = await h.seed();
+    final visits = VisitDao(h.db, h.clock.call);
+    await visits.record();
+    await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
+    await h.attempts.tried(taskNamed(view, 'Read chapter 4').task.id);
+    await h.attempts.fall(view.boss.id, 'Too much at once.');
+    await h.settings.setTapMode(true);
+    await DayDao(h.db, h.clock.call, h.attempts).rest(lesson: 'Start early.');
+
+    final input = await signals.input();
+
+    expect(input.firstDay, '2026-10-13');
+    expect(input.rolloverHour, 4);
+    expect(input.visitDays, ['2026-10-13']);
+    expect(input.marks.map((m) => m.kind), [
+      SignalKind.fell,
+      SignalKind.tapModeChanged,
+    ]);
+    expect(input.attempts.map((a) => a.outcome), [
+      Outcome.strike,
+      Outcome.tried,
+      Outcome.fallen,
+    ]);
+    expect(input.attempts.last.hasLesson, isTrue);
+    expect(input.attempts.first.weight, Weight.light);
+    expect(input.bonfireLessons, 1);
+    expect(input.tapMode, isTrue);
+    expect(input.haptics, isTrue);
   });
 }

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../core/clock.dart';
 import '../core/ids.dart';
+import '../core/signals.dart';
 import 'database.dart';
 import 'enums.dart';
 
@@ -42,4 +43,46 @@ class SignalDao {
             (e) => OrderingTerm(expression: e.id),
           ]))
           .get();
+
+  /// What the tester report counts. Reads outcomes, weights and whether a
+  /// lesson exists, never the lesson or any title.
+  Future<SignalInput> input() async {
+    final settings = await _db.select(_db.settings).getSingle();
+    final visits = await (_db.select(
+      _db.visits,
+    )..orderBy([(v) => OrderingTerm(expression: v.day)])).get();
+    final attempts = await (_db.select(
+      _db.attempts,
+    )..orderBy([(a) => OrderingTerm(expression: a.at)])).get();
+    final bonfireLessons =
+        await (_db.select(_db.dayLogs)..where(
+              (d) => d.kind.equalsValue(DayKind.bonfire) & d.lesson.isNotNull(),
+            ))
+            .get();
+    final firstDay =
+        settings.firstDay ??
+        (visits.isEmpty
+            ? dayOf(_clock(), rolloverHour: settings.rolloverHour)
+            : visits.first.day);
+    return SignalInput(
+      firstDay: firstDay,
+      rolloverHour: settings.rolloverHour,
+      visitDays: [for (final v in visits) v.day],
+      marks: [
+        for (final e in await events())
+          SignalMark(kind: e.kind, day: e.day, at: e.at, value: e.value),
+      ],
+      attempts: [
+        for (final a in attempts)
+          AttemptMark(
+            outcome: a.outcome,
+            weight: a.weight,
+            hasLesson: a.lesson != null,
+          ),
+      ],
+      bonfireLessons: bonfireLessons.length,
+      tapMode: settings.tapMode,
+      haptics: settings.haptics,
+    );
+  }
 }
