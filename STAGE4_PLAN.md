@@ -17,7 +17,7 @@ Prerequisite: the Stage 3 gate (several real days on a phone) is still open, and
 2. Only the boss of the task that dealt the final blow fails an attempt (`FallCause.healthDeath`). Other bosses are untouched.
 3. The ninth commitment is frozen: its deadline passes with no health loss, and it can still be struck for embers.
 4. The fallen screen reads "Nine promised, three kept." and asks the lesson question. No embers are lost (gentle mode).
-5. The next day starts at full health. Committing to five shows the previous day's accuracy (3 of 9) and the weekly trend on the bonfire.
+5. The fallen screen and the bonfire both show daily and weekly accuracy. The next day starts at full health. Committing to five shows the previous day's accuracy (3 of 9) and the weekly trend on the bonfire.
 6. `test/core/commitment_resolver_test.dart` and the full suite pass, and `flutter analyze` is clean.
 7. Manual checks in step 13 pass on a device.
 
@@ -29,13 +29,13 @@ Prerequisite: the Stage 3 gate (several real days on a phone) is still open, and
 |---|---|---|
 | Append-only ledger with a derived tally (`EmberEvents`, `EmberDao._sum`) | `data/ember_dao.dart` | Same pattern for `HealthEvents` (D4) |
 | `EmberDao.amountFor(outcome, weight)`, Tried = half rounded up | `data/ember_dao.dart` | Late strike pays the Tried amount (D9) |
-| `AttemptDao.failBoss(bossId, cause, lesson, onDay:)`; `FallCause.healthDeath` already exists | `data/attempt_dao.dart` | Health death fails the final-blow boss |
+| `AttemptDao.failBoss(bossId, cause, lesson, onDay:)`; `FallCause.healthDeath` already exists. It stamps the row with `_clock()` | `data/attempt_dao.dart` | Health death fails the final-blow boss; gains an `at:` override (step 5) |
 | `AttemptDao.strike` / `tried` in one transaction with the ember earn | `data/attempt_dao.dart` | Also close the task's commitment in the same transaction |
 | `DayDao.rest` (bank, +1 flask, picks), `pending` / `resolve` for missed days, `Settings.flasks` | `data/day_dao.dart` | Rest restores health; rise is a shorter rest; second extension spends a flask |
 | `dayOf(time, rolloverHour)`, `shiftDay` | `core/clock.dart`, `core/missed_days.dart` | Commitment day and deadline cap |
 | `DayResolver` wraps Home, runs on start and resume | `features/ritual/day_resolver.dart` | Also resolves deadlines; adds a running timer and the away summary |
 | `Reminders` interface with a fake | `core/reminders.dart`, `test/support/fake_reminders.dart` | Extended with one-shot deadline reminders |
-| `FallenScreen.show` | `features/fallen/fallen_screen.dart` | Adds the optional "N promised, M kept" line |
+| `FallenScreen.show` | `features/fallen/fallen_screen.dart` | Adds the optional "N promised, M kept" line and the weekly `AccuracyLine` |
 | `BossHealthBar` (segmented boss bar) | `ui/boss_health_bar.dart` | Not reused: player health is a separate widget (step 7) |
 | Schema v3 with step migrations and dumps in `test/drift/` | `data/database.dart` | Schema v4 (step 1) |
 
@@ -80,10 +80,10 @@ Prerequisite: the Stage 3 gate (several real days on a phone) is still open, and
 | D1 | Where does a deadline live? | A new **`Commitments`** row per task per day, not a column on `Tasks`. Unique `(taskId, day)`. Holds the deadline, extensions used, outcome and resolved time. A task without an open commitment is an open task. | Daily tasks need a fresh commitment each day. Accuracy needs a history of promises. The task row stays as it is. |
 | D2 | Deadline choices | Three presets: **in 1 hour**, **in 3 hours**, **tonight** (23:00 local). Every deadline is capped at the end of the ritual day (the next rollover). If 23:00 has passed, "tonight" means the rollover. No free time picker. | §5.12 lists these three. The cap keeps each commitment inside one day, so health and accuracy stay per day. |
 | D3 | Commitments without a boss | **Not in Stage 4.** Every commitment belongs to a task, and every task to a boss. | `Tasks.bossId` is required across views, DAOs and the editor. Large ripple for a small gain. |
-| D4 | Health storage | **`HealthEvents` ledger** in **half points** (int): `amount` (negative loss, positive restore), `reason`, `commitmentId`, `day`, `at`. Health for a day = max + sum of that day's events, clamped to 0..max. Max is a constant `kMaxHealth = 10` (20 half points). | §9.2 "derived from events, not overwritten". Half points as ints avoid float drift. Per-day sums give the rollover refill for free, with no event to write (§5.6). |
+| D4 | Health storage | **`HealthEvents` ledger** in **half points** (int): `amount` (negative loss, positive restore), `reason`, `commitmentId`, `day`, `at`. Health for a day = start at max, then apply that day's events **in `at` order, clamping to 0..max after each one** (a fold, not a plain sum). Loss events store the full nominal amount, so "health lost" in the day record stays honest; a restore event stores the amount needed to reach max at that moment. Max is a constant `kMaxHealth = 10` (20 half points). | §9.2 "derived from events, not overwritten". Half points as ints avoid float drift. Clamping per event means an overkill loss before a Rise cannot leave the player below full after it. Per-day folds give the rollover refill for free, with no event to write (§5.6). |
 | D5 | Loss amounts | Miss: Light 1, Heavy 2, Boss-tier 3 (added to `Weight` as `healthLoss`). Tried before the deadline: half (0.5, 1, 1.5). Kept or extended: 0. | §5.12 table. |
 | D6 | When is the loss written? | **Miss:** when the resolver sees the deadline passed (on open, resume or timer). The event's `day` and `at` are the **commitment's** day and deadline, not the time it was noticed. **Tried:** at the moment it is marked. | Writing at the deadline time keeps the order of events right after the app was closed, so the final blow is the true one. |
-| D7 | Death and freeze | Process due commitments in deadline order. When a loss brings the day's health to 0, write one `healthDeath` fall on that task's boss (via `failBoss`, `onDay` the commitment's day). While dead, later deadlines resolve as **frozen** (no loss). Dead = the day's last `healthDeath` fall is later than its last rise. Freeze is derived, not stored on the remaining rows until their deadline passes. | §5.12. Deriving dead-ness from rows means rise "unfreezes" with no extra writes. |
+| D7 | Death and freeze | Process due commitments in deadline order. When a loss brings the day's health to 0, write one `healthDeath` fall on that task's boss (via `failBoss`, `onDay` the commitment's day, `at` the deadline of the final blow, so dead-ness compares correctly against rises after a delayed resolve). While dead, later deadlines resolve as **frozen** (no loss). Dead = the day's last `healthDeath` fall is later than its last rise. Freeze is derived, not stored on the remaining rows until their deadline passes. **Commitments made while fallen** are allowed and follow the same rule: no health risk while the player is fallen (a deadline that passes then is `frozen`), at risk again after a Rise if their deadline has not passed (§5.6 "unfreezes commitments that are still before their deadline"). They count as made for accuracy. | §5.12. Deriving dead-ness from rows means rise "unfreezes" with no extra writes. |
 | D8 | Tried | Marking Tried closes the commitment as `tried`. The task stays open: a later strike earns embers (Tried rate, D9) but does not change health or accuracy. | §5.12 "a promise was not kept". |
 | D9 | Late strike | Striking a task whose commitment is `missed` or `frozen` sets it to `lateStrike`. Health stays lost. Embers: the Tried amount (half, rounded up). | §5.12 "partial embers". One rate already exists; no new constant. |
 | D10 | Extensions | Only before the deadline. Pick a new preset, later than the current deadline, capped at the rollover. First is free; each later one spends 1 flask, and is refused with a calm line at 0 flasks. Stored as `extensions` count; the flask spend lowers `Settings.flasks` in the same transaction. | §5.12, §9.2 "further extensions cost a flask". |
@@ -134,10 +134,10 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 ### Step 1: Schema v4
 
 **Tests first**
-- `test/drift/hearthrise/migration_v4_test.dart`: a v3 database upgrades to v4 with bosses, attempts, day logs, ember events, picks and settings intact; `Commitments` and `HealthEvents` exist and are empty; `Tasks.dailyDeadlineMinutes` is null on old rows; `firstDay` equals `dayOf` of the injected fixed clock. A fresh `onCreate` database gets the same `firstDay`.
+- `test/drift/hearthrise/migration_v4_test.dart`: a v3 database upgrades to v4 with bosses, attempts, day logs, ember events, picks and settings intact; `Commitments` and `HealthEvents` exist and are empty; `Tasks.dailyDeadlineMinutes` is null on old rows; `firstDay` equals `dayOf(clock, rolloverHour: <stored hour>)`: with a stored hour of 2 and a clock at 03:00, it is that calendar day, not the previous one. A fresh `onCreate` database uses the default hour.
 - `test/data/enums_test.dart`: `Weight.healthLoss` is 2, 4, 6; indexes of existing enum values are unchanged.
 
-**Code:** tables, enums, `Weight.healthLoss`, schema dump, `from3To4`, `onCreate` sets `firstDay`.
+**Code:** tables, enums, `Weight.healthLoss`, schema dump, `from3To4` (reads the stored `rolloverHour` before stamping `firstDay`), `onCreate` sets `firstDay`.
 
 **Done when:** both test files pass, and the v1 to v3 migration tests still pass.
 
@@ -154,9 +154,12 @@ All the rules of §5.12 in one pure function, no database. This is the "unit tes
 - a prior Tried event (−1) counts toward the total;
 - health reaching exactly 0 is a death; the final blow is the commitment that crossed it; its boss is reported;
 - a loss bigger than what is left (Boss-tier at 2 half points) still dies once and health clamps at 0;
+- overkill, then Rise, then a later loss: 18 lost, a Boss-tier miss (6) at 2 left, Rise, then a Light miss: health is 0, then 20, then 18 (not 14);
 - after a death, later deadlines are `frozen` with no event;
 - a rise after the death: deadlines after the rise cost health again; deadlines between death and rise stay frozen;
 - a second death after a rise reports a second death;
+- a commitment created after a death with its deadline before any Rise: `frozen`, no loss;
+- a commitment created after a death, then a Rise before its deadline: a miss costs health as usual;
 - the §5.12 example: 3 kept, 5 Heavy misses, 1 more Heavy due later: health 20, 16, 12, 8, 4, 0 half points; death on the fifth; the last is frozen.
 
 **Code:** `core/commitment_resolver.dart` with `resolveCommitments(...)` returning an immutable `ResolverResult`.
@@ -197,18 +200,22 @@ All the rules of §5.12 in one pure function, no database. This is the "unit tes
 
 ### Step 5: Health DAO and deadline resolution
 
-**Tests first** `test/data/health_dao_test.dart`:
-- `health(day)` is max with no events, falls with losses, clamps at 0, and is max again on the next day with no event written (D4);
+**Tests first**
+- `test/data/attempt_dao_test.dart` (added): `failBoss(..., at:)` writes the fallen row with that time and `lastFoughtAt` set to it; without `at` it uses the clock as before.
+
+`test/data/health_dao_test.dart`:
+- `health(day)` is max with no events, falls with losses, clamps at 0 after each event in time order (overkill, Rise, later loss ends at max minus the later loss), and is max again on the next day with no event written (D4);
 - `resolveDue()` on a fixed clock applies step 2's result in one transaction: outcomes, health events at the deadline's time (D6), and on death one `healthDeath` fall on the final-blow boss only, with its reset applied and its counter raised;
 - running `resolveDue()` twice changes nothing the second time;
 - an exception mid-way leaves nothing changed;
 - standing daily deadlines: the first `resolveDue()` of a day inserts that day's commitment; a second run inserts nothing; a task on a waiting boss gets none (D12);
 - deadlines on an earlier day (app closed overnight) resolve against that day's health, not today's;
+- delayed resolution of several deadlines at once (app closed for hours): health events and the death fall carry their own deadline times, not the resolve time, and the final blow is the earliest deadline that reached 0;
 - `isDead(day)` is true after a death and false after a rise;
 - `watchHealth()` emits on every health event and on a rollover-hour change.
 - `test/data/missed_day_test.dart` (added): a boss that died by health on day D is not failed again for D by `resolve()`; other active bosses still are (D14).
 
-**Code:** `data/health_dao.dart` (`health`, `watchHealth`, `isDead`, `resolveDue` returning a `DueResult` with the settled items and deaths), the D14 filter in `DayDao._affected`.
+**Code:** an optional `at` on `AttemptDao.failBoss` (passed to `_insert` in place of `_clock()`); `data/health_dao.dart` (`health`, `watchHealth`, `isDead`, `resolveDue` returning a `DueResult` with the settled items and deaths), the D14 filter in `DayDao._affected`.
 
 **Done when:** `health_dao_test.dart` and `missed_day_test.dart` pass.
 
@@ -266,9 +273,9 @@ All `StatelessWidget`s in `lib/ui/`, each with its widget test written first in 
 - a death and a missed day in one open: one fallen moment, one lesson stored on all falls (D14);
 - on open, deadlines are settled first, then the Stage 3 missed-day prompt runs;
 - the timer stops when the app goes to the background and restarts on resume.
-- `test/features/fallen_feel_test.dart` (added): the fallen screen shows the numbers line only when given.
+- `test/features/fallen_feel_test.dart` (added): the fallen screen shows the numbers line and `AccuracyLine` (today and the week) only when given.
 
-**Code:** extend `DayResolver` (or a `DeadlineResolver` it wraps) with `resolveDue()`, the periodic timer and the summary; `FallenScreen.show` takes optional `promised` and `kept`.
+**Code:** extend `DayResolver` (or a `DeadlineResolver` it wraps) with `resolveDue()`, the periodic timer and the summary; `FallenScreen.show` takes an optional day record and week record, and composes `AccuracyLine` from `lib/ui/`.
 
 **Done when:** both test files pass and `day_resolver_test.dart` still passes.
 
