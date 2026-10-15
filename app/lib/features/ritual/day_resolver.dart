@@ -11,6 +11,7 @@ import '../../data/providers.dart';
 import '../../ui/away_summary.dart';
 import '../../ui/flask_choice.dart';
 import '../fallen/fallen_screen.dart';
+import '../commit/deadline_reminders.dart';
 import '../fallen/health_fall.dart';
 import 'reminder_coordinator.dart';
 
@@ -42,6 +43,12 @@ class _DayResolverState extends ConsumerState<DayResolver>
       _check(isTick: false);
     });
     _startTimer();
+    // Keeps deadline reminders in step with today's promises (plan D20).
+    ref.listenManual(todayCommitmentsProvider, (_, next) {
+      if (next.value case final today?) {
+        ref.read(deadlineRemindersProvider).sync(today);
+      }
+    }, fireImmediately: true);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/clock.dart';
 import '../../core/deadlines.dart';
+import '../../core/reminders.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/commitment_dao.dart';
@@ -49,6 +50,10 @@ Future<void> showCommitSheet(
     ),
   );
   if (preset == null) return;
+  if (remind && !await ref.read(remindersProvider).requestPermission()) {
+    remind = false;
+    onMessage('No reminder without permission.');
+  }
   final id = await dao.commit(view.task.id, preset, remind: remind);
   if (id == null) return onMessage('Already promised today.');
   if (everyDay) {

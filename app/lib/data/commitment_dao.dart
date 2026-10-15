@@ -163,7 +163,12 @@ class CommitmentDao {
     yield await read();
     yield* _db
         .tableUpdates(
-          TableUpdateQuery.onAllTables([_db.commitments, _db.settings]),
+          // Tasks too: a rename changes what a reminder says.
+          TableUpdateQuery.onAllTables([
+            _db.commitments,
+            _db.tasks,
+            _db.settings,
+          ]),
         )
         .asyncMap((_) => read());
   }
