@@ -6208,6 +6208,570 @@ class RelicsCompanion extends UpdateCompanion<Relic> {
   }
 }
 
+class $VisitsTable extends Visits with TableInfo<$VisitsTable, Visit> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VisitsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _firstAtMeta = const VerificationMeta(
+    'firstAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> firstAt = GeneratedColumn<DateTime>(
+    'first_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [day, firstAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'visits';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Visit> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('first_at')) {
+      context.handle(
+        _firstAtMeta,
+        firstAt.isAcceptableOrUnknown(data['first_at']!, _firstAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_firstAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {day};
+  @override
+  Visit map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Visit(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      firstAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}first_at'],
+      )!,
+    );
+  }
+
+  @override
+  $VisitsTable createAlias(String alias) {
+    return $VisitsTable(attachedDatabase, alias);
+  }
+}
+
+class Visit extends DataClass implements Insertable<Visit> {
+  final String day;
+  final DateTime firstAt;
+  const Visit({required this.day, required this.firstAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    map['first_at'] = Variable<DateTime>(firstAt);
+    return map;
+  }
+
+  VisitsCompanion toCompanion(bool nullToAbsent) {
+    return VisitsCompanion(day: Value(day), firstAt: Value(firstAt));
+  }
+
+  factory Visit.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Visit(
+      day: serializer.fromJson<String>(json['day']),
+      firstAt: serializer.fromJson<DateTime>(json['firstAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'day': serializer.toJson<String>(day),
+      'firstAt': serializer.toJson<DateTime>(firstAt),
+    };
+  }
+
+  Visit copyWith({String? day, DateTime? firstAt}) =>
+      Visit(day: day ?? this.day, firstAt: firstAt ?? this.firstAt);
+  Visit copyWithCompanion(VisitsCompanion data) {
+    return Visit(
+      day: data.day.present ? data.day.value : this.day,
+      firstAt: data.firstAt.present ? data.firstAt.value : this.firstAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Visit(')
+          ..write('day: $day, ')
+          ..write('firstAt: $firstAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(day, firstAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Visit &&
+          other.day == this.day &&
+          other.firstAt == this.firstAt);
+}
+
+class VisitsCompanion extends UpdateCompanion<Visit> {
+  final Value<String> day;
+  final Value<DateTime> firstAt;
+  final Value<int> rowid;
+  const VisitsCompanion({
+    this.day = const Value.absent(),
+    this.firstAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VisitsCompanion.insert({
+    required String day,
+    required DateTime firstAt,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day),
+       firstAt = Value(firstAt);
+  static Insertable<Visit> custom({
+    Expression<String>? day,
+    Expression<DateTime>? firstAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (firstAt != null) 'first_at': firstAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VisitsCompanion copyWith({
+    Value<String>? day,
+    Value<DateTime>? firstAt,
+    Value<int>? rowid,
+  }) {
+    return VisitsCompanion(
+      day: day ?? this.day,
+      firstAt: firstAt ?? this.firstAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (firstAt.present) {
+      map['first_at'] = Variable<DateTime>(firstAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VisitsCompanion(')
+          ..write('day: $day, ')
+          ..write('firstAt: $firstAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SignalEventsTable extends SignalEvents
+    with TableInfo<$SignalEventsTable, SignalEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SignalEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<SignalKind, int> kind =
+      GeneratedColumn<int>(
+        'kind',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<SignalKind>($SignalEventsTable.$converterkind);
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<String> day = GeneratedColumn<String>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _atMeta = const VerificationMeta('at');
+  @override
+  late final GeneratedColumn<DateTime> at = GeneratedColumn<DateTime>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<int> value = GeneratedColumn<int>(
+    'value',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, kind, day, at, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'signal_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SignalEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dayMeta);
+    }
+    if (data.containsKey('at')) {
+      context.handle(_atMeta, at.isAcceptableOrUnknown(data['at']!, _atMeta));
+    } else if (isInserting) {
+      context.missing(_atMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SignalEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SignalEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: $SignalEventsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}at'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value'],
+      ),
+    );
+  }
+
+  @override
+  $SignalEventsTable createAlias(String alias) {
+    return $SignalEventsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<SignalKind, int, int> $converterkind =
+      const EnumIndexConverter<SignalKind>(SignalKind.values);
+}
+
+class SignalEvent extends DataClass implements Insertable<SignalEvent> {
+  final String id;
+  final SignalKind kind;
+  final String day;
+  final DateTime at;
+
+  /// Tap mode on (1) or off (0), or a `CheckInAnswer` index.
+  final int? value;
+  const SignalEvent({
+    required this.id,
+    required this.kind,
+    required this.day,
+    required this.at,
+    this.value,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['kind'] = Variable<int>(
+        $SignalEventsTable.$converterkind.toSql(kind),
+      );
+    }
+    map['day'] = Variable<String>(day);
+    map['at'] = Variable<DateTime>(at);
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<int>(value);
+    }
+    return map;
+  }
+
+  SignalEventsCompanion toCompanion(bool nullToAbsent) {
+    return SignalEventsCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      day: Value(day),
+      at: Value(at),
+      value: value == null && nullToAbsent
+          ? const Value.absent()
+          : Value(value),
+    );
+  }
+
+  factory SignalEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SignalEvent(
+      id: serializer.fromJson<String>(json['id']),
+      kind: $SignalEventsTable.$converterkind.fromJson(
+        serializer.fromJson<int>(json['kind']),
+      ),
+      day: serializer.fromJson<String>(json['day']),
+      at: serializer.fromJson<DateTime>(json['at']),
+      value: serializer.fromJson<int?>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<int>(
+        $SignalEventsTable.$converterkind.toJson(kind),
+      ),
+      'day': serializer.toJson<String>(day),
+      'at': serializer.toJson<DateTime>(at),
+      'value': serializer.toJson<int?>(value),
+    };
+  }
+
+  SignalEvent copyWith({
+    String? id,
+    SignalKind? kind,
+    String? day,
+    DateTime? at,
+    Value<int?> value = const Value.absent(),
+  }) => SignalEvent(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    day: day ?? this.day,
+    at: at ?? this.at,
+    value: value.present ? value.value : this.value,
+  );
+  SignalEvent copyWithCompanion(SignalEventsCompanion data) {
+    return SignalEvent(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      day: data.day.present ? data.day.value : this.day,
+      at: data.at.present ? data.at.value : this.at,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SignalEvent(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('day: $day, ')
+          ..write('at: $at, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, kind, day, at, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SignalEvent &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.day == this.day &&
+          other.at == this.at &&
+          other.value == this.value);
+}
+
+class SignalEventsCompanion extends UpdateCompanion<SignalEvent> {
+  final Value<String> id;
+  final Value<SignalKind> kind;
+  final Value<String> day;
+  final Value<DateTime> at;
+  final Value<int?> value;
+  final Value<int> rowid;
+  const SignalEventsCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.day = const Value.absent(),
+    this.at = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SignalEventsCompanion.insert({
+    required String id,
+    required SignalKind kind,
+    required String day,
+    required DateTime at,
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       day = Value(day),
+       at = Value(at);
+  static Insertable<SignalEvent> custom({
+    Expression<String>? id,
+    Expression<int>? kind,
+    Expression<String>? day,
+    Expression<DateTime>? at,
+    Expression<int>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (day != null) 'day': day,
+      if (at != null) 'at': at,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SignalEventsCompanion copyWith({
+    Value<String>? id,
+    Value<SignalKind>? kind,
+    Value<String>? day,
+    Value<DateTime>? at,
+    Value<int?>? value,
+    Value<int>? rowid,
+  }) {
+    return SignalEventsCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      day: day ?? this.day,
+      at: at ?? this.at,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<int>(
+        $SignalEventsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<DateTime>(at.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<int>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SignalEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('day: $day, ')
+          ..write('at: $at, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6222,6 +6786,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CommitmentsTable commitments = $CommitmentsTable(this);
   late final $HealthEventsTable healthEvents = $HealthEventsTable(this);
   late final $RelicsTable relics = $RelicsTable(this);
+  late final $VisitsTable visits = $VisitsTable(this);
+  late final $SignalEventsTable signalEvents = $SignalEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6238,6 +6804,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     commitments,
     healthEvents,
     relics,
+    visits,
+    signalEvents,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -11925,6 +12493,355 @@ typedef $$RelicsTableProcessedTableManager =
       Relic,
       PrefetchHooks Function({bool bossId})
     >;
+typedef $$VisitsTableCreateCompanionBuilder = VisitsCompanion Function({
+  required String day,
+  required DateTime firstAt,
+  Value<int> rowid,
+});
+typedef $$VisitsTableUpdateCompanionBuilder = VisitsCompanion Function({
+  Value<String> day,
+  Value<DateTime> firstAt,
+  Value<int> rowid,
+});
+
+class $$VisitsTableFilterComposer
+    extends Composer<_$AppDatabase, $VisitsTable> {
+  $$VisitsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get firstAt => $composableBuilder(
+    column: $table.firstAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VisitsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VisitsTable> {
+  $$VisitsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get firstAt => $composableBuilder(
+    column: $table.firstAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VisitsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VisitsTable> {
+  $$VisitsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get firstAt =>
+      $composableBuilder(column: $table.firstAt, builder: (column) => column);
+}
+
+class $$VisitsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VisitsTable,
+          Visit,
+          $$VisitsTableFilterComposer,
+          $$VisitsTableOrderingComposer,
+          $$VisitsTableAnnotationComposer,
+          $$VisitsTableCreateCompanionBuilder,
+          $$VisitsTableUpdateCompanionBuilder,
+          (Visit, BaseReferences<_$AppDatabase, $VisitsTable, Visit>),
+          Visit,
+          PrefetchHooks Function()
+        > {
+  $$VisitsTableTableManager(_$AppDatabase db, $VisitsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VisitsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VisitsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VisitsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> day = const Value.absent(),
+            Value<DateTime> firstAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => VisitsCompanion(day: day, firstAt: firstAt, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String day,
+                required DateTime firstAt,
+                Value<int> rowid = const Value.absent(),
+              }) => VisitsCompanion.insert(
+                day: day,
+                firstAt: firstAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$VisitsTable, Visit>(table),
+                  BaseReferences<_$AppDatabase, $VisitsTable, Visit>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VisitsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VisitsTable,
+      Visit,
+      $$VisitsTableFilterComposer,
+      $$VisitsTableOrderingComposer,
+      $$VisitsTableAnnotationComposer,
+      $$VisitsTableCreateCompanionBuilder,
+      $$VisitsTableUpdateCompanionBuilder,
+      (Visit, BaseReferences<_$AppDatabase, $VisitsTable, Visit>),
+      Visit,
+      PrefetchHooks Function()
+    >;
+typedef $$SignalEventsTableCreateCompanionBuilder =
+    SignalEventsCompanion Function({
+      required String id,
+      required SignalKind kind,
+      required String day,
+      required DateTime at,
+      Value<int?> value,
+      Value<int> rowid,
+    });
+typedef $$SignalEventsTableUpdateCompanionBuilder =
+    SignalEventsCompanion Function({
+      Value<String> id,
+      Value<SignalKind> kind,
+      Value<String> day,
+      Value<DateTime> at,
+      Value<int?> value,
+      Value<int> rowid,
+    });
+
+class $$SignalEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $SignalEventsTable> {
+  $$SignalEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<SignalKind, SignalKind, int> get kind =>
+      $composableBuilder(
+        column: $table.kind,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SignalEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SignalEventsTable> {
+  $$SignalEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get at => $composableBuilder(
+    column: $table.at,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SignalEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SignalEventsTable> {
+  $$SignalEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<SignalKind, int> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get at =>
+      $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<int> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+}
+
+class $$SignalEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SignalEventsTable,
+          SignalEvent,
+          $$SignalEventsTableFilterComposer,
+          $$SignalEventsTableOrderingComposer,
+          $$SignalEventsTableAnnotationComposer,
+          $$SignalEventsTableCreateCompanionBuilder,
+          $$SignalEventsTableUpdateCompanionBuilder,
+          (
+            SignalEvent,
+            BaseReferences<_$AppDatabase, $SignalEventsTable, SignalEvent>,
+          ),
+          SignalEvent,
+          PrefetchHooks Function()
+        > {
+  $$SignalEventsTableTableManager(_$AppDatabase db, $SignalEventsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SignalEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SignalEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SignalEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<SignalKind> kind = const Value.absent(),
+                Value<String> day = const Value.absent(),
+                Value<DateTime> at = const Value.absent(),
+                Value<int?> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SignalEventsCompanion(
+                id: id,
+                kind: kind,
+                day: day,
+                at: at,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required SignalKind kind,
+                required String day,
+                required DateTime at,
+                Value<int?> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SignalEventsCompanion.insert(
+                id: id,
+                kind: kind,
+                day: day,
+                at: at,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SignalEventsTable, SignalEvent>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SignalEventsTable,
+                    SignalEvent
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SignalEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SignalEventsTable,
+      SignalEvent,
+      $$SignalEventsTableFilterComposer,
+      $$SignalEventsTableOrderingComposer,
+      $$SignalEventsTableAnnotationComposer,
+      $$SignalEventsTableCreateCompanionBuilder,
+      $$SignalEventsTableUpdateCompanionBuilder,
+      (
+        SignalEvent,
+        BaseReferences<_$AppDatabase, $SignalEventsTable, SignalEvent>,
+      ),
+      SignalEvent,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11951,4 +12868,8 @@ class $AppDatabaseManager {
       $$HealthEventsTableTableManager(_db, _db.healthEvents);
   $$RelicsTableTableManager get relics =>
       $$RelicsTableTableManager(_db, _db.relics);
+  $$VisitsTableTableManager get visits =>
+      $$VisitsTableTableManager(_db, _db.visits);
+  $$SignalEventsTableTableManager get signalEvents =>
+      $$SignalEventsTableTableManager(_db, _db.signalEvents);
 }

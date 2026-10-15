@@ -239,3 +239,27 @@ class Relics extends Table {
     {bossId},
   ];
 }
+
+/// One row per ritual day the app was opened (Stage 6 plan D2).
+class Visits extends Table {
+  TextColumn get day => text()();
+  DateTimeColumn get firstAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {day};
+}
+
+/// Append-only tester signals (Stage 6 plan D3). No foreign keys, so a
+/// deleted boss keeps its falls; no text, so nothing personal is held.
+class SignalEvents extends Table {
+  TextColumn get id => text()();
+  IntColumn get kind => intEnum<SignalKind>()();
+  TextColumn get day => text()();
+  DateTimeColumn get at => dateTime()();
+
+  /// Tap mode on (1) or off (0), or a `CheckInAnswer` index.
+  IntColumn get value => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

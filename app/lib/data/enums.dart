@@ -79,3 +79,9 @@ enum CommitmentOutcome { kept, tried, missed, frozen, lateStrike, cancelled }
 
 /// Why health changed (Stage 4 plan D4).
 enum HealthReason { miss, tried, bonfireRestore, rise }
+
+/// What a signal event records (Stage 6 plan D3, D4, D6).
+enum SignalKind { fell, tapModeChanged, checkIn, checkInDismissed }
+
+/// The answer to "Has Hearthrise left you feeling worse?" (Stage 6 plan D6).
+enum CheckInAnswer { never, sometimes, often }

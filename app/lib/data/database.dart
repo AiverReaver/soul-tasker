@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import '../core/clock.dart';
+import '../core/ids.dart';
 import 'database.steps.dart';
 import 'enums.dart';
 import 'relic_dao.dart';
@@ -22,6 +23,8 @@ part 'database.g.dart';
     Commitments,
     HealthEvents,
     Relics,
+    Visits,
+    SignalEvents,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -35,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   final Clock _clock;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// The hour a day ends. Every `dayOf` call reads this, so what is written
   /// and what is shown agree (plan step 1).
@@ -91,6 +94,26 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(schema.settings, schema.settings.onboarded);
         // Existing installs have no use for the welcome.
         await customStatement('UPDATE settings SET onboarded = 1');
+      },
+      from5To6: (m, schema) async {
+        await m.createTable(schema.visits);
+        await m.createTable(schema.signalEvents);
+        // Falls so far become signals; visits before v6 are unknown.
+        final falls = await customSelect(
+          'SELECT day, at FROM attempts WHERE outcome = ?',
+          variables: [Variable.withInt(Outcome.fallen.index)],
+        ).get();
+        for (final fall in falls) {
+          await customStatement(
+            'INSERT INTO signal_events (id, kind, day, at) VALUES (?, ?, ?, ?)',
+            [
+              newId(),
+              SignalKind.fell.index,
+              fall.read<String>('day'),
+              fall.data['at'],
+            ],
+          );
+        }
       },
     ),
     beforeOpen: (details) async {
