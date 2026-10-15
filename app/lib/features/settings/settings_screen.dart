@@ -10,7 +10,7 @@ import '../../ui/flash_line.dart';
 import '../../ui/setting_choice_row.dart';
 import '../../ui/setting_switch_row.dart';
 import '../../ui/setting_value_row.dart';
-import '../feel_report/copy_feel_report_tile.dart';
+import '../tester_report/copy_tester_report_tile.dart';
 import '../ritual/reminder_coordinator.dart';
 
 /// Settings: hold or tap, haptics, the evening reminder, when a day ends, and
@@ -121,7 +121,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChanged: dao.setDefaultReset,
                   ),
                   const SizedBox(height: Space.md),
-                  const CopyFeelReportTile(),
+                  const CopyTesterReportTile(),
                 ],
               ),
       ),

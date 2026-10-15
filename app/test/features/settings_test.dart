@@ -39,7 +39,7 @@ void main() {
       'Reminder time',
       'Day starts at',
       'On a failed attempt, reset (new bosses)',
-      'Copy feel report',
+      'Copy tester report',
     ]) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
