@@ -113,6 +113,16 @@ final healthProvider = StreamProvider(
   (ref) => ref.watch(healthDaoProvider).watchHealth(),
 );
 
+/// Today's and this week's promises, again whenever today's change.
+final accuracyProvider = FutureProvider.autoDispose((ref) async {
+  ref.watch(todayCommitmentsProvider);
+  ref.watch(healthProvider);
+  final health = ref.watch(healthDaoProvider);
+  final commits = ref.watch(commitmentDaoProvider);
+  final today = await health.today();
+  return (today: await commits.record(today), week: await commits.week(today));
+});
+
 final pickCandidatesProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(planPickDaoProvider).candidates(),
 );
