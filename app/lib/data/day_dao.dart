@@ -212,14 +212,27 @@ class DayDao {
     );
   }
 
-  /// Active bosses that were created before [day] (plan D4).
-  Future<List<Boss>> _affected(String day, int hour) async {
+  /// Active bosses that were created before the last of [days] (plan D4),
+  /// except those that already fell by health on one of them (Stage 4 D14).
+  Future<List<Boss>> _affected(List<String> days, int hour) async {
     final active = await (_db.select(
       _db.bosses,
     )..where((b) => b.status.equalsValue(BossStatus.active))).get();
+    final died = {
+      for (final a
+          in await (_db.select(_db.attempts)..where(
+                (a) =>
+                    a.cause.equalsValue(FallCause.healthDeath) &
+                    a.day.isIn(days),
+              ))
+              .get())
+        a.bossId,
+    };
     return [
       for (final b in active)
-        if (dayOf(b.createdAt, rolloverHour: hour).compareTo(day) < 0) b,
+        if (dayOf(b.createdAt, rolloverHour: hour).compareTo(days.last) < 0 &&
+            !died.contains(b.id))
+          b,
     ];
   }
 
@@ -233,7 +246,7 @@ class DayDao {
       days: missed,
       bosses: missed.isEmpty
           ? const []
-          : await _affected(missed.last, s.rolloverHour),
+          : await _affected(missed, s.rolloverHour),
       flasks: s.flasks,
     );
   }
@@ -257,7 +270,7 @@ class DayDao {
       final left = missed.skip(spend).toList();
       var fallen = 0;
       if (left.isNotEmpty) {
-        for (final boss in await _affected(left.last, s.rolloverHour)) {
+        for (final boss in await _affected(left, s.rolloverHour)) {
           await _attempts.failBoss(
             boss.id,
             FallCause.missedDay,

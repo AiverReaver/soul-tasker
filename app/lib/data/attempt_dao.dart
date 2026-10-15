@@ -8,6 +8,7 @@ import 'database.dart';
 import 'ember_dao.dart';
 import 'enums.dart';
 import 'feel_report_data.dart';
+import 'health_dao.dart';
 
 /// What the UI should show after a strike.
 class StrikeResult {
@@ -35,6 +36,7 @@ class AttemptDao {
   final BossDao _bosses;
   final Clock _clock;
   late final _embers = EmberDao(_db, _clock);
+  late final _health = HealthDao(_db, _clock, this);
 
   Future<Task> _task(String taskId) =>
       (_db.select(_db.tasks)..where((t) => t.id.equals(taskId))).getSingle();
@@ -42,7 +44,8 @@ class AttemptDao {
   Future<Boss> _boss(String bossId) =>
       (_db.select(_db.bosses)..where((b) => b.id.equals(bossId))).getSingle();
 
-  Future<void> _insert({
+  /// Inserts the attempt and its ember earn. Returns the attempt id.
+  Future<String> _insert({
     required Boss boss,
     required Outcome outcome,
     required DateTime now,
@@ -55,11 +58,12 @@ class AttemptDao {
     bool isLate = false,
   }) async {
     final day = onDay ?? dayOf(now, rolloverHour: await _db.rolloverHour());
+    final id = newId();
     await _db
         .into(_db.attempts)
         .insert(
           AttemptsCompanion.insert(
-            id: newId(),
+            id: id,
             bossId: boss.id,
             taskId: Value(taskId),
             bossAttempt: boss.attemptNumber,
@@ -84,11 +88,14 @@ class AttemptDao {
     await (_db.update(_db.bosses)..where((b) => b.id.equals(boss.id))).write(
       BossesCompanion(lastFoughtAt: Value(now), updatedAt: Value(now)),
     );
+    return id;
   }
 
   /// Completes a task. A struck task is left alone.
   Future<StrikeResult> strike(String taskId) {
     return _db.transaction(() async {
+      // A deadline that passed unnoticed is a miss before it is a strike.
+      await _health.resolveDue();
       final task = await _task(taskId);
       final before = await _bosses.loadBoss(task.bossId);
       final view = before!.allTasks.firstWhere((t) => t.task.id == taskId);
@@ -123,6 +130,7 @@ class AttemptDao {
   /// should prompt for this task (D11).
   Future<bool> tried(String taskId) {
     return _db.transaction(() async {
+      await _health.resolveDue();
       final task = await _task(taskId);
       final now = _clock();
       await _insert(
@@ -135,18 +143,24 @@ class AttemptDao {
       final promise = await _todaysCommitment(taskId, now);
       if (promise != null && promise.outcome == null) {
         await _close(promise, CommitmentOutcome.tried, now);
-        await _db
-            .into(_db.healthEvents)
-            .insert(
-              HealthEventsCompanion.insert(
-                id: newId(),
-                amount: -task.weight.healthLoss ~/ 2,
-                reason: HealthReason.tried,
-                commitmentId: Value(promise.id),
-                day: promise.day,
-                at: now,
-              ),
-            );
+        final before = await _health.health(promise.day);
+        await _health.record(
+          -task.weight.healthLoss ~/ 2,
+          HealthReason.tried,
+          promise.day,
+          now,
+          commitmentId: promise.id,
+        );
+        // A broken promise can deal the final blow too (plan D7).
+        if (before > 0 && await _health.isDead(promise.day)) {
+          await failBoss(
+            task.bossId,
+            FallCause.healthDeath,
+            null,
+            onDay: promise.day,
+            at: now,
+          );
+        }
       }
       final history = await _bosses.loadAttempts(bossId: task.bossId);
       return isRuleOfThree(triesSinceStrike(taskId, history));
@@ -192,20 +206,23 @@ class AttemptDao {
   }
 
   /// Fails one boss attempt: writes the fallen row, raises the counter and
-  /// applies the boss's reset. Shared by a declared fall and a missed day.
-  /// [onDay] is the day the attempt belongs to when it is not today.
-  Future<void> failBoss(
+  /// applies the boss's reset. Shared by a declared fall, a missed day and a
+  /// health death. [onDay] is the day the attempt belongs to when it is not
+  /// today; [at] its time when it is not now (a deadline settled late,
+  /// Stage 4 plan D6). Returns the fallen row's id.
+  Future<String> failBoss(
     String bossId,
     FallCause cause,
     String? lesson, {
     String? onDay,
+    DateTime? at,
   }) {
     return _db.transaction(() async {
-      final now = _clock();
+      final now = at ?? _clock();
       final view = (await _bosses.loadBoss(bossId))!;
       final boss = view.boss;
       final current = view.currentPhase?.phase;
-      await _insert(
+      final id = await _insert(
         boss: boss,
         outcome: Outcome.fallen,
         now: now,
@@ -220,7 +237,18 @@ class AttemptDao {
         BossesCompanion(attemptNumber: Value(next), updatedAt: Value(now)),
       );
       await _reset(view, current, next, now);
+      return id;
     });
+  }
+
+  /// Adds the lesson to a fall written before it was asked (a health death,
+  /// plan D7). Never replaces a lesson already there.
+  Future<void> addLesson(List<String> attemptIds, String? lesson) async {
+    final clean = cleanLesson(lesson);
+    if (clean == null) return;
+    await (_db.update(_db.attempts)
+          ..where((a) => a.id.isIn(attemptIds) & a.lesson.isNull()))
+        .write(AttemptsCompanion(lesson: Value(clean)));
   }
 
   /// What the feel report counts (plan D13): outcome, weight and lesson

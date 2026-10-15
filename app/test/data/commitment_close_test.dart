@@ -107,7 +107,8 @@ void main() {
     await h.attempts.strike(walk);
     final yesterday = (await commits.load('2026-10-13')).single.commitment;
     final today = (await commits.load('2026-10-14')).single.commitment;
-    expect(yesterday.outcome, isNull);
+    // Yesterday's passed unkept: settled as missed, not kept by today's strike.
+    expect(yesterday.outcome, CommitmentOutcome.missed);
     expect(today.outcome, CommitmentOutcome.kept);
   });
 
