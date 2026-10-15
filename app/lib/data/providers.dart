@@ -6,6 +6,9 @@ import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
 import 'database.dart';
+import 'day_dao.dart';
+import 'plan_pick_dao.dart';
+import 'ember_dao.dart';
 import 'settings_dao.dart';
 
 /// Overridden in tests with an in-memory database.
@@ -48,3 +51,50 @@ final settingsProvider = StreamProvider(
 final hapticsProvider = Provider(
   (ref) => Haptics(() => ref.read(settingsProvider).value?.haptics ?? true),
 );
+
+final emberDaoProvider = Provider(
+  (ref) => EmberDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final emberTallyProvider = StreamProvider(
+  (ref) => ref.watch(emberDaoProvider).watchTally(),
+);
+
+final dayDaoProvider = Provider(
+  (ref) => DayDao(
+    ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+    ref.watch(attemptDaoProvider),
+  ),
+);
+
+final dayStatusProvider = StreamProvider(
+  (ref) => ref.watch(dayDaoProvider).watchToday(),
+);
+
+final planPickDaoProvider = Provider(
+  (ref) => PlanPickDao(
+    ref.watch(databaseProvider),
+    ref.watch(bossDaoProvider),
+    ref.watch(clockProvider),
+  ),
+);
+
+final todayPicksProvider = StreamProvider(
+  (ref) => ref.watch(planPickDaoProvider).watchToday(),
+);
+
+final daySummaryProvider = StreamProvider(
+  (ref) => ref.watch(dayDaoProvider).watchSummary(),
+);
+
+/// Open tasks to pick from, read once when the bonfire opens.
+final pickCandidatesProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(planPickDaoProvider).candidates(),
+);
+
+/// Tomorrow's picks, read again whenever today's rest status changes.
+final tomorrowPicksProvider = FutureProvider.autoDispose((ref) {
+  ref.watch(dayStatusProvider);
+  return ref.watch(planPickDaoProvider).tomorrow();
+});

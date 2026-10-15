@@ -1,0 +1,54 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/data/plan_pick_dao.dart';
+import 'package:hearthrise/ui/plan_banner.dart';
+
+import '../data/harness.dart';
+import 'pump.dart';
+
+void main() {
+  testWidgets('Today shows the planned three first on the picked day', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    await PlanPickDao(
+      h.db,
+      h.bosses,
+      h.clock.call,
+    ).setPicks('2026-10-13', [taskNamed(view, 'Read chapter 4').task.id]);
+    await pumpApp(tester, h);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+
+    expect(find.byType(PlanBanner), findsOneWidget);
+    expect(find.text("TODAY'S THREE"), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Today hides the block when nothing is planned', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+
+    expect(find.byType(PlanBanner), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('picks for another day do not show', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await PlanPickDao(
+      h.db,
+      h.bosses,
+      h.clock.call,
+    ).setPicks('2026-10-14', [taskNamed(view, 'Walk').task.id]);
+    await pumpApp(tester, h);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+
+    expect(find.byType(PlanBanner), findsNothing);
+    await tearDownApp(tester, h);
+  });
+}

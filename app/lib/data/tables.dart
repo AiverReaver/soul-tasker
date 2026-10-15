@@ -94,6 +94,60 @@ class Settings extends Table {
       intEnum<ResetOnFail>().withDefault(const Constant(0))();
   BoolColumn get haptics => boolean().withDefault(const Constant(true))();
 
+  /// A day ends at this local hour (0 to 6); see `dayOf`.
+  IntColumn get rolloverHour => integer().withDefault(const Constant(4))();
+  BoolColumn get reminderEnabled =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Minutes from midnight; 1260 is 21:00.
+  IntColumn get reminderMinutes =>
+      integer().withDefault(const Constant(1260))();
+  IntColumn get flasks => integer().withDefault(const Constant(3))();
+
+  /// The last day already judged for a missed bonfire. Set to the install or
+  /// upgrade day, so that day is never judged (plan D12).
+  TextColumn get lastResolvedDay => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// One row per day kept: a bonfire rest, a flask, or a light day (plan D3).
+class DayLogs extends Table {
+  TextColumn get day => text()();
+  IntColumn get kind => intEnum<DayKind>()();
+
+  /// Only on a bonfire row.
+  TextColumn get lesson => text().nullable().withLength(max: 120)();
+  DateTimeColumn get at => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {day, kind};
+}
+
+/// Append-only embers ledger. Carried = earns since the last bank.
+class EmberEvents extends Table {
+  TextColumn get id => text()();
+  IntColumn get kind => intEnum<EmberKind>()();
+  IntColumn get amount => integer()();
+  TextColumn get bossId =>
+      text().nullable().references(Bosses, #id, onDelete: KeyAction.setNull)();
+  TextColumn get taskId =>
+      text().nullable().references(Tasks, #id, onDelete: KeyAction.setNull)();
+  TextColumn get day => text()();
+  DateTimeColumn get at => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Tomorrow's top three (plan D11). At most 3 per day, enforced in the DAO.
+class PlanPicks extends Table {
+  TextColumn get day => text()();
+  TextColumn get taskId =>
+      text().references(Tasks, #id, onDelete: KeyAction.cascade)();
+  IntColumn get position => integer()();
+
+  @override
+  Set<Column> get primaryKey => {day, taskId};
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/app.dart';
 import 'package:hearthrise/core/clock.dart';
@@ -6,6 +7,7 @@ import 'package:hearthrise/data/providers.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
+import '../support/fake_reminders.dart';
 
 // The in-memory database runs synchronously on this isolate, so its futures
 // complete as microtasks inside the widget test's fake async zone. Do not
@@ -16,12 +18,16 @@ Future<void> pumpApp(
   WidgetTester tester,
   Harness h, {
   String location = '/',
+  List<Override> overrides = const [],
+  FakeReminders? reminders,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(h.db),
         clockProvider.overrideWithValue(h.clock.call),
+        (reminders ?? FakeReminders()).asOverride, // never the real plugin
+        ...overrides,
       ],
       child: HearthriseApp(initialLocation: location),
     ),

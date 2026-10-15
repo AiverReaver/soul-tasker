@@ -63,19 +63,19 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] **Gate passed**
 
 ## Stage 3: Daily ritual
-- [ ] Bonfire screen: summary
-- [ ] Bonfire screen: lesson field
-- [ ] Bonfire screen: tomorrow's top three
-- [ ] Daily local notification at chosen time
-- [ ] Android 13+ notification permission prompt
-- [ ] Day rollover time (default 4 AM)
-- [ ] Missed day fails attempt on every active boss, one shared lesson
-- [ ] Embers: earn on Strike and Tried
-- [ ] Embers: carried total
-- [ ] Embers: bank at bonfire
-- [ ] Flask charges and restore rule
-- [ ] Light day
-- [ ] Settings screen
+- [x] Bonfire screen: summary
+- [x] Bonfire screen: lesson field
+- [x] Bonfire screen: tomorrow's top three
+- [x] Daily local notification at chosen time
+- [x] Android 13+ notification permission prompt
+- [x] Day rollover time (default 4 AM)
+- [x] Missed day fails attempt on every active boss, one shared lesson
+- [x] Embers: earn on Strike and Tried
+- [x] Embers: carried total
+- [x] Embers: bank at bonfire
+- [x] Flask charges and restore rule
+- [x] Light day
+- [x] Settings screen (reminder time, rollover hour, haptics, hold-to-tap; sound deferred to Stage 5)
 - [ ] **Gate passed:** loop runs several real days
 
 ## Stage 4: Commitments and health
@@ -100,7 +100,7 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] Health restore at bonfire
 - [ ] Daily summaries
 - [ ] Planning accuracy (daily and weekly)
-- [ ] Newcomer grace week
+- [ ] Newcomer grace week (calm line only; reduced losses in Stage 8)
 - [ ] Unit tests for deadline and health resolver
 - [ ] **Gate passed:** §5.12 beginner example matches
 
@@ -113,6 +113,7 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] Relic detail timeline
 - [ ] Profile: embers, level, flasks, accuracy
 - [ ] Onboarding flow (under two minutes)
+- [ ] Sound setting and tones (deferred from Stage 3)
 - [ ] Test on small and large Android screens
 - [ ] **Gate passed:** §11.1 complete
 
@@ -147,6 +148,7 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] Partial loss and cap
 - [ ] Flask protection
 - [ ] Lesson refund
+- [ ] Newcomer grace week reduces health losses (from Stage 4 D13)
 - [ ] Older bloodstain on same boss marked lost
 - [ ] Trademark check of store listing
 - [ ] Production launch
@@ -174,3 +176,38 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] Shortcuts
 - [ ] Persistence achievements
 - [ ] Weekly reckoning
+
+## Stage 11: AI planning assistant
+- [ ] Decide where the API key lives (standalone proxy or Stage 7 backend)
+- [ ] `AiPlanner` interface, fake planner, JSON validation
+- [ ] **Headline:** guided learning plan, adaptive interview (one question at a time, tap options + free text)
+- [ ] Question cap and "build my plan" step
+- [ ] Research step returns a `BossDraft` with sources shown
+- [ ] Plan frames itself as an editable starting point, first phase small
+- [ ] Image to boss draft
+- [ ] Title to suggested tasks (quick version)
+- [ ] Phase suggestion for a task
+- [ ] Lesson coach after a failed attempt (opt-in)
+- [ ] Task splitter for repeatedly missed tasks
+- [ ] Daily plan helper (after Stages 3 and 4)
+- [ ] Estimate check on task weights
+- [ ] Boss definition helper (quick version)
+- [ ] Fallen screen message (template first, AI opt-in)
+- [ ] Weekly reckoning summary
+- [ ] Voice capture to boss draft
+- [ ] Recurrence detection
+- [ ] Output opens in the boss editor, nothing saved until Save
+- [ ] Offline, error, and rate-limited states
+- [ ] Security: structured output only, no open chat endpoint
+- [ ] Proxy owns system prompt, model, and token limits
+- [ ] Schema validation rejects non-plan output, length caps on text
+- [ ] Untrusted input handling: injection in text, images, research results
+- [ ] Scope guard for off-topic requests
+- [ ] Input limits (answer length, image size, question and turn caps)
+- [ ] Per-user budgets, global spend cap, remote kill switch
+- [ ] App attestation (Play Integrity, App Attest)
+- [ ] Usage logging and abuse alerts
+- [ ] Malicious-input test suite
+- [ ] Privacy notice before first use
+- [ ] Decide free / paid split
+- [ ] **Gate passed:** photo of a handwritten list becomes a saved boss

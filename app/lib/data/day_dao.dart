@@ -1,0 +1,289 @@
+import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show immutable;
+
+import '../core/clock.dart';
+import '../core/missed_days.dart';
+import 'attempt_dao.dart';
+import 'database.dart';
+import 'ember_dao.dart';
+import 'enums.dart';
+import 'plan_pick_dao.dart';
+
+/// Flask charges never exceed this (Stage 3 plan D5).
+const kFlaskCap = 3;
+
+/// What covers today, and the flasks left.
+@immutable
+class DayStatus {
+  const DayStatus({required this.kinds, required this.flasks});
+
+  final Set<DayKind> kinds;
+  final int flasks;
+
+  /// Today's bonfire rest has happened (D9).
+  bool get isRested => kinds.contains(DayKind.bonfire);
+
+  /// A flask or a rest already covers today.
+  bool get isCovered => isRested || kinds.contains(DayKind.flask);
+}
+
+/// What the day held, for the bonfire.
+@immutable
+class DaySummaryData {
+  const DaySummaryData({
+    required this.strikes,
+    required this.tried,
+    required this.falls,
+    required this.lessons,
+    required this.embers,
+  });
+
+  final int strikes;
+  final int tried;
+  final int falls;
+  final List<String> lessons;
+  final EmberTally embers;
+}
+
+/// Days that ended with no cover, and who falls for them.
+@immutable
+class PendingDays {
+  const PendingDays({
+    required this.days,
+    required this.bosses,
+    required this.flasks,
+  });
+
+  /// Missed days, oldest first.
+  final List<String> days;
+
+  /// Active bosses created before the latest missed day: they fall unless
+  /// flasks cover every day (plan D4).
+  final List<Boss> bosses;
+  final int flasks;
+
+  bool get isEmpty => days.isEmpty;
+}
+
+/// The day's ritual state: bonfire rests, flasks and light days. Rows are only
+/// ever inserted; the flask count is the one counter, kept in settings.
+class DayDao {
+  DayDao(this._db, this._clock, this._attempts)
+    : _embers = EmberDao(_db, _clock);
+
+  final AppDatabase _db;
+  final Clock _clock;
+  final AttemptDao _attempts;
+  final EmberDao _embers;
+
+  Future<String> _today() async =>
+      dayOf(_clock(), rolloverHour: await _db.rolloverHour());
+
+  Future<Set<DayKind>> _kindsOn(String day) async => {
+    for (final l in await (_db.select(
+      _db.dayLogs,
+    )..where((l) => l.day.equals(day))).get())
+      l.kind,
+  };
+
+  Future<int> _flasks() async =>
+      (await _db.select(_db.settings).getSingle()).flasks;
+
+  Future<void> _setFlasks(int count) => _db
+      .update(_db.settings)
+      .write(SettingsCompanion(flasks: Value(count.clamp(0, kFlaskCap))));
+
+  Future<void> _log(String day, DayKind kind, DateTime at, [String? lesson]) =>
+      _db
+          .into(_db.dayLogs)
+          .insert(
+            DayLogsCompanion.insert(
+              day: day,
+              kind: kind,
+              lesson: Value(lesson),
+              at: at,
+            ),
+          );
+
+  /// How many bonfire rests there have been, ever.
+  Future<int> restCount() async => (await (_db.select(
+    _db.dayLogs,
+  )..where((l) => l.kind.equalsValue(DayKind.bonfire))).get()).length;
+
+  Future<DayStatus> today() async =>
+      DayStatus(kinds: await _kindsOn(await _today()), flasks: await _flasks());
+
+  Stream<DayStatus> watchToday() async* {
+    yield await today();
+    yield* _db
+        .tableUpdates(TableUpdateQuery.onAllTables([_db.dayLogs, _db.settings]))
+        .asyncMap((_) => today());
+  }
+
+  /// Rests at the bonfire: banks the carried embers, restores one flask, keeps
+  /// the lesson, and saves [pickTaskIds] as tomorrow's three. Returns false,
+  /// changing nothing, if today was already rested. Throws, changing nothing,
+  /// for more than three picks.
+  Future<bool> rest({String? lesson, List<String> pickTaskIds = const []}) =>
+      _db.transaction(() async {
+        final day = await _today();
+        if ((await _kindsOn(day)).contains(DayKind.bonfire)) return false;
+        await _log(day, DayKind.bonfire, _clock(), cleanLesson(lesson));
+        await _embers.bank();
+        await _setFlasks(await _flasks() + 1);
+        if (pickTaskIds.isNotEmpty) {
+          await writePicks(_db, shiftDay(day, 1), pickTaskIds);
+        }
+        return true;
+      });
+
+  Future<DaySummaryData> summary() async {
+    final day = await _today();
+    final rows = await (_db.select(
+      _db.attempts,
+    )..where((a) => a.day.equals(day))).get();
+    int count(Outcome o) => rows.where((a) => a.outcome == o).length;
+    return DaySummaryData(
+      strikes: count(Outcome.strike),
+      tried: count(Outcome.tried),
+      falls: count(Outcome.fallen),
+      lessons: [
+        for (final a in rows)
+          if (a.outcome == Outcome.fallen && a.lesson != null) a.lesson!,
+      ],
+      embers: await _embers.tally(),
+    );
+  }
+
+  Stream<DaySummaryData> watchSummary() async* {
+    yield await summary();
+    yield* _db
+        .tableUpdates(
+          TableUpdateQuery.onAllTables([
+            _db.attempts,
+            _db.emberEvents,
+            _db.settings,
+          ]),
+        )
+        .asyncMap((_) => summary());
+  }
+
+  /// Spends a flask to cover today. False if none is left or today is
+  /// already covered.
+  Future<bool> skipToday() => _db.transaction(() async {
+    final day = await _today();
+    final flasks = await _flasks();
+    if (flasks == 0 || (await _kindsOn(day)).any(_isCover)) return false;
+    await _log(day, DayKind.flask, _clock());
+    await _setFlasks(flasks - 1);
+    return true;
+  });
+
+  /// Marks today a light day. It counts only if a task is struck (D8).
+  Future<bool> markLight() => _db.transaction(() async {
+    final day = await _today();
+    if ((await _kindsOn(day)).contains(DayKind.light)) return false;
+    await _log(day, DayKind.light, _clock());
+    return true;
+  });
+
+  Future<List<String>> _missed(AppSettings s, String today) async {
+    final last = s.lastResolvedDay ?? today;
+    final logs = await (_db.select(
+      _db.dayLogs,
+    )..where((l) => l.day.isBiggerThanValue(last))).get();
+    final strikes =
+        await (_db.select(_db.attempts)..where(
+              (a) =>
+                  a.day.isBiggerThanValue(last) &
+                  a.outcome.equalsValue(Outcome.strike),
+            ))
+            .get();
+    Set<String> daysOf(bool Function(DayKind) keep) => {
+      for (final l in logs)
+        if (keep(l.kind)) l.day,
+    };
+    return missedDays(
+      lastResolved: last,
+      today: today,
+      restedDays: daysOf(_isCover),
+      lightDays: daysOf((k) => k == DayKind.light),
+      strikeDays: {for (final a in strikes) a.day},
+    );
+  }
+
+  /// Active bosses that were created before [day] (plan D4).
+  Future<List<Boss>> _affected(String day, int hour) async {
+    final active = await (_db.select(
+      _db.bosses,
+    )..where((b) => b.status.equalsValue(BossStatus.active))).get();
+    return [
+      for (final b in active)
+        if (dayOf(b.createdAt, rolloverHour: hour).compareTo(day) < 0) b,
+    ];
+  }
+
+  /// The days that ended with no rest, flask or valid light day, and the
+  /// bosses that would fall for them. Reads only.
+  Future<PendingDays> pending() async {
+    final s = await _db.select(_db.settings).getSingle();
+    final today = dayOf(_clock(), rolloverHour: s.rolloverHour);
+    final missed = await _missed(s, today);
+    return PendingDays(
+      days: missed,
+      bosses: missed.isEmpty
+          ? const []
+          : await _affected(missed.last, s.rolloverHour),
+      flasks: s.flasks,
+    );
+  }
+
+  /// Judges every ended day (plan D1). Spends up to [flasksToSpend] flasks on
+  /// the oldest missed days; if any day is left, each affected boss fails
+  /// once, whatever the count (D2), with the shared [lesson]. Always moves
+  /// `lastResolvedDay` to yesterday. All or nothing. Returns how many bosses
+  /// fell.
+  Future<int> resolve({String? lesson, int flasksToSpend = 0}) {
+    return _db.transaction(() async {
+      final s = await _db.select(_db.settings).getSingle();
+      final now = _clock();
+      final today = dayOf(now, rolloverHour: s.rolloverHour);
+      final missed = await _missed(s, today);
+
+      final spend = flasksToSpend.clamp(0, s.flasks);
+      for (final day in missed.take(spend)) {
+        await _log(day, DayKind.flask, now);
+      }
+      final left = missed.skip(spend).toList();
+      var fallen = 0;
+      if (left.isNotEmpty) {
+        for (final boss in await _affected(left.last, s.rolloverHour)) {
+          await _attempts.failBoss(
+            boss.id,
+            FallCause.missedDay,
+            cleanLesson(lesson),
+            onDay: left.last,
+          );
+          fallen++;
+        }
+      }
+      final yesterday = shiftDay(today, -1);
+      await _db
+          .update(_db.settings)
+          .write(
+            SettingsCompanion(
+              flasks: Value(s.flasks - spend.clamp(0, missed.length)),
+              lastResolvedDay: Value(
+                (s.lastResolvedDay ?? '').compareTo(yesterday) > 0
+                    ? s.lastResolvedDay
+                    : yesterday,
+              ),
+            ),
+          );
+      return fallen;
+    });
+  }
+
+  static bool _isCover(DayKind kind) =>
+      kind == DayKind.bonfire || kind == DayKind.flask;
+}

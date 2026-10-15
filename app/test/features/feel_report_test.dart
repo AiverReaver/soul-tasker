@@ -12,13 +12,20 @@ import 'pump.dart';
 
 final _now = DateTime(2026, 10, 13, 12);
 
-AppSettings _settings({bool tapMode = false, bool haptics = true}) =>
-    AppSettings(
-      id: 1,
-      tapMode: tapMode,
-      defaultResetOnFail: ResetOnFail.nothing,
-      haptics: haptics,
-    );
+AppSettings _settings({
+  bool tapMode = false,
+  bool haptics = true,
+  int rolloverHour = 4,
+}) => AppSettings(
+  id: 1,
+  tapMode: tapMode,
+  defaultResetOnFail: ResetOnFail.nothing,
+  haptics: haptics,
+  rolloverHour: rolloverHour,
+  reminderEnabled: false,
+  reminderMinutes: 21 * 60,
+  flasks: 3,
+);
 
 FeelAttempt _a(Outcome outcome, {Weight? weight, bool hasLesson = false}) =>
     FeelAttempt(outcome: outcome, weight: weight, hasLesson: hasLesson);
@@ -79,6 +86,22 @@ void main() {
       expect(report, contains('Tap mode: off'));
       expect(report, contains('Haptics: on'));
     });
+  });
+
+  test('the period end uses the stored rollover hour', () {
+    final threeAm = DateTime(2026, 10, 14, 3);
+    String periodAt(int hour) => buildFeelReport(
+      FeelReportData(
+        attempts: const [],
+        since: null,
+        settings: _settings(rolloverHour: hour),
+      ),
+      threeAm,
+      '1.0.0+1',
+    );
+
+    expect(periodAt(4), contains('(to 2026-10-13)'));
+    expect(periodAt(2), contains('(to 2026-10-14)'));
   });
 
   test('deleting the earliest boss moves the period start (D9)', () async {
