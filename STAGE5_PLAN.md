@@ -2,7 +2,7 @@
 
 Source: `STAGES.md` (Stage 5) and `souls-task-tracker-design.md` (§ numbers below refer to it). Visual rules: `DESIGN.md`.
 Method: TDD (see `STAGES.md`, Development method). Every step below lists its tests first, then the code. UI follows `STAGES.md`, "UI components": new widgets go in `lib/ui/` as `StatelessWidget`s, with state in thin containers in `lib/features/`.
-Status: not started. Branch `stage-5-victory` from `stage-4-commitments` (or `main` once Stage 4 merges).
+Status: steps 1 to 8, 10 and 11 done (built on branch `stage-4-commitments`). Step 9 (real audio) waits on the licensed sounds; steps 12 and 13 need devices. See "Implementation notes" at the end.
 
 Prerequisites:
 - Steps 1 to 8 and 10 do not depend on open gates and can start now.
@@ -309,3 +309,35 @@ After the Stage 3 and Stage 4 gates close: walk §11.1 items 1 to 8 on both phon
 - The level is derived from lifetime banked embers; no stats are spent (D9).
 - Onboarding shows gentle mode as a line, not a choice, until hardcore exists in Stage 8 (D11).
 - Defeat is final (D2), so a relic is never orphaned.
+
+---
+
+## 9. Implementation notes
+
+Done test-first, one commit per step, with `flutter analyze` clean and the full suite passing (476 tests):
+
+| Step | Status |
+|---|---|
+| 1 Schema v5 | Done. `migration_v5_test.dart`, `enums_test.dart`. |
+| 2 Relic snapshot | Done. `relic_dao_test.dart`, `relic_story_test.dart`. |
+| 3 Level and profile data | Done. `level_test.dart`, `profile_dao_test.dart`. |
+| 4 UI widgets | Done. `test/ui/stage5_widgets_test.dart`, `onboarding_fields_test.dart`. |
+| 5 Victory screen | Done. `victory_test.dart`. |
+| 6 Profile and hall | Done. `profile_test.dart`. |
+| 7 Onboarding | Done. `onboarding_test.dart`. |
+| 8 Sound plumbing | Done. `sounds_test.dart`, `sound_cues_test.dart`. |
+| 9 Real audio | **Not started.** Needs the licensed sounds (`CHECKLIST.md`, "Choose licensed sounds"). Until then `soundPlayerProvider` is a `SilentSoundPlayer`, and Settings has no Sound row. |
+| 10 Screen sizes | Done. `screen_sizes_test.dart`. |
+| 11 Scripted gate | Done. `gate_stage5_test.dart`. |
+| 12 Manual device checks | **Open.** Needs the Android SDK and two phones. |
+| 13 Gate run | **Open.** Waits on the Stage 3 and 4 gates and step 12. |
+
+Where the build differs from the plan above:
+- `Weathering` and `kInscriptionMax` live in `core/weathering.dart` and are re-exported from `data/enums.dart`. `lib/ui` may not import `data/` (checked by `ui_widgets_test.dart`).
+- The v5 relic backfill runs in `beforeOpen` after the migration steps, so it uses the same `RelicDao.createFor` as a live defeat. A backfilled relic's `createdAt` is the boss's `defeatedAt`.
+- `BossDao.saveBoss` takes `allowEmpty` (default false). Onboarding saves a boss with a title and no tasks when no daily foe is entered (plan D11: "required: a boss title only").
+- The start gate (`features/onboarding/start_gate.dart`) reads the stored `onboarded` flag once each time Home opens, not the cached settings stream, so finishing onboarding is seen at once.
+- The "Foe vanquished." flash line on the boss screen is gone; the victory headline replaces it.
+- Screen-size checks found two overflows at 200% text on the small phone, both fixed: `EmberTally` (bonfire) and the onboarding button row now wrap.
+- The bonfire hum starts in `initState` and is gated on the settings stream having loaded; Home always loads it first, so this only matters for a test that opens `/bonfire` cold.
+- The migration schema dumps live in `app/drift_schemas/hearthrise/` (generate with `dart run drift_dev schema dump lib/data/database.dart drift_schemas/hearthrise`, then `schema steps` and `schema generate` into `lib/data/database.steps.dart` and `test/drift/hearthrise/generated/`).

@@ -105,14 +105,14 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [x] **Gate passed:** §5.12 beginner example matches
 
 ## Stage 5: Victory, relics, onboarding
-- [ ] Victory screen with numbers and lesson list
-- [ ] Relic created on defeat, with its own snapshot
-- [ ] Emblem weathering levels
-- [ ] Final inscription (editable)
-- [ ] Hall of relics, with empty state
-- [ ] Relic detail timeline
-- [ ] Profile: embers, level, flasks, accuracy
-- [ ] Onboarding flow (under two minutes)
+- [x] Victory screen with numbers and lesson list
+- [x] Relic created on defeat, with its own snapshot
+- [x] Emblem weathering levels
+- [x] Final inscription (editable)
+- [x] Hall of relics, with empty state
+- [x] Relic detail timeline
+- [x] Profile: embers, level, flasks, accuracy
+- [x] Onboarding flow (built and tested; the two-minute timing is a manual check, step 12)
 - [ ] Sound setting and tones (deferred from Stage 3)
 - [ ] Test on small and large Android screens
 - [ ] **Gate passed:** §11.1 complete
