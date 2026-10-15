@@ -79,30 +79,30 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] **Gate passed:** loop runs several real days
 
 ## Stage 4: Commitments and health
-- [ ] Commit task with deadline
-- [ ] Open tasks without deadline
-- [ ] Calm note for heavy commitment load
-- [ ] Free first extension
-- [ ] Second extension costs flask
-- [ ] Health events table; health derived from events
-- [ ] Loss by weight (1 / 2 / 3), Tried costs half
-- [ ] Death at zero health (failed attempt on final-blow boss)
-- [ ] Rest after a fall: rise same day at bonfire
-- [ ] Freeze remaining commitments after death
-- [ ] Fallen screen with "N promised, M kept"
-- [ ] Resolve deadlines on app open
-- [ ] Resolve deadlines on schedule while running
-- [ ] "While you were away" summary
-- [ ] Late strike
-- [ ] Opt-in per-task deadline reminders
-- [ ] Waiting bosses exempt
-- [ ] Recurring tasks create a daily commitment
-- [ ] Health restore at bonfire
-- [ ] Daily summaries
-- [ ] Planning accuracy (daily and weekly)
-- [ ] Newcomer grace week (calm line only; reduced losses in Stage 8)
-- [ ] Unit tests for deadline and health resolver
-- [ ] **Gate passed:** §5.12 beginner example matches
+- [x] Commit task with deadline
+- [x] Open tasks without deadline
+- [x] Calm note for heavy commitment load
+- [x] Free first extension
+- [x] Second extension costs flask
+- [x] Health events table; health derived from events
+- [x] Loss by weight (1 / 2 / 3), Tried costs half
+- [x] Death at zero health (failed attempt on final-blow boss)
+- [x] Rest after a fall: rise same day at bonfire
+- [x] Freeze remaining commitments after death
+- [x] Fallen screen with "N promised, M kept"
+- [x] Resolve deadlines on app open
+- [x] Resolve deadlines on schedule while running
+- [x] "While you were away" summary
+- [x] Late strike
+- [x] Opt-in per-task deadline reminders
+- [x] Waiting bosses exempt
+- [x] Recurring tasks create a daily commitment
+- [x] Health restore at bonfire
+- [x] Daily summaries
+- [x] Planning accuracy (daily and weekly)
+- [x] Newcomer grace week (calm line only; reduced losses in Stage 8)
+- [x] Unit tests for deadline and health resolver
+- [x] **Gate passed:** §5.12 beginner example matches
 
 ## Stage 5: Victory, relics, onboarding
 - [ ] Victory screen with numbers and lesson list

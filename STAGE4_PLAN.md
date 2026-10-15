@@ -2,7 +2,7 @@
 
 Source: `STAGES.md` (Stage 4) and `souls-task-tracker-design.md` (§ numbers below refer to it). Visual rules: `DESIGN.md`.
 Method: TDD (see `STAGES.md`, Development method). Every step below lists its tests first, then the code. UI follows `STAGES.md`, "UI components": new widgets go in `lib/ui/` as `StatelessWidget`s, with state in thin containers in `lib/features/`.
-Status: not started.
+Status: steps 1 to 12 implemented on branch `stage-4-commitments` (code and tests; `flutter analyze` clean, full suite passing, scripted gate passing). Steps 13 and 14 need a phone with the Android SDK, and step 14 waits for the Stage 3 gate. See section 9 for where the build differs from this plan.
 
 Prerequisite: the Stage 3 gate (several real days on a phone) is still open, and so is the Stage 2 tester gate. Steps 1 to 12 do not depend on their outcome and can start now. Step 14 (the gate) must not start until Stage 3 closes, because it runs on top of the daily loop.
 
@@ -363,3 +363,22 @@ After Stage 3 closes: play the §5.12 beginner day by hand on a phone (you and, 
 - Standalone commitments (no boss) are deferred (D3).
 - Newcomer grace does not reduce health losses in Stage 4 (D13); reduced losses move to Stage 8.
 - The health maximum is fixed at 10; making it adjustable moves to Stage 5 with the profile.
+
+---
+
+## 9. Implementation notes
+
+Where the build differs from the steps above, and why.
+
+- **Dead means health 0.** In the health fold, a restore (Rise or rest) sets health back to max. So "fallen" is simply health 0 at that moment. That one rule covers freezing, Rise unfreezing, and commitments made while fallen (D7), with no separate death-versus-rise comparison.
+- **A Tried can deal the final blow.** If a Tried brings health to 0, that is a health death on that task's boss, and the fallen moment shows from the task row.
+- **Strike and Tried settle first.** Both run `resolveDue()` before they act. A deadline that passed unnoticed is a miss (then a late strike), never a kept promise.
+- **Health-death falls get their lesson afterwards.** The fall row is written when the deadline is settled, so health and the attempt counter are right at once. `AttemptDao.addLesson` fills the lesson after the fallen screen, and never replaces an existing one.
+- **Day record and week** live on `CommitmentDao` (`record`, `week`). They arrived in step 9 because the fallen screen needs them, with tests in `test/data/day_record_test.dart`.
+- **Grace line** shows on the fallen screen (the moment of the fall), not on the bonfire.
+- **Missed days are now also judged on the one-minute tick**, not only on open and resume. This closes the Stage 3 D1 limit for an app left open past rollover.
+- **Standing daily commitments** are made only on days the app runs (`shortcut:` comment in `HealthDao`). A day the app never opens is judged by the missed-day rule instead.
+- **Deadline reminders** are kept in step by one sync over today's promises. It runs whenever a commitment, task or setting changes, so a rename reschedules with the new title. Asking for a reminder requests notification permission; if it is denied, the promise is still made, without the reminder.
+- **Test files:** the step 4 tests are in `test/data/commitment_close_test.dart`, step 6 in `test/data/rise_test.dart`, and step 10's bonfire tests in `test/features/bonfire_rise_test.dart`, so each file stays focused.
+- **Coverage:** every `lib/core` file except `local_reminders.dart` (the device notification plugin) is fully covered, and `lib/data` is at 88%. The plugin is checked on a phone in step 13.
+- **Known limit:** a deadline chip's "in N min" updates when data changes (or on the tick that settles a deadline), not every minute.
