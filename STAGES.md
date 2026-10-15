@@ -107,6 +107,7 @@ Standing rule for every stage and every plan.
 ## Stage 4: Commitments and health (gentle mode)
 
 **Goal:** turn the task list into a commitment system.
+**Detailed plan:** `STAGE4_PLAN.md`.
 
 - Commitments with deadlines; open tasks without deadlines (§5.12).
 - Free first extension; second extension costs a flask.
@@ -116,7 +117,7 @@ Standing rule for every stage and every plan.
 - Deadline resolution from stored timestamps on app open and on a schedule; "While you were away" summary; late strike.
 - Opt-in per-task deadline reminders.
 - Daily summaries and planning accuracy (daily and weekly).
-- Newcomer grace week.
+- Newcomer grace week: a calm line only; reduced losses move to Stage 8 (`STAGE4_PLAN.md` D13).
 - Unit tests for the deadline and health resolver.
 
 **Gate:** the beginner's first-day example in §5.12 plays out exactly as written, and resolver tests pass.
@@ -170,6 +171,7 @@ Standing rule for every stage and every plan.
 
 - Bloodstain drop on fall, recovery by doing a small version of the task (§5.8).
 - Softening rules: partial loss, cap, flask protection, lesson refund.
+- Newcomer grace week reduces health losses (moved from Stage 4, `STAGE4_PLAN.md` D13).
 - Store listing free of game trademarks (§4).
 - Production launch on Google Play.
 

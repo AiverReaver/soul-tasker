@@ -100,7 +100,7 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] Health restore at bonfire
 - [ ] Daily summaries
 - [ ] Planning accuracy (daily and weekly)
-- [ ] Newcomer grace week
+- [ ] Newcomer grace week (calm line only; reduced losses in Stage 8)
 - [ ] Unit tests for deadline and health resolver
 - [ ] **Gate passed:** §5.12 beginner example matches
 
@@ -148,6 +148,7 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] Partial loss and cap
 - [ ] Flask protection
 - [ ] Lesson refund
+- [ ] Newcomer grace week reduces health losses (from Stage 4 D13)
 - [ ] Older bloodstain on same boss marked lost
 - [ ] Trademark check of store listing
 - [ ] Production launch
