@@ -84,6 +84,10 @@ class SignalDao {
       bonfireLessons: bonfireLessons.length,
       tapMode: settings.tapMode,
       haptics: settings.haptics,
+      commits: [
+        for (final c in await _db.select(_db.commitments).get())
+          CommitMark(day: c.day, extensions: c.extensions, outcome: c.outcome),
+      ],
     );
   }
 

@@ -15,6 +15,7 @@ SignalInput _input({
   List<AttemptMark> attempts = const [],
   int bonfireLessons = 0,
   bool tapMode = false,
+  List<CommitMark> commits = const [],
 }) => SignalInput(
   firstDay: _first,
   rolloverHour: 4,
@@ -24,6 +25,7 @@ SignalInput _input({
   bonfireLessons: bonfireLessons,
   tapMode: tapMode,
   haptics: true,
+  commits: commits,
 );
 
 DateTime _on(int day, [int hour = 21]) => DateTime(2026, 10, day, hour);
@@ -238,5 +240,70 @@ void main() {
     expect(s.triedPerStrike, isNull);
     expect(s.firstVisit, isNull);
     expect(s.dayNumber, 1);
+  });
+
+  group('promises', () {
+    CommitMark c(int day, {int ext = 0, CommitmentOutcome? outcome}) =>
+        CommitMark(day: _d(day), extensions: ext, outcome: outcome);
+
+    test('free and flask extensions, late strikes', () {
+      final s = computeSignals(
+        _input(
+          commits: [
+            c(1, ext: 1),
+            c(2, ext: 2),
+            c(3, ext: 3),
+            c(4, outcome: CommitmentOutcome.lateStrike),
+            c(5, outcome: CommitmentOutcome.lateStrike),
+            c(5),
+          ],
+        ),
+        _d(10),
+      );
+      expect(s.freeExtensions, 3);
+      expect(s.flaskExtensions, 3);
+      expect(s.lateStrikes, 2);
+    });
+
+    test('week 1 counts days 1 to 7; cancelled are not made', () {
+      final s = computeSignals(
+        _input(
+          commits: [
+            c(1, outcome: CommitmentOutcome.kept),
+            c(1, outcome: CommitmentOutcome.missed),
+            c(7, outcome: CommitmentOutcome.kept),
+            c(7, outcome: CommitmentOutcome.cancelled),
+            c(8, outcome: CommitmentOutcome.kept),
+          ],
+        ),
+        _d(10),
+      );
+      expect(s.week1!.made, 3);
+      expect(s.week1!.kept, 2);
+      expect(s.week1!.days, 7);
+      expect(s.week4, isNull);
+    });
+
+    test('week 4 is days 22 to 28, partial while it runs', () {
+      final s = computeSignals(
+        _input(
+          commits: [
+            c(21, outcome: CommitmentOutcome.kept),
+            c(22, outcome: CommitmentOutcome.kept),
+            c(23, outcome: CommitmentOutcome.tried),
+          ],
+        ),
+        _d(23),
+      );
+      expect(s.week4!.made, 2);
+      expect(s.week4!.kept, 1);
+      expect(s.week4!.days, 2);
+    });
+
+    test('week 1 is partial on day 3', () {
+      final s = computeSignals(_input(), _d(3));
+      expect(s.week1!.days, 3);
+      expect(s.week1!.made, 0);
+    });
   });
 }

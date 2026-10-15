@@ -33,6 +33,35 @@ class AttemptMark {
   final bool hasLesson;
 }
 
+/// One commitment reduced to what is counted (Stage 6 step 7).
+class CommitMark {
+  const CommitMark({required this.day, required this.extensions, this.outcome});
+
+  final String day;
+  final int extensions;
+
+  /// Null while still open.
+  final CommitmentOutcome? outcome;
+}
+
+/// Promises in one week of the test (§12 "week one versus week four").
+class WeekPromises {
+  const WeekPromises({
+    required this.made,
+    required this.kept,
+    required this.days,
+  });
+
+  /// Not counting those cancelled, as in `CommitmentDao.record`.
+  final int made;
+  final int kept;
+
+  /// Days of the week elapsed so far, 1 to 7.
+  final int days;
+
+  double get perDay => made / days;
+}
+
 /// Everything the signals are computed from.
 class SignalInput {
   const SignalInput({
@@ -44,6 +73,7 @@ class SignalInput {
     required this.bonfireLessons,
     required this.tapMode,
     required this.haptics,
+    this.commits = const [],
   });
 
   /// The install day (day 1).
@@ -55,6 +85,7 @@ class SignalInput {
   final int bonfireLessons;
   final bool tapMode;
   final bool haptics;
+  final List<CommitMark> commits;
 }
 
 /// Fallen days followed by a visit the next day (Stage 6 plan D5).
@@ -110,6 +141,11 @@ class Signals {
     required this.firstTapChangeDay,
     required this.haptics,
     required this.checkIns,
+    required this.freeExtensions,
+    required this.flaskExtensions,
+    required this.lateStrikes,
+    required this.week1,
+    required this.week4,
   });
 
   final String firstDay;
@@ -140,6 +176,19 @@ class Signals {
   final int? firstTapChangeDay;
   final bool haptics;
   final List<CheckInWindow> checkIns;
+
+  /// Commitments extended at least once (the first extension is free).
+  final int freeExtensions;
+
+  /// Extensions after the first, each paid with a flask.
+  final int flaskExtensions;
+  final int lateStrikes;
+
+  /// Days 1 to 7, so far. Null only if today is before the install day.
+  final WeekPromises? week1;
+
+  /// Days 22 to 28; null before day 22.
+  final WeekPromises? week4;
 
   int get strikes => strikesBy.values.fold(0, (a, b) => a + b);
 
@@ -222,6 +271,32 @@ Signals computeSignals(SignalInput input, String today) {
         : dayNumber(input.firstDay, taps.first.day),
     haptics: input.haptics,
     checkIns: checkIns,
+    freeExtensions: input.commits.where((c) => c.extensions > 0).length,
+    flaskExtensions: input.commits.fold(
+      0,
+      (sum, c) => sum + (c.extensions > 1 ? c.extensions - 1 : 0),
+    ),
+    lateStrikes: input.commits
+        .where((c) => c.outcome == CommitmentOutcome.lateStrike)
+        .length,
+    week1: _week(input, today, 1),
+    week4: _week(input, today, 22),
+  );
+}
+
+WeekPromises? _week(SignalInput input, String today, int from) {
+  final now = dayNumber(input.firstDay, today);
+  if (now < from) return null;
+  final inWeek = [
+    for (final c in input.commits)
+      if (dayNumber(input.firstDay, c.day) case final n
+          when n >= from && n < from + 7 && n <= now)
+        c,
+  ];
+  return WeekPromises(
+    made: inWeek.where((c) => c.outcome != CommitmentOutcome.cancelled).length,
+    kept: inWeek.where((c) => c.outcome == CommitmentOutcome.kept).length,
+    days: (now - from + 1).clamp(1, 7),
   );
 }
 

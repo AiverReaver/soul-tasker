@@ -174,5 +174,20 @@ void main() {
     expect(input.bonfireLessons, 1);
     expect(input.tapMode, isTrue);
     expect(input.haptics, isTrue);
+    expect(input.commits, isEmpty);
+  });
+
+  test('input carries each commitment day, extensions and outcome', () async {
+    final view = await h.seed();
+    final commits = CommitmentDao(h.db, h.clock.call);
+    final taskId = taskNamed(view, 'Flashcards').task.id;
+    await commits.commit(taskId, DeadlinePreset.oneHour);
+
+    final input = await signals.input();
+
+    expect(input.commits, hasLength(1));
+    expect(input.commits.single.day, '2026-10-13');
+    expect(input.commits.single.extensions, 0);
+    expect(input.commits.single.outcome, isNull);
   });
 }

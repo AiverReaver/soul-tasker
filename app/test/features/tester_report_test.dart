@@ -24,6 +24,7 @@ SignalInput _input({
   int bonfireLessons = 0,
   bool tapMode = false,
   bool haptics = true,
+  List<CommitMark> commits = const [],
 }) => SignalInput(
   firstDay: _d(1),
   rolloverHour: 4,
@@ -33,6 +34,7 @@ SignalInput _input({
   bonfireLessons: bonfireLessons,
   tapMode: tapMode,
   haptics: haptics,
+  commits: commits,
 );
 
 SignalMark _m(SignalKind kind, int day, [int? value]) =>
@@ -66,6 +68,15 @@ void main() {
         bonfireLessons: 4,
         tapMode: true,
         haptics: false,
+        commits: [
+          for (final (day, ext, outcome) in [
+            (1, 1, CommitmentOutcome.kept),
+            (2, 2, CommitmentOutcome.lateStrike),
+            (3, 0, CommitmentOutcome.missed),
+            (4, 0, CommitmentOutcome.kept),
+          ])
+            CommitMark(day: _d(day), extensions: ext, outcome: outcome),
+        ],
       ),
       _d(10),
     );
@@ -87,7 +98,11 @@ void main() {
       'Tap mode: on (changed 1 time, first on day 5)\n'
       'Haptics: off\n'
       'Check-in from day 7: Never (dismissed 1)\n'
-      'Check-in from day 14: not asked yet\n',
+      'Check-in from day 14: not asked yet\n'
+      'Extensions: free 2, with a flask 1\n'
+      'Late strikes: 1\n'
+      'Promises week 1: 4 made, 2 kept over 7 days (0.6 a day)\n'
+      'Promises week 4: not yet\n',
     );
   });
 
@@ -104,6 +119,12 @@ void main() {
     expect(report, contains('Tried per Strike: n/a\n'));
     expect(report, contains('Tap mode: off (never changed)\n'));
     expect(report, contains('Check-in from day 7: not asked yet\n'));
+    expect(report, contains('Extensions: free 0, with a flask 0\n'));
+    expect(report, contains('Late strikes: 0\n'));
+    expect(
+      report,
+      contains('Promises week 1: 0 made, 0 kept over 1 day (0.0 a day)\n'),
+    );
   });
 
   test('a window passed with no answer says so', () {

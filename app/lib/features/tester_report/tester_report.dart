@@ -24,6 +24,12 @@ String buildTesterReport(Signals s, String appVersion) {
     return 'no answer$dismissed';
   }
 
+  String week(WeekPromises? w) => w == null
+      ? 'not yet'
+      : '${w.made} made, ${w.kept} kept over ${w.days} '
+            '${w.days == 1 ? 'day' : 'days'} '
+            '(${w.perDay.toStringAsFixed(1)} a day)';
+
   return 'Hearthrise tester report\n'
       'Version: $appVersion\n'
       'Period: ${s.firstDay} to ${s.today} (day ${s.dayNumber})\n'
@@ -43,7 +49,11 @@ String buildTesterReport(Signals s, String appVersion) {
       'Bonfire lessons: ${s.bonfireLessons}\n'
       'Tap mode: ${onOff(s.tapMode)} ($tap)\n'
       'Haptics: ${onOff(s.haptics)}\n'
-      '${[for (final w in s.checkIns) 'Check-in from day ${w.fromDay}: ${checkIn(w)}\n'].join()}';
+      '${[for (final w in s.checkIns) 'Check-in from day ${w.fromDay}: ${checkIn(w)}\n'].join()}'
+      'Extensions: free ${s.freeExtensions}, with a flask ${s.flaskExtensions}\n'
+      'Late strikes: ${s.lateStrikes}\n'
+      'Promises week 1: ${week(s.week1)}\n'
+      'Promises week 4: ${week(s.week4)}\n';
 }
 
 const _answers = {
