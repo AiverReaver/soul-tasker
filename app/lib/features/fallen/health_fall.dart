@@ -49,6 +49,7 @@ Future<String?> showHealthFall(
     context,
     ref.read(hapticsProvider),
     record: record,
+    sounds: ref.read(soundsProvider),
   );
   await attempts.addLesson(ids, lesson);
   return lesson;

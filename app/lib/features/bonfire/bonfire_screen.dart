@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/commitment_resolver.dart';
+import '../../core/sounds.dart';
 import '../../core/theme.dart';
 import '../../data/day_dao.dart';
 import '../../data/plan_pick_dao.dart';
@@ -27,13 +28,36 @@ class BonfireScreen extends ConsumerStatefulWidget {
   ConsumerState<BonfireScreen> createState() => _BonfireScreenState();
 }
 
-class _BonfireScreenState extends ConsumerState<BonfireScreen> {
+class _BonfireScreenState extends ConsumerState<BonfireScreen>
+    with WidgetsBindingObserver {
   final _lesson = TextEditingController();
   final _picked = <String>[];
   String? _flash;
 
+  // Held here: ref is not safe to read in dispose.
+  late final Sounds _sounds = ref.read(soundsProvider);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _sounds.startHum();
+  }
+
+  /// The hum plays only while the bonfire is on screen and the app is open.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _sounds.startHum();
+    } else {
+      _sounds.stopHum();
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _sounds.stopHum();
     _lesson.dispose();
     super.dispose();
   }

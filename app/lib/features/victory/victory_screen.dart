@@ -42,6 +42,7 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
     if (_didStart) return;
     _didStart = true;
     ref.read(hapticsProvider).doubleHeavy();
+    ref.read(soundsProvider).victory();
     if (motionOf(context, _reveal) == Duration.zero) {
       _fade.value = 1;
     } else {

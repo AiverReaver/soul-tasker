@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/clock.dart';
 import '../core/haptics.dart';
+import '../core/sounds.dart';
 import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
@@ -150,4 +151,18 @@ final relicProvider = StreamProvider.family<RelicView?, String>(
 final profileProvider = StreamProvider(
   (ref) =>
       ProfileDao(ref.watch(databaseProvider), ref.watch(clockProvider)).watch(),
+);
+
+/// Overridden in `main` with the real audio player and in tests with a fake.
+final soundPlayerProvider = Provider<SoundPlayer>(
+  (ref) => const SilentSoundPlayer(),
+);
+
+/// Reads the setting on every cue, like [hapticsProvider]. Off while
+/// settings load.
+final soundsProvider = Provider(
+  (ref) => Sounds(
+    ref.watch(soundPlayerProvider),
+    () => ref.read(settingsProvider).value?.sound ?? false,
+  ),
 );

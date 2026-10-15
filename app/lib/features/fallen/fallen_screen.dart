@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/deadlines.dart';
 import '../../core/haptics.dart';
+import '../../core/sounds.dart';
 import '../../core/theme.dart';
 import '../../ui/accuracy_line.dart';
 
@@ -39,8 +40,10 @@ class FallenScreen extends StatefulWidget {
     BuildContext context,
     Haptics haptics, {
     FallenRecord? record,
+    Sounds? sounds,
   }) {
     haptics.heavy();
+    sounds?.fallen();
     return Navigator.of(context).push<String>(
       PageRouteBuilder(
         opaque: false,

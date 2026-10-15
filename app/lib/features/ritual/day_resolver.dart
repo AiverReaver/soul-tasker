@@ -144,7 +144,11 @@ class _DayResolverState extends ConsumerState<DayResolver>
         attemptIds: [for (final d in deaths) d.id],
       );
     } else if (spend < pending.days.length) {
-      lesson = await FallenScreen.show(context, ref.read(hapticsProvider));
+      lesson = await FallenScreen.show(
+        context,
+        ref.read(hapticsProvider),
+        sounds: ref.read(soundsProvider),
+      );
     }
     if (!mounted) return;
     if (pending.days.isNotEmpty) {
