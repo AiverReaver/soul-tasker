@@ -96,8 +96,10 @@ class BossDao {
   }
 
   /// Creates or updates a boss with its phases and tasks. Returns the id.
-  Future<String> saveBoss(BossDraft draft) {
-    if (!draft.canSave) {
+  /// A boss needs a task unless [allowEmpty]: onboarding asks only for a
+  /// title and adds the first tasks later (Stage 5 plan D11).
+  Future<String> saveBoss(BossDraft draft, {bool allowEmpty = false}) {
+    if (allowEmpty ? !draft.isNamed : !draft.canSave) {
       throw ArgumentError('A boss needs a title and at least one task.');
     }
     return _db.transaction(() async {
