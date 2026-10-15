@@ -18,10 +18,13 @@ part 'database.g.dart';
     DayLogs,
     EmberEvents,
     PlanPicks,
+    Commitments,
+    HealthEvents,
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  /// [clock] only stamps `lastResolvedDay` on create and upgrade (plan D12).
+  /// [clock] only stamps `lastResolvedDay` and `firstDay` on create and
+  /// upgrade (Stage 3 plan D12, Stage 4 plan D13).
   AppDatabase(super.e, {this._clock = DateTime.now});
 
   /// The on-device database.
@@ -30,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   final Clock _clock;
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// The hour a day ends. Every `dayOf` call reads this, so what is written
   /// and what is shown agree (plan step 1).
@@ -41,8 +44,13 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
-      await into(settings)
-          .insert(SettingsCompanion(lastResolvedDay: Value(dayOf(_clock()))));
+      final today = dayOf(_clock());
+      await into(settings).insert(
+        SettingsCompanion(
+          lastResolvedDay: Value(today),
+          firstDay: Value(today),
+        ),
+      );
     },
     onUpgrade: stepByStep(
       from1To2: (m, schema) async {
@@ -60,6 +68,20 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(schema.settings, schema.settings.lastResolvedDay);
         await customStatement('UPDATE settings SET last_resolved_day = ?', [
           dayOf(_clock()),
+        ]);
+      },
+      from3To4: (m, schema) async {
+        await m.createTable(schema.commitments);
+        await m.createTable(schema.healthEvents);
+        await m.addColumn(schema.tasks, schema.tasks.dailyDeadlineMinutes);
+        await m.addColumn(schema.settings, schema.settings.firstDay);
+        // The user may have moved the rollover hour; stamp with theirs.
+        final row = await customSelect(
+          'SELECT rollover_hour FROM settings',
+        ).getSingleOrNull();
+        final hour = row?.read<int>('rollover_hour') ?? kRolloverHour;
+        await customStatement('UPDATE settings SET first_day = ?', [
+          dayOf(_clock(), rolloverHour: hour),
         ]);
       },
     ),

@@ -50,6 +50,10 @@ enum Weight {
   /// One medium pulse after the ticks, just before the strike lands.
   final bool hasBuildUpPulse;
 
+  /// Health a missed commitment costs, in half points: 1, 2, 3 points
+  /// (§5.12, Stage 4 plan D5). A try costs half of this.
+  int get healthLoss => (index + 1) * 2;
+
   /// One step lighter, used when splitting a task (minimum Light).
   Weight get lighter => values[index == 0 ? 0 : index - 1];
 }
@@ -65,3 +69,9 @@ enum FallCause { declared, healthDeath, missedDay }
 enum DayKind { bonfire, flask, light }
 
 enum EmberKind { earn, bank }
+
+/// How a commitment ended (Stage 4 plan D1). Null on the row means open.
+enum CommitmentOutcome { kept, tried, missed, frozen, lateStrike, cancelled }
+
+/// Why health changed (Stage 4 plan D4).
+enum HealthReason { miss, tried, bonfireRestore, rise }
