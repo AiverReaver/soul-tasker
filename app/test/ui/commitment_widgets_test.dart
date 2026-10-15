@@ -257,4 +257,23 @@ void main() {
     );
     expect(find.text('by 11:00 PM'), findsOneWidget);
   });
+
+  testWidgets('AwaySummary scrolls when many deadlines passed', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Scaffold(
+          body: AwaySummary(
+            rows: [
+              for (var i = 0; i < 30; i++)
+                AwayRow(id: 'c$i', title: 'Task $i', cost: '−1 health'),
+            ],
+            onDoneLate: (_) {},
+            onClose: () {},
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

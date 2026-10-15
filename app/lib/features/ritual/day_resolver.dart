@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/deadlines.dart';
+import '../../core/missed_days.dart';
 import '../../data/enums.dart';
 import '../../data/health_dao.dart';
 import '../../data/providers.dart';
@@ -46,7 +47,18 @@ class _DayResolverState extends ConsumerState<DayResolver>
     // Keeps deadline reminders in step with today's promises (plan D20).
     ref.listenManual(todayCommitmentsProvider, (_, next) {
       if (next.value case final today?) {
-        ref.read(deadlineRemindersProvider).sync(today);
+        ref
+            .read(deadlineRemindersProvider)
+            .sync(today)
+            .catchError(
+              (Object e, StackTrace s) => FlutterError.reportError(
+                FlutterErrorDetails(
+                  exception: e,
+                  stack: s,
+                  library: 'deadline reminders',
+                ),
+              ),
+            );
       }
     }, fireImmediately: true);
   }
@@ -86,7 +98,8 @@ class _DayResolverState extends ConsumerState<DayResolver>
   }
 
   Future<void> _resolve({required bool isTick}) async {
-    final due = await ref.read(healthDaoProvider).resolveDue();
+    final health = ref.read(healthDaoProvider);
+    final due = await health.resolveDue();
     if (!mounted) return;
     if (due.settled.isNotEmpty) {
       // While open a miss is a quiet line; after time away, one summary.
@@ -94,11 +107,12 @@ class _DayResolverState extends ConsumerState<DayResolver>
       if (!mounted) return;
     }
 
+    final deaths = await _deathsToOffer(health, due.deaths);
     final days = ref.read(dayDaoProvider);
     final pending = await days.pending();
     if (!mounted) return;
     final hasMissed = pending.days.isNotEmpty && pending.bosses.isNotEmpty;
-    if (!hasMissed && due.deaths.isEmpty) {
+    if (!hasMissed && deaths.isEmpty) {
       // Nobody to fall: just move the day on.
       if (pending.days.isNotEmpty) await days.resolve();
       return;
@@ -122,12 +136,12 @@ class _DayResolverState extends ConsumerState<DayResolver>
 
     // One bad stretch, one fallen moment and one lesson (Stage 4 plan D14).
     String? lesson;
-    if (due.deaths.isNotEmpty) {
+    if (deaths.isNotEmpty) {
       lesson = await showHealthFall(
         context,
         ref,
-        due.deaths.last.day,
-        attemptIds: [for (final d in due.deaths) d.attemptId],
+        deaths.last.day,
+        attemptIds: [for (final d in deaths) d.id],
       );
     } else if (spend < pending.days.length) {
       lesson = await FallenScreen.show(context, ref.read(hapticsProvider));
@@ -136,6 +150,26 @@ class _DayResolverState extends ConsumerState<DayResolver>
     if (pending.days.isNotEmpty) {
       await days.resolve(lesson: lesson, flasksToSpend: spend);
     }
+  }
+
+  /// Health deaths still waiting for their lesson and not yet offered in
+  /// this run: those just settled, and any from today or yesterday that an
+  /// interrupted flow or a strike left behind.
+  Future<List<({String id, String day})>> _deathsToOffer(
+    HealthDao health,
+    List<HealthDeath> settled,
+  ) async {
+    final offered = ref.read(offeredDeathsProvider);
+    final today = await health.today();
+    final found = <String, String>{
+      for (final d in settled) d.attemptId: d.day,
+      for (final day in [shiftDay(today, -1), today])
+        for (final id in await health.deathsWithoutLesson(day)) id: day,
+    };
+    return [
+      for (final e in found.entries)
+        if (!offered.contains(e.key)) (id: e.key, day: e.value),
+    ]..sort((a, b) => a.day.compareTo(b.day));
   }
 
   void _sayPassed(List<SettledDeadline> settled) {
@@ -166,8 +200,10 @@ class _DayResolverState extends ConsumerState<DayResolver>
           ],
           onDoneLate: (id) async {
             final s = settled.firstWhere((s) => s.commitmentId == id);
-            await ref.read(attemptDaoProvider).strike(s.taskId);
-            setState(() => done.add(id));
+            await ref
+                .read(attemptDaoProvider)
+                .strike(s.taskId, commitmentId: s.commitmentId);
+            if (dialog.mounted) setState(() => done.add(id));
           },
           onClose: () => Navigator.pop(dialog),
         ),

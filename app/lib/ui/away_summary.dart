@@ -46,22 +46,24 @@ class AwaySummary extends StatelessWidget {
     return AlertDialog(
       backgroundColor: kSurface,
       title: Text(heading, style: text.titleMedium),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final r in rows)
-            Row(
-              children: [
-                Expanded(child: Text(r.title, style: text.bodyMedium)),
-                Text(r.cost, style: text.bodySmall),
-                if (!r.isDone)
-                  TextButton(
-                    onPressed: () => onDoneLate(r.id),
-                    child: const Text('Done late'),
-                  ),
-              ],
-            ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final r in rows)
+              Row(
+                children: [
+                  Expanded(child: Text(r.title, style: text.bodyMedium)),
+                  Text(r.cost, style: text.bodySmall),
+                  if (!r.isDone)
+                    TextButton(
+                      onPressed: () => onDoneLate(r.id),
+                      child: const Text('Done late'),
+                    ),
+                ],
+              ),
+          ],
+        ),
       ),
       actions: [TextButton(onPressed: onClose, child: const Text('Go on'))],
     );

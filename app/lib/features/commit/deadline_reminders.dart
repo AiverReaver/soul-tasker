@@ -28,6 +28,13 @@ class DeadlineReminders {
               when at.isAfter(now))
             v.commitment.id: (at: at, body: v.taskTitle),
     };
+    // Gone from today (task deleted, or a new day): cancel what was set.
+    for (final id in [..._scheduled.keys]) {
+      if (!today.values.any((v) => v.commitment.id == id)) {
+        _scheduled.remove(id);
+        await _reminders.cancelOnce(id);
+      }
+    }
     for (final v in today.values) {
       final id = v.commitment.id;
       final want = wanted[id];
@@ -36,8 +43,9 @@ class DeadlineReminders {
           await _reminders.cancelOnce(id);
         }
       } else if (_scheduled[id] != want) {
-        _scheduled[id] = want;
         await _reminders.scheduleOnce(id, want.at, want.body);
+        // Only once it is set, so a failure is tried again next sync.
+        _scheduled[id] = want;
       }
     }
   }

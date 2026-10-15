@@ -129,6 +129,8 @@ class DayDao {
   /// nothing, for more than three picks.
   Future<bool> rest({String? lesson, List<String> pickTaskIds = const []}) =>
       _db.transaction(() async {
+        // Settle passed deadlines first, so the restore comes after them.
+        await _health.resolveDue();
         final day = await _today();
         if ((await _kindsOn(day)).contains(DayKind.bonfire)) return false;
         if (await _health.isDead(day)) return false;
@@ -146,6 +148,7 @@ class DayDao {
   /// Rises after a fall (§5.6): full health and banked embers, but no flask,
   /// no lesson or picks, and the day is not covered. False when not fallen.
   Future<bool> rise() => _db.transaction(() async {
+    await _health.resolveDue();
     final day = await _today();
     if (!await _health.isDead(day)) return false;
     await _health.restore(HealthReason.rise, day, _clock());

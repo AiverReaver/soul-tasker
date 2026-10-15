@@ -40,7 +40,14 @@ class TaskRow extends ConsumerWidget {
   String get _bossId => view.task.bossId;
 
   Future<void> _strike(BuildContext context, WidgetRef ref) async {
+    final health = ref.read(healthDaoProvider);
+    final wasAlive = !await health.isDeadToday();
     final result = await ref.read(attemptDaoProvider).strike(view.task.id);
+    // Settling a passed deadline first can deal the final blow.
+    if (wasAlive && await health.isDeadToday()) {
+      final day = await health.today();
+      if (context.mounted) await showHealthFall(context, ref, day);
+    }
     if (!context.mounted) return;
     if (!result.isVanquished) return onMessage('It is done.');
     onMessage('Foe vanquished.');

@@ -373,6 +373,14 @@ Where the build differs from the steps above, and why.
 - **Dead means health 0.** In the health fold, a restore (Rise or rest) sets health back to max. So "fallen" is simply health 0 at that moment. That one rule covers freezing, Rise unfreezing, and commitments made while fallen (D7), with no separate death-versus-rise comparison.
 - **A Tried can deal the final blow.** If a Tried brings health to 0, that is a health death on that task's boss, and the fallen moment shows from the task row.
 - **Strike and Tried settle first.** Both run `resolveDue()` before they act. A deadline that passed unnoticed is a miss (then a late strike), never a kept promise.
+- **Review fixes (after step 12):**
+  - Rest and Rise settle passed deadlines first.
+  - A standing deadline at the rollover hour is the end of the day, and none is made once its time has passed.
+  - "Done late" closes the promise from the day it was missed.
+  - A fall dated to a past deadline never moves `lastFoughtAt` back.
+  - Deleting a task cancels its reminder.
+  - The away summary scrolls.
+- **Falls still missing their lesson are offered again** (today and yesterday), once per app run. This covers a death settled inside a strike or a Tried, and an app killed before the fallen moment. A skipped lesson is asked once more after the next start.
 - **Health-death falls get their lesson afterwards.** The fall row is written when the deadline is settled, so health and the attempt counter are right at once. `AttemptDao.addLesson` fills the lesson after the fallen screen, and never replaces an existing one.
 - **Day record and week** live on `CommitmentDao` (`record`, `week`). They arrived in step 9 because the fallen screen needs them, with tests in `test/data/day_record_test.dart`.
 - **Grace line** shows on the fallen screen (the moment of the fall), not on the bonfire.

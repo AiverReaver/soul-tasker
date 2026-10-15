@@ -5,6 +5,10 @@ import '../../core/missed_days.dart';
 import '../../data/providers.dart';
 import 'fallen_screen.dart';
 
+/// Health-death falls already offered in this run of the app, so a skipped
+/// lesson is not asked again until the next start.
+final offeredDeathsProvider = Provider<Set<String>>((ref) => <String>{});
+
 /// The newcomer grace week length (plan D13).
 const _graceDays = 7;
 
@@ -34,14 +38,18 @@ Future<String?> showHealthFall(
   List<String>? attemptIds,
 }) async {
   final health = ref.read(healthDaoProvider);
+  // Read before the await: the caller may be gone when the screen closes.
+  final attempts = ref.read(attemptDaoProvider);
+  final offered = ref.read(offeredDeathsProvider);
   final ids = attemptIds ?? await health.deathsWithoutLesson(day);
   final record = await fallenRecord(ref, day);
   if (!context.mounted) return null;
+  offered.addAll(ids);
   final lesson = await FallenScreen.show(
     context,
     ref.read(hapticsProvider),
     record: record,
   );
-  await ref.read(attemptDaoProvider).addLesson(ids, lesson);
+  await attempts.addLesson(ids, lesson);
   return lesson;
 }

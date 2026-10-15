@@ -154,4 +154,15 @@ void main() {
     expect(reminderIdFor('abc'), isNot(reminderIdFor('abd')));
     expect(reminderIdFor('abc'), isNot(1));
   });
+
+  testWidgets('deleting the task cancels its reminder', (tester) async {
+    await pumpApp(tester, h, reminders: reminders);
+    await commits.commit(task, DeadlinePreset.tonight, remind: true);
+    await settle(tester);
+    expect(reminders.once, hasLength(1));
+    await h.bosses.deleteTask(task);
+    await settle(tester);
+    expect(reminders.once, isEmpty);
+    await tearDownApp(tester, h);
+  });
 }

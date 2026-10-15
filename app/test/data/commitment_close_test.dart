@@ -116,4 +116,21 @@ void main() {
     expect(EmberDao.amountFor(Outcome.strike, Weight.heavy, isLate: true), 2);
     expect(EmberDao.amountFor(Outcome.strike, Weight.heavy), 3);
   });
+
+  test('done late on an earlier day closes that day\'s promise only', () async {
+    await h.seed();
+    final walk = await task('Walk');
+    final old = (await commits.commit(walk, DeadlinePreset.oneHour))!;
+    h.clock.now = DateTime(2026, 10, 14, 8);
+    await commits.commit(walk, DeadlinePreset.tonight);
+    await (h.db.update(h.db.commitments)..where((c) => c.id.equals(old))).write(
+      const CommitmentsCompanion(outcome: Value(CommitmentOutcome.missed)),
+    );
+    await h.attempts.strike(walk, commitmentId: old);
+    final yesterday = (await commits.load('2026-10-13')).single.commitment;
+    final today = (await commits.load('2026-10-14')).single.commitment;
+    expect(yesterday.outcome, CommitmentOutcome.lateStrike);
+    expect(today.outcome, isNull);
+    expect(await carried(), 2); // Heavy late strike: the Tried rate.
+  });
 }

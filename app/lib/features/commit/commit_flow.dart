@@ -25,6 +25,7 @@ Future<void> showCommitSheet(
   required ValueChanged<String> onMessage,
 }) async {
   final dao = ref.read(commitmentDaoProvider);
+  final reminders = ref.read(remindersProvider);
   final hour = await ref.read(databaseProvider).rolloverHour();
   final today = dayOf(ref.read(clockProvider)(), rolloverHour: hour);
   final before = await dao.loadNote(today);
@@ -50,7 +51,7 @@ Future<void> showCommitSheet(
     ),
   );
   if (preset == null) return;
-  if (remind && !await ref.read(remindersProvider).requestPermission()) {
+  if (remind && !await reminders.requestPermission()) {
     remind = false;
     onMessage('No reminder without permission.');
   }

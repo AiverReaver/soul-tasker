@@ -206,4 +206,51 @@ void main() {
     );
     await tearDownApp(tester, h);
   });
+
+  testWidgets('a death settled inside a later Tried shows the fallen moment', (
+    tester,
+  ) async {
+    final a = await boss('A', 6);
+    final ts = await tasksOf(a);
+    await promiseAll(ts.take(5).toList());
+    await pumpApp(tester, h);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+
+    // The deadlines pass between ticks; the strike settles them first.
+    h.clock.now = DateTime(2026, 10, 14, 9, 30);
+    await tester.ensureVisible(find.byTooltip('Actions for A T5'));
+    await settle(tester);
+    await tester.tap(find.byTooltip('Actions for A T5'));
+    await settle(tester);
+    await tester.tap(find.text('Mark as tried'));
+    await settle(tester);
+
+    expect(find.text('Fallen.'), findsOneWidget);
+    await tester.tap(find.text('Skip'));
+    await settle(tester);
+    // Skipped: not offered again in this run.
+    await tester.pump(kDeadlineTick);
+    await settle(tester);
+    expect(find.text('Fallen.'), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a fall left without its lesson is offered on the next open', (
+    tester,
+  ) async {
+    final a = await boss('A', 5);
+    await promiseAll(await tasksOf(a));
+    h.clock.now = DateTime(2026, 10, 14, 12);
+    // Settled, then the app was killed before the fallen moment.
+    await health.resolveDue();
+    await pumpApp(tester, h);
+
+    expect(find.text('Fallen.'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Next time.');
+    await tester.tap(find.text('Rise'));
+    await settle(tester);
+    expect((await falls(FallCause.healthDeath)).single.lesson, 'Next time.');
+    await tearDownApp(tester, h);
+  });
 }

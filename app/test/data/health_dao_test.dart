@@ -294,4 +294,41 @@ void main() {
     await sub.cancel();
     expect(seen, [20, 16, 20]);
   });
+
+  group('standing deadlines (review fixes)', () {
+    test(
+      'a standing time at the rollover hour is the end of the day',
+      () async {
+        await h.seed();
+        await commits.setStanding(await task('Walk'), 4 * 60);
+        await health.resolveDue();
+        final c = (await commits.load('2026-10-13')).single.commitment;
+        expect(c.deadline, DateTime(2026, 10, 14, 4));
+        expect(c.outcome, isNull);
+      },
+    );
+
+    test('no standing commitment once its time has passed today', () async {
+      await h.seed();
+      await commits.setStanding(await task('Walk'), 8 * 60);
+      h.clock.now = DateTime(2026, 10, 13, 20);
+      await health.resolveDue();
+      expect(await commits.load('2026-10-13'), isEmpty);
+      expect(await h.db.select(h.db.healthEvents).get(), isEmpty);
+    });
+  });
+
+  test('a death at a past deadline never moves lastFoughtAt back', () async {
+    final a = await boss('A', [Weight.light]);
+    h.clock.now = DateTime(2026, 10, 13, 15);
+    await h.attempts.strike(await task('A T0'));
+    final fought = (await h.reload(a)).boss.lastFoughtAt!;
+    await h.attempts.failBoss(
+      a,
+      FallCause.healthDeath,
+      null,
+      at: DateTime(2026, 10, 13, 9),
+    );
+    expect((await h.reload(a)).boss.lastFoughtAt, fought);
+  });
 }

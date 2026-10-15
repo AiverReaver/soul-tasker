@@ -124,4 +124,35 @@ void main() {
       },
     );
   });
+
+  test('rest settles a passed deadline before restoring', () async {
+    final view = await h.seed();
+    await commits.commit(
+      taskNamed(view, 'Read chapter 4').task.id,
+      DeadlinePreset.oneHour,
+    );
+    h.clock.now = DateTime(2026, 10, 13, 20);
+    expect(await days.rest(), isTrue);
+    expect(
+      (await commits.load(day)).single.commitment.outcome,
+      CommitmentOutcome.missed,
+    );
+    expect(await health.health(day), 20);
+  });
+
+  test('rise settles a passed deadline before restoring', () async {
+    final view = await h.seed();
+    await commits.commit(
+      taskNamed(view, 'Read chapter 4').task.id,
+      DeadlinePreset.oneHour,
+    );
+    await lose(20);
+    h.clock.now = DateTime(2026, 10, 13, 20);
+    expect(await days.rise(), isTrue);
+    expect(
+      (await commits.load(day)).single.commitment.outcome,
+      CommitmentOutcome.frozen,
+    );
+    expect(await health.health(day), 20);
+  });
 }

@@ -257,14 +257,17 @@ class HealthDao {
     for (final row in await query.get()) {
       final task = row.readTable(_db.tasks);
       final minutes = task.dailyDeadlineMinutes!;
-      // Minutes before the rollover hour belong to the end of the day.
+      // Minutes up to the rollover hour belong to the end of the day.
       final wanted = DateTime(
         y,
         m,
-        minutes < hour * 60 ? d + 1 : d,
+        minutes <= hour * 60 ? d + 1 : d,
         minutes ~/ 60,
         minutes % 60,
       );
+      final deadline = wanted.isAfter(end) ? end : wanted;
+      // Opened after the time already passed: no promise to break today.
+      if (!deadline.isAfter(now)) continue;
       await _db
           .into(_db.commitments)
           .insert(
@@ -273,7 +276,7 @@ class HealthDao {
               taskId: task.id,
               bossId: task.bossId,
               day: today,
-              deadline: wanted.isAfter(end) ? end : wanted,
+              deadline: deadline,
               createdAt: now,
               updatedAt: now,
             ),

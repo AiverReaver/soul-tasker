@@ -86,13 +86,22 @@ class AttemptDao {
       isLate: isLate,
     );
     await (_db.update(_db.bosses)..where((b) => b.id.equals(boss.id))).write(
-      BossesCompanion(lastFoughtAt: Value(now), updatedAt: Value(now)),
+      BossesCompanion(
+        // A fall dated to a past deadline never moves this back.
+        lastFoughtAt: Value(
+          boss.lastFoughtAt != null && boss.lastFoughtAt!.isAfter(now)
+              ? boss.lastFoughtAt
+              : now,
+        ),
+        updatedAt: Value(now),
+      ),
     );
     return id;
   }
 
-  /// Completes a task. A struck task is left alone.
-  Future<StrikeResult> strike(String taskId) {
+  /// Completes a task. A struck task is left alone. [commitmentId] closes
+  /// that promise instead of today's, for "Done late" on an earlier day.
+  Future<StrikeResult> strike(String taskId, {String? commitmentId}) {
     return _db.transaction(() async {
       // A deadline that passed unnoticed is a miss before it is a strike.
       await _health.resolveDue();
@@ -102,7 +111,11 @@ class AttemptDao {
       if (view.isStruck) return const StrikeResult(isVanquished: false);
 
       final now = _clock();
-      final promise = await _todaysCommitment(taskId, now);
+      final promise = commitmentId == null
+          ? await _todaysCommitment(taskId, now)
+          : await (_db.select(
+              _db.commitments,
+            )..where((c) => c.id.equals(commitmentId))).getSingleOrNull();
       final outcome = promise?.outcome;
       await _insert(
         boss: before.boss,
