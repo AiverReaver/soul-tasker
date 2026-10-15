@@ -6,6 +6,7 @@ import '../core/missed_days.dart';
 import 'attempt_dao.dart';
 import 'database.dart';
 import 'ember_dao.dart';
+import 'health_dao.dart';
 import 'enums.dart';
 import 'plan_pick_dao.dart';
 
@@ -75,6 +76,7 @@ class DayDao {
   final Clock _clock;
   final AttemptDao _attempts;
   final EmberDao _embers;
+  late final _health = HealthDao(_db, _clock, _attempts);
 
   Future<String> _today() async =>
       dayOf(_clock(), rolloverHour: await _db.rolloverHour());
@@ -120,15 +122,19 @@ class DayDao {
         .asyncMap((_) => today());
   }
 
-  /// Rests at the bonfire: banks the carried embers, restores one flask, keeps
-  /// the lesson, and saves [pickTaskIds] as tomorrow's three. Returns false,
-  /// changing nothing, if today was already rested. Throws, changing nothing,
-  /// for more than three picks.
+  /// Rests at the bonfire: banks the carried embers, restores one flask and
+  /// full health, keeps the lesson, and saves [pickTaskIds] as tomorrow's
+  /// three. Returns false, changing nothing, if today was already rested or
+  /// the player is fallen (rise first, Stage 4 plan D15). Throws, changing
+  /// nothing, for more than three picks.
   Future<bool> rest({String? lesson, List<String> pickTaskIds = const []}) =>
       _db.transaction(() async {
         final day = await _today();
         if ((await _kindsOn(day)).contains(DayKind.bonfire)) return false;
-        await _log(day, DayKind.bonfire, _clock(), cleanLesson(lesson));
+        if (await _health.isDead(day)) return false;
+        final now = _clock();
+        await _log(day, DayKind.bonfire, now, cleanLesson(lesson));
+        await _health.restore(HealthReason.bonfireRestore, day, now);
         await _embers.bank();
         await _setFlasks(await _flasks() + 1);
         if (pickTaskIds.isNotEmpty) {
@@ -136,6 +142,16 @@ class DayDao {
         }
         return true;
       });
+
+  /// Rises after a fall (§5.6): full health and banked embers, but no flask,
+  /// no lesson or picks, and the day is not covered. False when not fallen.
+  Future<bool> rise() => _db.transaction(() async {
+    final day = await _today();
+    if (!await _health.isDead(day)) return false;
+    await _health.restore(HealthReason.rise, day, _clock());
+    await _embers.bank();
+    return true;
+  });
 
   Future<DaySummaryData> summary() async {
     final day = await _today();
