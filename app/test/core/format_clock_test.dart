@@ -10,4 +10,10 @@ void main() {
     expect(formatClock(18 * 60 + 5), '6:05 PM');
     expect(formatClock(23 * 60 + 59), '11:59 PM');
   });
+
+  test('formatDayLabel turns a ritual day into "5 Oct 2026"', () {
+    expect(formatDayLabel('2026-10-05'), '5 Oct 2026');
+    expect(formatDayLabel('2027-01-31'), '31 Jan 2027');
+    expect(formatDayLabel('2026-12-01'), '1 Dec 2026');
+  });
 }

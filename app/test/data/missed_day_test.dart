@@ -13,14 +13,15 @@ class _Throwing extends AttemptDao {
   int calls = 0;
 
   @override
-  Future<void> failBoss(
+  Future<String> failBoss(
     String bossId,
     FallCause cause,
     String? lesson, {
     String? onDay,
+    DateTime? at,
   }) async {
     if (++calls == 2) throw StateError('boom');
-    return super.failBoss(bossId, cause, lesson, onDay: onDay);
+    return super.failBoss(bossId, cause, lesson, onDay: onDay, at: at);
   }
 }
 
@@ -104,6 +105,25 @@ void main() {
         taskNamed(await h.reload(a.boss.id), 'Flashcards').isStruck,
         isFalse,
       );
+    });
+
+    test('a boss that died by health on the missed day is not failed again '
+        '(Stage 4 D14)', () async {
+      final a = await h.seed();
+      final b = await h.seed();
+      at(14);
+      await h.attempts.failBoss(
+        a.boss.id,
+        FallCause.healthDeath,
+        null,
+        onDay: '2026-10-14',
+      );
+      at(15);
+
+      expect((await days.pending()).bosses.map((x) => x.id), [b.boss.id]);
+      expect(await days.resolve(lesson: 'Rest.'), 1);
+      expect(await attemptNumber(a.boss.id), 2);
+      expect(await attemptNumber(b.boss.id), 2);
     });
 
     test('a skipped lesson still resolves', () async {

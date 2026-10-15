@@ -92,16 +92,20 @@ void main() {
     expect(order, [c.boss.id, a.boss.id, b.boss.id]);
   });
 
-  test('status changes record and clear defeat time', () async {
+  test('defeat records the defeat time and is final (Stage 5 D2)', () async {
     final view = await h.seed();
+    await h.bosses.setStatus(view.boss.id, BossStatus.waiting);
+    await h.bosses.setStatus(view.boss.id, BossStatus.active);
+    expect((await h.reload(view.boss.id)).boss.defeatedAt, isNull);
+
     await h.bosses.setStatus(view.boss.id, BossStatus.defeated);
-    var boss = (await h.reload(view.boss.id)).boss;
+    final boss = (await h.reload(view.boss.id)).boss;
     expect(boss.status, BossStatus.defeated);
     expect(boss.defeatedAt, isNotNull);
-
-    await h.bosses.setStatus(view.boss.id, BossStatus.active);
-    boss = (await h.reload(view.boss.id)).boss;
-    expect(boss.defeatedAt, isNull);
+    expect(
+      () => h.bosses.setStatus(view.boss.id, BossStatus.active),
+      throwsStateError,
+    );
   });
 
   test('split hides the original and inserts lighter tasks after it', () async {

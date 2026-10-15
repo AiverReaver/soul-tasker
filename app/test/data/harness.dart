@@ -6,6 +6,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/data/relic_dao.dart';
 import 'package:hearthrise/data/settings_dao.dart';
 
 /// A clock that moves one second per read, so event order is exact.
@@ -23,6 +24,7 @@ class StepClock {
 class Harness {
   Harness._(this.db, this.clock)
     : bosses = BossDao(db, clock.call),
+      relics = RelicDao(db, clock.call),
       settings = SettingsDao(db) {
     attempts = AttemptDao(db, bosses, clock.call);
   }
@@ -40,6 +42,7 @@ class Harness {
   final StepClock clock;
   final BossDao bosses;
   final SettingsDao settings;
+  final RelicDao relics;
   late final AttemptDao attempts;
 
   /// Two phases (2 + 1 one-time tasks), one daily task in phase 1,

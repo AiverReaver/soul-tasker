@@ -13,6 +13,12 @@ abstract interface class Reminders {
   Future<void> schedule({required int minutes});
 
   Future<void> cancel();
+
+  /// Schedules a one-shot reminder at [at] under [key], replacing any
+  /// earlier one with that key (Stage 4 plan D20).
+  Future<void> scheduleOnce(String key, DateTime at, String body);
+
+  Future<void> cancelOnce(String key);
 }
 
 /// Overridden in tests with a fake.

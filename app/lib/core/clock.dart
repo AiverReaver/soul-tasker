@@ -29,3 +29,24 @@ String formatClock(int minutes) {
   final twelve = hour % 12 == 0 ? 12 : hour % 12;
   return '$twelve:$minute ${hour < 12 ? 'AM' : 'PM'}';
 }
+
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/// A ritual [day] (`YYYY-MM-DD`) as `5 Oct 2026`.
+String formatDayLabel(String day) {
+  final parts = day.split('-');
+  return '${int.parse(parts[2])} ${_months[int.parse(parts[1]) - 1]} ${parts[0]}';
+}

@@ -56,6 +56,10 @@ class Tasks extends Table {
   IntColumn get recurrence => intEnum<Recurrence>()();
   IntColumn get position => integer()();
   BoolColumn get isSplit => boolean().withDefault(const Constant(false))();
+
+  /// A standing daily deadline, minutes from midnight; daily tasks only
+  /// (Stage 4 plan D12).
+  IntColumn get dailyDeadlineMinutes => integer().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -108,6 +112,17 @@ class Settings extends Table {
   /// upgrade day, so that day is never judged (plan D12).
   TextColumn get lastResolvedDay => text().nullable()();
 
+  /// The install or v4 upgrade day; the newcomer grace week counts from here
+  /// (Stage 4 plan D13).
+  TextColumn get firstDay => text().nullable()();
+
+  /// Sound cues are off until the user turns them on (Stage 5 plan D12).
+  BoolColumn get sound => boolean().withDefault(const Constant(false))();
+
+  /// False until onboarding is finished or skipped. The v5 upgrade sets it
+  /// true so existing installs never see it (Stage 5 plan D11).
+  BoolColumn get onboarded => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -150,4 +165,77 @@ class PlanPicks extends Table {
 
   @override
   Set<Column> get primaryKey => {day, taskId};
+}
+
+/// A promise to finish a task by a deadline, one per task per day
+/// (Stage 4 plan D1). [outcome] null means still open.
+class Commitments extends Table {
+  TextColumn get id => text()();
+  TextColumn get taskId =>
+      text().references(Tasks, #id, onDelete: KeyAction.cascade)();
+  TextColumn get bossId =>
+      text().references(Bosses, #id, onDelete: KeyAction.cascade)();
+  TextColumn get day => text()();
+  DateTimeColumn get deadline => dateTime()();
+  IntColumn get extensions => integer().withDefault(const Constant(0))();
+  BoolColumn get remind => boolean().withDefault(const Constant(false))();
+  IntColumn get outcome => intEnum<CommitmentOutcome>().nullable()();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {taskId, day},
+  ];
+}
+
+/// Append-only health ledger in half points (Stage 4 plan D4).
+class HealthEvents extends Table {
+  TextColumn get id => text()();
+  IntColumn get amount => integer()();
+  IntColumn get reason => intEnum<HealthReason>()();
+  TextColumn get commitmentId => text().nullable().references(
+    Commitments,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  TextColumn get day => text()();
+  DateTimeColumn get at => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A permanent record of a defeated boss (Stage 5 plan D1). Written once at
+/// defeat with its own copy of the story; only [inscription] changes after.
+class Relics extends Table {
+  TextColumn get id => text()();
+
+  /// Cleared when the boss is deleted; the relic stays.
+  TextColumn get bossId =>
+      text().nullable().references(Bosses, #id, onDelete: KeyAction.setNull)();
+  TextColumn get name => text()();
+  IntColumn get emblem => intEnum<Weathering>()();
+  IntColumn get attempts => integer()();
+  IntColumn get days => integer()();
+  IntColumn get effort => integer()();
+
+  /// JSON of a `RelicStory`.
+  TextColumn get story => text()();
+  TextColumn get inscription => text().nullable().withLength(max: 120)();
+  TextColumn get defeatedDay => text()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {bossId},
+  ];
 }

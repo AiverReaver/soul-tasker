@@ -36,7 +36,11 @@ class _BossScreenState extends ConsumerState<BossScreen> {
   }
 
   Future<void> _fall() async {
-    final lesson = await FallenScreen.show(context, ref.read(hapticsProvider));
+    final lesson = await FallenScreen.show(
+      context,
+      ref.read(hapticsProvider),
+      sounds: ref.read(soundsProvider),
+    );
     if (!mounted) return;
     final prompt = await ref
         .read(attemptDaoProvider)
@@ -124,8 +128,12 @@ class _BossScreenState extends ConsumerState<BossScreen> {
 
   Widget _body(BuildContext context, BossView view, bool tapMode) {
     final text = Theme.of(context).textTheme;
-    Widget row(TaskView t) =>
-        TaskRow(view: t, tapMode: tapMode, onMessage: _say);
+    Widget row(TaskView t) => TaskRow(
+      view: t,
+      tapMode: tapMode,
+      onMessage: _say,
+      canCommit: view.boss.status == BossStatus.active,
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),

@@ -20,6 +20,7 @@ class HoldToStrike extends ConsumerStatefulWidget {
     required this.onStrike,
     this.tapMode = false,
     this.trailing,
+    this.deadline,
   });
 
   final String title;
@@ -30,6 +31,9 @@ class HoldToStrike extends ConsumerStatefulWidget {
 
   /// Shown after the weight label, e.g. the task's action menu.
   final Widget? trailing;
+
+  /// The commitment's chip, when the task is promised today.
+  final Widget? deadline;
 
   @override
   ConsumerState<HoldToStrike> createState() => _HoldToStrikeState();
@@ -146,6 +150,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
               )
             : null,
         trailing: widget.trailing,
+        deadline: widget.deadline,
       ),
     );
 
