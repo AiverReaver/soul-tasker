@@ -35,6 +35,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Text('HEARTHRISE', style: text.labelSmall),
         actions: [
           IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.person_outline, color: kTextMuted),
+            onPressed: () => context.push('/profile'),
+          ),
+          IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.tune, color: kTextMuted),
             onPressed: () => context.push('/settings'),
