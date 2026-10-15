@@ -12,10 +12,11 @@ class EmberTally extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.bodyMedium;
-    return Row(
+    // Wraps rather than overflows at large text sizes.
+    return Wrap(
+      spacing: Space.lg,
       children: [
         Text('Carried $carried', style: style?.copyWith(color: kEmber)),
-        const SizedBox(width: Space.lg),
         Text('Banked $banked', style: style?.copyWith(color: kTextMuted)),
       ],
     );
