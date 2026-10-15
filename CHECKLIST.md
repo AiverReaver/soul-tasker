@@ -118,14 +118,24 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] **Gate passed:** §11.1 complete
 
 ## Stage 6: Closed test
+- [x] Visits and signal events (schema v6)
+- [x] Track next-day return after a fall
+- [x] Track Tried vs Strike ratio
+- [x] Track lesson notes written
+- [x] Track hold-to-tap toggles
+- [x] Track first-week falls and returns
+- [x] Extensions, late strikes, week 1 vs week 4 promises
+- [x] Check-in card: "Has Hearthrise left you feeling worse?" (day 7 and 14)
+- [x] Tester report (copy from Settings)
+- [x] Release signing from key.properties, version 0.6.0+1, launcher icon
+- [x] Scripted gate (gate_stage6_test.dart)
+- [ ] Android SDK on the dev Mac; `flutter build appbundle` succeeds
+- [ ] Release build manual checks (notifications under R8, haptics, flows)
+- [ ] Privacy policy hosted (draft in docs/privacy-policy.md)
+- [ ] Play Console: listing, Data safety, content rating, internal then closed track
 - [ ] Upload to closed testing track
 - [ ] Meet required tester count and duration
-- [ ] Track next-day return after a fall
-- [ ] Track Tried vs Strike ratio
-- [ ] Track lesson notes written
-- [ ] Track hold-to-tap toggles
-- [ ] Track first-week falls and returns
-- [ ] Ask testers whether the app made them feel worse
+- [ ] Ask testers whether the app made them feel worse (in-app check-in and form)
 - [ ] **Gate passed**
 
 ## Stage 7: Backend and sync

@@ -2,7 +2,7 @@
 
 Source: `STAGES.md` (Stage 6) and `souls-task-tracker-design.md` (§ numbers below refer to it). Visual rules: `DESIGN.md`.
 Method: TDD (see `STAGES.md`, Development method). Every step below lists its tests first, then the code. UI follows `STAGES.md`, "UI components": new widgets go in `lib/ui/` as `StatelessWidget`s, with state in thin containers in `lib/features/`.
-Status: **draft, awaiting confirmation.** No code written.
+Status: steps 1 to 7 and 9 done, and step 8's code done (on branch `stage-6-closed-test`). Step 8's manual checks and steps 10 to 12 need the Android SDK, a phone and the Play account. See "Implementation notes" at the end.
 
 Prerequisites:
 - Steps 1 to 7 and 9 are code and can start now.
@@ -294,4 +294,30 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 
 ## 9. Implementation notes
 
-Filled in as steps are done.
+Done test-first, one commit per step, with `flutter analyze` clean and the full suite passing (538 tests, Flutter 3.47.7):
+
+| Step | Status |
+|---|---|
+| 1 Schema v6 | Done. `migration_v6_test.dart`, `enums_test.dart`. |
+| 2 Visits | Done. `visit_dao_test.dart`, `visit_recorder_test.dart`. |
+| 3 Signal events | Done. `signal_dao_test.dart`, `settings_dao_test.dart`. |
+| 4 Signals | Done. `test/core/signals_test.dart`, `signal_dao_test.dart` (`input`). |
+| 5 Check-in card | Done. `check_in_card_test.dart`, `test/core/check_in_test.dart`, `bonfire_check_in_test.dart`. |
+| 6 Tester report | Done. `tester_report_test.dart` (replaces `feel_report_test.dart` and `feel_report_data_test.dart`). |
+| 7 Extra signals | Done. Cases added to `signals_test.dart`, `tester_report_test.dart`, `signal_dao_test.dart`. |
+| 8 Release build | **Code done**, `release_config_test.dart`. Gradle changes **not yet built**: no Android SDK on the dev Mac. Manual checks open. |
+| 9 Scripted gate | Done. `gate_stage6_test.dart`. |
+| 10 Play Console | **Open.** Drafts ready: `docs/privacy-policy.md`, Play icon `app/store/play_icon_512.png`. |
+| 11 Run the test | **Open.** `docs/tester-kit.md` has the invite, report steps, form and sheet columns. |
+| 12 Gate review | **Open.** |
+
+Where the build differs from the plan above:
+- The upgrade from Flutter 3.29.3 to 3.47.7 was needed first: `pubspec.lock` already required Flutter 3.47 or later.
+- `CheckInAnswer` lives in `core/check_in.dart` and is re-exported from `data/enums.dart`, like `Weathering`, so `lib/ui` can use it. `dayNumber` (install day is day 1) is in `core/clock.dart`.
+- Every fall goes through `AttemptDao.failBoss`, so that is the one place the `fell` event is written, with the attempt's own `day` and `at`.
+- A visit is recorded outside `DayResolver`'s busy guard: a resume while a fallen prompt is open still counts (`visit_recorder_test.dart`).
+- A dismissal also hides the check-in card for the rest of that day, so "Not now" means not now; the card returns at the next day's bonfire. It never shows while fallen.
+- `SettingsDao` takes the clock (optional, default now) so a tap-mode change is stamped like every other event.
+- Week promises (step 7) count from `Commitments`, which cascade-delete with their boss; so do lessons on falls. Fallen days, returns, tap changes and check-ins come from `SignalEvents` and survive a deleted boss.
+- Release signing reads `android/key.properties` (template: `android/key.properties.example`); with no file, Gradle's signing check fails the release build. `targetSdk` stays `flutter.targetSdkVersion`, which is 36 in Flutter 3.47.
+- The launcher icon is an adaptive vector (also used as the monochrome icon). The PNG fallbacks for API 24 and 25 and the 512 px Play icon are drawn by `tool/render_launcher_icons.dart` (`flutter test tool/render_launcher_icons.dart`) from the same shapes.
