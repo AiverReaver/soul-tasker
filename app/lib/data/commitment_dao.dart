@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show immutable;
 import '../core/clock.dart';
 import '../core/deadlines.dart';
 import '../core/ids.dart';
+import '../core/missed_days.dart';
 import 'database.dart';
 import 'enums.dart';
 
@@ -42,6 +43,27 @@ class LoadNote {
 
   @override
   String toString() => 'LoadNote($count, heavy: $heavy)';
+}
+
+/// One day's or one week's promises (§5.12, plan D16).
+@immutable
+class DayRecord {
+  const DayRecord({
+    required this.made,
+    required this.kept,
+    this.healthLost = 0,
+    this.fell = false,
+  });
+
+  /// Promises made, not counting those set aside with a waiting boss.
+  final int made;
+
+  /// Struck before the deadline, extended or not.
+  final int kept;
+
+  /// Half points lost.
+  final int healthLost;
+  final bool fell;
 }
 
 /// The note shows from this many promises in a day.
@@ -170,6 +192,42 @@ class CommitmentDao {
           weight: row.readTable(_db.tasks).weight,
         ),
     ];
+  }
+
+  /// [day]'s promises made and kept, health lost, and whether a health
+  /// death happened.
+  Future<DayRecord> record(String day) async {
+    final rows = await (_db.select(
+      _db.commitments,
+    )..where((c) => c.day.equals(day))).get();
+    final lost = await (_db.select(
+      _db.healthEvents,
+    )..where((e) => e.day.equals(day) & e.amount.isSmallerThanValue(0))).get();
+    final deaths =
+        await (_db.select(_db.attempts)..where(
+              (a) =>
+                  a.day.equals(day) &
+                  a.cause.equalsValue(FallCause.healthDeath),
+            ))
+            .get();
+    return DayRecord(
+      made: rows.where((c) => c.outcome != CommitmentOutcome.cancelled).length,
+      kept: rows.where((c) => c.outcome == CommitmentOutcome.kept).length,
+      healthLost: lost.fold(0, (sum, e) => sum - e.amount),
+      fell: deaths.isNotEmpty,
+    );
+  }
+
+  /// Made and kept over the seven days ending with [today].
+  Future<DayRecord> week(String today) async {
+    var made = 0;
+    var kept = 0;
+    for (var i = 6; i >= 0; i--) {
+      final r = await record(shiftDay(today, -i));
+      made += r.made;
+      kept += r.kept;
+    }
+    return DayRecord(made: made, kept: kept);
   }
 
   /// The calm note once a day holds [kLoadNoteCount] promises, else null.

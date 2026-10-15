@@ -11,6 +11,9 @@ enum DeadlinePreset {
   final String label;
 }
 
+/// How often deadlines are checked while the app is open (plan D18).
+const kDeadlineTick = Duration(minutes: 1);
+
 /// "Tonight" means this local hour.
 const kTonightHour = 23;
 

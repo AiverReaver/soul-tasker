@@ -135,4 +135,52 @@ void main() {
     expect(_opacity(tester), 1);
     await tearDownApp(tester, h);
   });
+
+  testWidgets('the numbers, accuracy and grace lines show only when given', (
+    tester,
+  ) async {
+    Future<void> open(FallenRecord? record) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildTheme(),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => FallenScreen.show(
+                  context,
+                  Haptics(() => false),
+                  record: record,
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+    }
+
+    await open(null);
+    expect(find.textContaining('promised'), findsNothing);
+    expect(find.textContaining('This week'), findsNothing);
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+
+    await open(
+      const FallenRecord(
+        promised: 9,
+        kept: 3,
+        weekMade: 9,
+        weekKept: 3,
+        isGraceWeek: true,
+      ),
+    );
+    expect(find.text('Nine promised, three kept.'), findsOneWidget);
+    expect(find.text('Today: 3 of 9 kept. This week: 3 of 9.'), findsOneWidget);
+    expect(
+      find.text('Your first week: nothing is lost but health.'),
+      findsOneWidget,
+    );
+  });
 }

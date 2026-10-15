@@ -100,6 +100,22 @@ class HealthDao {
         .asyncMap((_) => todayHealth());
   }
 
+  /// Today's ritual day.
+  Future<String> today() => _today();
+
+  /// Health-death falls on [day] still waiting for their lesson.
+  Future<List<String>> deathsWithoutLesson(String day) async => [
+    for (final a
+        in await (_db.select(_db.attempts)..where(
+              (a) =>
+                  a.day.equals(day) &
+                  a.cause.equalsValue(FallCause.healthDeath) &
+                  a.lesson.isNull(),
+            ))
+            .get())
+      a.id,
+  ];
+
   /// Writes one health event. [amount] is negative for a loss.
   Future<void> record(
     int amount,

@@ -11,6 +11,7 @@ import '../../data/providers.dart';
 import '../../ui/confirm_dialog.dart';
 import '../../ui/deadline_chip.dart';
 import '../commit/commit_flow.dart';
+import '../fallen/health_fall.dart';
 import '../strike/hold_to_strike.dart';
 import 'rule_of_three_sheet.dart';
 
@@ -53,8 +54,15 @@ class TaskRow extends ConsumerWidget {
       case _Action.extend:
         await showExtendSheet(context, ref, view.task.id, onMessage: onMessage);
       case _Action.tried:
+        final health = ref.read(healthDaoProvider);
+        final wasAlive = !await health.isDeadToday();
         final prompt = await ref.read(attemptDaoProvider).tried(view.task.id);
         onMessage('You tried. That counts.');
+        // A broken promise can deal the final blow (plan D7).
+        if (wasAlive && await health.isDeadToday()) {
+          final day = await health.today();
+          if (context.mounted) await showHealthFall(context, ref, day);
+        }
         if (prompt && context.mounted) {
           await showRuleOfThree(
             context,
