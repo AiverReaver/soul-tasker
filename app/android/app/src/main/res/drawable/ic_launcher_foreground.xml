@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 108 dp canvas; the mark stays inside the 66 dp safe zone. Shapes match
+     tool/render_launcher_icons.dart, which draws the PNG fallbacks. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- The ring: kTextMuted -->
+    <path
+        android:pathData="M54,32 A24,24 0 1 1 53.99,32 Z"
+        android:strokeColor="#8F897F"
+        android:strokeWidth="3"
+        android:fillColor="#00000000" />
+    <!-- The ember: kEmber -->
+    <path
+        android:pathData="M54,36 C58,44 64,50 64,57 C64,63 59.5,67 54,67 C48.5,67 44,63 44,57 C44,50 50,44 54,36 Z"
+        android:fillColor="#D9A441" />
+</vector>
