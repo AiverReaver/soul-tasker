@@ -1,5 +1,9 @@
 // Stored as integers by index. Only append new values; never reorder.
 
+// Weathering and kInscriptionMax live in core/ so lib/ui can use them
+// without importing data.
+export '../core/weathering.dart';
+
 enum BossStatus { active, waiting, defeated }
 
 /// What a failed attempt undoes (§5.1).
@@ -75,25 +79,3 @@ enum CommitmentOutcome { kept, tried, missed, frozen, lateStrike, cancelled }
 
 /// Why health changed (Stage 4 plan D4).
 enum HealthReason { miss, tried, bonfireRestore, rise }
-
-/// How worn a relic's emblem is, set once from the attempts taken (Stage 5
-/// plan D5). Never a ranking: a first-try win is not "better".
-enum Weathering {
-  unmarked,
-  worn,
-  scarred,
-  weathered;
-
-  /// Attempts up to each bound: 1, 3 and 8.
-  static const thresholds = [1, 3, 8];
-
-  static Weathering forAttempts(int attempts) {
-    for (final (i, limit) in thresholds.indexed) {
-      if (attempts <= limit) return values[i];
-    }
-    return weathered;
-  }
-}
-
-/// Longest relic inscription, in characters (Stage 5 plan D7).
-const kInscriptionMax = 120;

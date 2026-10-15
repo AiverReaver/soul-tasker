@@ -6,6 +6,7 @@ import '../features/boss_edit/boss_edit_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/ritual/day_resolver.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/victory/victory_screen.dart';
 
 GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
   initialLocation: initialLocation,
@@ -20,6 +21,11 @@ GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
     GoRoute(
       path: '/boss/:id',
       builder: (_, state) => BossScreen(bossId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/victory/:relicId',
+      builder: (_, state) =>
+          VictoryScreen(relicId: state.pathParameters['relicId']!),
     ),
     GoRoute(
       path: '/boss/:id/edit',

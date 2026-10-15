@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import '../data/enums.dart';
+import '../core/weathering.dart';
 import 'ember_button.dart';
 
 /// "What did this fight make of you?": one optional line on a relic. The

@@ -50,7 +50,6 @@ class TaskRow extends ConsumerWidget {
     }
     if (!context.mounted) return;
     if (!result.isVanquished) return onMessage('It is done.');
-    onMessage('Foe vanquished.');
     await confirmDefeat(context, ref, _bossId);
   }
 
@@ -146,7 +145,8 @@ class TaskRow extends ConsumerWidget {
   }
 }
 
-/// Asks "Mark this boss as defeated?" (D3) and applies the answer.
+/// Asks "Mark this boss as defeated?" (D3), then defeats the boss and opens
+/// the victory screen (Stage 5 plan D6).
 Future<void> confirmDefeat(
   BuildContext context,
   WidgetRef ref,
@@ -157,8 +157,11 @@ Future<void> confirmDefeat(
     'Mark this boss as defeated?',
     action: 'Defeated',
   );
-  if (ok) {
-    await ref.read(bossDaoProvider).setStatus(bossId, BossStatus.defeated);
+  if (!ok) return;
+  await ref.read(bossDaoProvider).setStatus(bossId, BossStatus.defeated);
+  final relicId = await ref.read(relicDaoProvider).idForBoss(bossId);
+  if (relicId != null && context.mounted) {
+    await context.push('/victory/$relicId');
   }
 }
 

@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import '../data/enums.dart';
+import '../core/weathering.dart';
 import 'relic_emblem.dart';
 
 /// One relic in the hall: emblem, name, and the day it was won.

@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import '../data/enums.dart';
+import '../core/weathering.dart';
 
 /// The emblem of a relic (Stage 5 plan D5): one abstract shape, with more
 /// marks the more attempts it took. Ash and ember only, no red and no rank.

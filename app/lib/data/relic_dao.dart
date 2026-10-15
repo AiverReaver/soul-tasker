@@ -125,6 +125,11 @@ class RelicDao {
     );
   }
 
+  /// The id of the relic a defeated boss left, or null.
+  Future<String?> idForBoss(String bossId) async => (await (_db.select(
+    _db.relics,
+  )..where((r) => r.bossId.equals(bossId))).getSingleOrNull())?.id;
+
   /// Most recent first.
   Stream<List<Relic>> watchAll() => (_db.select(
     _db.relics,
