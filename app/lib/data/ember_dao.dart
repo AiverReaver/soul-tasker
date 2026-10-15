@@ -34,10 +34,12 @@ class EmberDao {
   final Clock _clock;
 
   /// What an outcome earns: a strike the weight's embers, a try half of that
-  /// rounded up, a fall nothing.
-  static int amountFor(Outcome outcome, Weight? weight) {
+  /// rounded up, a fall nothing. A late strike, after a broken promise, earns
+  /// what a try earns (Stage 4 plan D8, D9).
+  static int amountFor(Outcome outcome, Weight? weight, {bool isLate = false}) {
     final full = weight?.embers ?? 0;
     return switch (outcome) {
+      Outcome.strike when isLate => (full + 1) ~/ 2,
       Outcome.strike => full,
       Outcome.tried => (full + 1) ~/ 2,
       Outcome.fallen => 0,
@@ -53,8 +55,9 @@ class EmberDao {
     required String? taskId,
     required String day,
     required DateTime at,
+    bool isLate = false,
   }) async {
-    final amount = amountFor(outcome, weight);
+    final amount = amountFor(outcome, weight, isLate: isLate);
     if (amount == 0) return;
     await _insert(EmberKind.earn, amount, bossId, taskId, day, at);
   }

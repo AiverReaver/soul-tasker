@@ -52,6 +52,7 @@ class AttemptDao {
     FallCause? cause,
     String? lesson,
     String? onDay,
+    bool isLate = false,
   }) async {
     final day = onDay ?? dayOf(now, rolloverHour: await _db.rolloverHour());
     await _db
@@ -78,6 +79,7 @@ class AttemptDao {
       taskId: taskId,
       day: day,
       at: now,
+      isLate: isLate,
     );
     await (_db.update(_db.bosses)..where((b) => b.id.equals(boss.id))).write(
       BossesCompanion(lastFoughtAt: Value(now), updatedAt: Value(now)),
@@ -92,13 +94,24 @@ class AttemptDao {
       final view = before!.allTasks.firstWhere((t) => t.task.id == taskId);
       if (view.isStruck) return const StrikeResult(isVanquished: false);
 
+      final now = _clock();
+      final promise = await _todaysCommitment(taskId, now);
+      final outcome = promise?.outcome;
       await _insert(
         boss: before.boss,
         outcome: Outcome.strike,
-        now: _clock(),
+        now: now,
         taskId: taskId,
         weight: task.weight,
+        isLate: promise != null && _paysLate.contains(outcome),
       );
+      if (promise != null && outcome == null) {
+        await _close(promise, CommitmentOutcome.kept, now);
+      } else if (promise != null &&
+          (outcome == CommitmentOutcome.missed ||
+              outcome == CommitmentOutcome.frozen)) {
+        await _close(promise, CommitmentOutcome.lateStrike, now);
+      }
       final after = await _bosses.loadBoss(task.bossId);
       return StrikeResult(
         isVanquished: !before.isVanquished && after!.isVanquished,
@@ -111,17 +124,61 @@ class AttemptDao {
   Future<bool> tried(String taskId) {
     return _db.transaction(() async {
       final task = await _task(taskId);
+      final now = _clock();
       await _insert(
         boss: await _boss(task.bossId),
         outcome: Outcome.tried,
-        now: _clock(),
+        now: now,
         taskId: taskId,
         weight: task.weight,
       );
+      final promise = await _todaysCommitment(taskId, now);
+      if (promise != null && promise.outcome == null) {
+        await _close(promise, CommitmentOutcome.tried, now);
+        await _db
+            .into(_db.healthEvents)
+            .insert(
+              HealthEventsCompanion.insert(
+                id: newId(),
+                amount: -task.weight.healthLoss ~/ 2,
+                reason: HealthReason.tried,
+                commitmentId: Value(promise.id),
+                day: promise.day,
+                at: now,
+              ),
+            );
+      }
       final history = await _bosses.loadAttempts(bossId: task.bossId);
       return isRuleOfThree(triesSinceStrike(taskId, history));
     });
   }
+
+  /// Commitments whose strike pays the Tried rate (plan D8, D9).
+  static const _paysLate = {
+    CommitmentOutcome.tried,
+    CommitmentOutcome.missed,
+    CommitmentOutcome.frozen,
+  };
+
+  Future<Commitment?> _todaysCommitment(String taskId, DateTime now) async {
+    final day = dayOf(now, rolloverHour: await _db.rolloverHour());
+    return (_db.select(_db.commitments)
+          ..where((c) => c.taskId.equals(taskId) & c.day.equals(day)))
+        .getSingleOrNull();
+  }
+
+  Future<void> _close(
+    Commitment promise,
+    CommitmentOutcome outcome,
+    DateTime now,
+  ) => (_db.update(_db.commitments)..where((c) => c.id.equals(promise.id)))
+      .write(
+        CommitmentsCompanion(
+          outcome: Value(outcome),
+          resolvedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
 
   /// A declared failed attempt (§5.4, plan §6.3). Raises the counter, keeps
   /// the lesson, applies the boss's reset. Returns true when the phase rule
