@@ -220,17 +220,30 @@ class BossDao {
     return id;
   }
 
-  Future<void> setStatus(String bossId, BossStatus status) {
-    final now = _clock();
-    return _updateBoss(
-      bossId,
-      BossesCompanion(
-        status: Value(status),
-        defeatedAt: Value(status == BossStatus.defeated ? now : null),
-        updatedAt: Value(now),
-      ),
-    );
-  }
+  /// Waiting or defeated cancels the boss's open commitments, so they never
+  /// expire while it rests (Stage 4 plan D11).
+  Future<void> setStatus(String bossId, BossStatus status) =>
+      _db.transaction(() async {
+        final now = _clock();
+        await _updateBoss(
+          bossId,
+          BossesCompanion(
+            status: Value(status),
+            defeatedAt: Value(status == BossStatus.defeated ? now : null),
+            updatedAt: Value(now),
+          ),
+        );
+        if (status == BossStatus.active) return;
+        await (_db.update(
+          _db.commitments,
+        )..where((c) => c.bossId.equals(bossId) & c.outcome.isNull())).write(
+          CommitmentsCompanion(
+            outcome: const Value(CommitmentOutcome.cancelled),
+            resolvedAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+      });
 
   Future<void> setPinned(String bossId, {required bool isPinned}) =>
       _updateBoss(

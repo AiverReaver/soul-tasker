@@ -76,9 +76,8 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(schema.tasks, schema.tasks.dailyDeadlineMinutes);
         await m.addColumn(schema.settings, schema.settings.firstDay);
         // The user may have moved the rollover hour; stamp with theirs.
-        final row = await customSelect(
-          'SELECT rollover_hour FROM settings',
-        ).getSingleOrNull();
+        final row = await customSelect('SELECT rollover_hour FROM settings')
+            .getSingleOrNull();
         final hour = row?.read<int>('rollover_hour') ?? kRolloverHour;
         await customStatement('UPDATE settings SET first_day = ?', [
           dayOf(_clock(), rolloverHour: hour),
