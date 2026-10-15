@@ -37,7 +37,7 @@ final attemptDaoProvider = Provider(
 );
 
 final settingsDaoProvider = Provider(
-  (ref) => SettingsDao(ref.watch(databaseProvider)),
+  (ref) => SettingsDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
 
 final bossListProvider = StreamProvider<List<BossView>>(

@@ -25,7 +25,7 @@ class Harness {
   Harness._(this.db, this.clock)
     : bosses = BossDao(db, clock.call),
       relics = RelicDao(db, clock.call),
-      settings = SettingsDao(db) {
+      settings = SettingsDao(db, clock.call) {
     attempts = AttemptDao(db, bosses, clock.call);
   }
 

@@ -1,20 +1,32 @@
 import 'package:drift/drift.dart';
 
+import '../core/clock.dart';
 import 'database.dart';
 import 'enums.dart';
+import 'signal_dao.dart';
 
 /// The single settings row (id 1), created with the database.
 class SettingsDao {
-  SettingsDao(this._db);
+  SettingsDao(this._db, [this._clock = DateTime.now]);
 
   final AppDatabase _db;
+  final Clock _clock;
 
   Future<AppSettings> read() => _db.select(_db.settings).getSingle();
 
   Stream<AppSettings> watch() => _db.select(_db.settings).watchSingle();
 
-  Future<void> setTapMode(bool isOn) =>
-      _db.update(_db.settings).write(SettingsCompanion(tapMode: Value(isOn)));
+  /// Logs each real change for the tester report (Stage 6 plan D4).
+  Future<void> setTapMode(bool isOn) => _db.transaction(() async {
+    if ((await read()).tapMode == isOn) return;
+    await _db
+        .update(_db.settings)
+        .write(SettingsCompanion(tapMode: Value(isOn)));
+    await SignalDao(
+      _db,
+      _clock,
+    ).add(SignalKind.tapModeChanged, value: isOn ? 1 : 0);
+  });
 
   Future<void> setHaptics(bool isOn) =>
       _db.update(_db.settings).write(SettingsCompanion(haptics: Value(isOn)));
