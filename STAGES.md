@@ -127,6 +127,7 @@ Standing rule for every stage and every plan.
 ## Stage 5: Victory, relics, onboarding (MVP complete)
 
 **Goal:** finish the MVP list in §11.1.
+**Detailed plan:** `STAGE5_PLAN.md`.
 
 - Victory screen: attempts, days, effort, lesson notes (§5.11).
 - Relic creation with its own snapshot of the boss story, emblem weathering levels, final inscription (§5.14).

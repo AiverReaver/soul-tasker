@@ -6,6 +6,7 @@ import 'boss_draft.dart';
 import 'boss_view.dart';
 import 'database.dart';
 import 'enums.dart';
+import 'relic_dao.dart';
 
 /// Bosses, phases and tasks: reads as derived views, writes as transactions.
 class BossDao {
@@ -13,6 +14,7 @@ class BossDao {
 
   final AppDatabase _db;
   final Clock _clock;
+  late final _relics = RelicDao(_db, _clock);
 
   /// Emits now and after every change to the fight tables.
   Stream<void> _changes() async* {
@@ -94,8 +96,10 @@ class BossDao {
   }
 
   /// Creates or updates a boss with its phases and tasks. Returns the id.
-  Future<String> saveBoss(BossDraft draft) {
-    if (!draft.canSave) {
+  /// A boss needs a task unless [allowEmpty]: onboarding asks only for a
+  /// title and adds the first tasks later (Stage 5 plan D11).
+  Future<String> saveBoss(BossDraft draft, {bool allowEmpty = false}) {
+    if (allowEmpty ? !draft.isNamed : !draft.canSave) {
       throw ArgumentError('A boss needs a title and at least one task.');
     }
     return _db.transaction(() async {
@@ -220,17 +224,40 @@ class BossDao {
     return id;
   }
 
-  Future<void> setStatus(String bossId, BossStatus status) {
-    final now = _clock();
-    return _updateBoss(
-      bossId,
-      BossesCompanion(
-        status: Value(status),
-        defeatedAt: Value(status == BossStatus.defeated ? now : null),
-        updatedAt: Value(now),
-      ),
-    );
-  }
+  /// Waiting or defeated cancels the boss's open commitments, so they never
+  /// expire while it rests (Stage 4 plan D11). Defeat is final: it writes the
+  /// relic in the same transaction, and a defeated boss cannot move again
+  /// (Stage 5 plan D2).
+  Future<void> setStatus(String bossId, BossStatus status) =>
+      _db.transaction(() async {
+        final current = await (_db.select(
+          _db.bosses,
+        )..where((b) => b.id.equals(bossId))).getSingle();
+        if (current.status == BossStatus.defeated) {
+          if (status == BossStatus.defeated) return;
+          throw StateError('A defeated boss stays defeated.');
+        }
+        final now = _clock();
+        await _updateBoss(
+          bossId,
+          BossesCompanion(
+            status: Value(status),
+            defeatedAt: Value(status == BossStatus.defeated ? now : null),
+            updatedAt: Value(now),
+          ),
+        );
+        if (status == BossStatus.active) return;
+        if (status == BossStatus.defeated) await _relics.createFor(bossId);
+        await (_db.update(
+          _db.commitments,
+        )..where((c) => c.bossId.equals(bossId) & c.outcome.isNull())).write(
+          CommitmentsCompanion(
+            outcome: const Value(CommitmentOutcome.cancelled),
+            resolvedAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+      });
 
   Future<void> setPinned(String bossId, {required bool isPinned}) =>
       _updateBoss(

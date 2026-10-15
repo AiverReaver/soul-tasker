@@ -35,6 +35,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Text('HEARTHRISE', style: text.labelSmall),
         actions: [
           IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.person_outline, color: kTextMuted),
+            onPressed: () => context.push('/profile'),
+          ),
+          IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.tune, color: kTextMuted),
             onPressed: () => context.push('/settings'),
@@ -96,13 +101,13 @@ class _BossList extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final active = _with(BossStatus.active);
     final waiting = _with(BossStatus.waiting);
-    final defeated = _with(BossStatus.defeated);
     final newBoss = TextButton(
       onPressed: () => context.push('/boss/new'),
       child: const Text('Name a new boss'),
     );
 
-    if (bosses.isEmpty) {
+    // Defeated bosses live on as relics, not on Home (Stage 5 plan D8).
+    if (active.isEmpty && waiting.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -122,7 +127,6 @@ class _BossList extends StatelessWidget {
         const SizedBox(height: Space.sm),
         newBoss,
         if (waiting.isNotEmpty) _section(context, 'Waiting', waiting),
-        if (defeated.isNotEmpty) _section(context, 'Vanquished', defeated),
       ],
     );
   }

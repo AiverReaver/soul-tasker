@@ -1,16 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/commitment_resolver.dart';
+import '../../core/sounds.dart';
 import '../../core/theme.dart';
 import '../../data/day_dao.dart';
 import '../../data/plan_pick_dao.dart';
 import '../../data/providers.dart';
+import '../../ui/accuracy_line.dart';
 import '../../ui/day_summary.dart';
 import '../../ui/ember_button.dart';
 import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/flask_pips.dart';
 import '../../ui/pick_row.dart';
+import '../../ui/player_health_bar.dart';
 import '../../ui/reminder_invite.dart';
 import '../../ui/plan_banner.dart';
 import '../ritual/reminder_coordinator.dart';
@@ -24,13 +28,36 @@ class BonfireScreen extends ConsumerStatefulWidget {
   ConsumerState<BonfireScreen> createState() => _BonfireScreenState();
 }
 
-class _BonfireScreenState extends ConsumerState<BonfireScreen> {
+class _BonfireScreenState extends ConsumerState<BonfireScreen>
+    with WidgetsBindingObserver {
   final _lesson = TextEditingController();
   final _picked = <String>[];
   String? _flash;
 
+  // Held here: ref is not safe to read in dispose.
+  late final Sounds _sounds = ref.read(soundsProvider);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _sounds.startHum();
+  }
+
+  /// The hum plays only while the bonfire is on screen and the app is open.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _sounds.startHum();
+    } else {
+      _sounds.stopHum();
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _sounds.stopHum();
     _lesson.dispose();
     super.dispose();
   }
@@ -57,6 +84,12 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen> {
     await _inviteReminder(days);
   }
 
+  /// Rest after a fall (§5.6): full health and banked embers, nothing more.
+  Future<void> _rise() async {
+    ref.read(hapticsProvider).medium();
+    await ref.read(dayDaoProvider).rise();
+  }
+
   /// Once, after the very first rest, if the reminder is still off (D6).
   Future<void> _inviteReminder(DayDao days) async {
     final isOn = (await ref.read(settingsDaoProvider).read()).reminderEnabled;
@@ -81,6 +114,9 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen> {
     final status = ref.watch(dayStatusProvider).value;
     final summary = ref.watch(daySummaryProvider).value;
     final isRested = status?.isRested ?? false;
+    final health = ref.watch(healthProvider).value;
+    final isFallen = health == 0;
+    final accuracy = ref.watch(accuracyProvider).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -111,13 +147,43 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen> {
                   ),
                   const SizedBox(height: Space.md),
                   FlaskPips(count: status.flasks, cap: kFlaskCap),
+                  if (health != null) ...[
+                    const SizedBox(height: Space.md),
+                    PlayerHealthBar(health: health, max: kMaxHealthHalfPoints),
+                  ],
+                  if (accuracy != null) ...[
+                    const SizedBox(height: Space.sm),
+                    AccuracyLine(
+                      todayKept: accuracy.today.kept,
+                      todayMade: accuracy.today.made,
+                      weekKept: accuracy.week.kept,
+                      weekMade: accuracy.week.made,
+                    ),
+                  ],
                   const SizedBox(height: Space.lg),
-                  if (isRested) _tomorrow() else ..._plan(text),
+                  if (isFallen)
+                    ..._fallen(text)
+                  else if (isRested)
+                    _tomorrow()
+                  else
+                    ..._plan(text),
                 ],
               ),
       ),
     );
   }
+
+  /// While fallen only Rise is offered (Stage 4 plan D15).
+  List<Widget> _fallen(TextTheme text) => [
+    Text('You have fallen.', style: text.titleMedium),
+    const SizedBox(height: Space.sm),
+    Text('Rest here to rise again today.', style: text.bodySmall),
+    const SizedBox(height: Space.md),
+    Align(
+      alignment: Alignment.centerRight,
+      child: EmberButton(label: 'Rise', onPressed: _rise),
+    ),
+  ];
 
   Widget _tomorrow() {
     final picks = ref.watch(tomorrowPicksProvider).value ?? const [];

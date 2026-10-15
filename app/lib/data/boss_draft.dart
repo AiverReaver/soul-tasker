@@ -90,9 +90,12 @@ class BossDraft {
   final List<PhaseDraft> phases;
   final List<TaskDraft> standalone;
 
+  /// A title, and every phase named.
+  bool get isNamed =>
+      title.trim().isNotEmpty && phases.every((p) => p.name.trim().isNotEmpty);
+
   bool get canSave =>
-      title.trim().isNotEmpty &&
-      phases.every((p) => p.name.trim().isNotEmpty) &&
+      isNamed &&
       (standalone.isNotEmpty || phases.any((p) => p.tasks.isNotEmpty));
 
   /// Removes the task with [taskId] from wherever it is.

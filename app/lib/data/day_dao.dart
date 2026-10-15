@@ -6,6 +6,7 @@ import '../core/missed_days.dart';
 import 'attempt_dao.dart';
 import 'database.dart';
 import 'ember_dao.dart';
+import 'health_dao.dart';
 import 'enums.dart';
 import 'plan_pick_dao.dart';
 
@@ -75,6 +76,7 @@ class DayDao {
   final Clock _clock;
   final AttemptDao _attempts;
   final EmberDao _embers;
+  late final _health = HealthDao(_db, _clock, _attempts);
 
   Future<String> _today() async =>
       dayOf(_clock(), rolloverHour: await _db.rolloverHour());
@@ -120,15 +122,21 @@ class DayDao {
         .asyncMap((_) => today());
   }
 
-  /// Rests at the bonfire: banks the carried embers, restores one flask, keeps
-  /// the lesson, and saves [pickTaskIds] as tomorrow's three. Returns false,
-  /// changing nothing, if today was already rested. Throws, changing nothing,
-  /// for more than three picks.
+  /// Rests at the bonfire: banks the carried embers, restores one flask and
+  /// full health, keeps the lesson, and saves [pickTaskIds] as tomorrow's
+  /// three. Returns false, changing nothing, if today was already rested or
+  /// the player is fallen (rise first, Stage 4 plan D15). Throws, changing
+  /// nothing, for more than three picks.
   Future<bool> rest({String? lesson, List<String> pickTaskIds = const []}) =>
       _db.transaction(() async {
+        // Settle passed deadlines first, so the restore comes after them.
+        await _health.resolveDue();
         final day = await _today();
         if ((await _kindsOn(day)).contains(DayKind.bonfire)) return false;
-        await _log(day, DayKind.bonfire, _clock(), cleanLesson(lesson));
+        if (await _health.isDead(day)) return false;
+        final now = _clock();
+        await _log(day, DayKind.bonfire, now, cleanLesson(lesson));
+        await _health.restore(HealthReason.bonfireRestore, day, now);
         await _embers.bank();
         await _setFlasks(await _flasks() + 1);
         if (pickTaskIds.isNotEmpty) {
@@ -136,6 +144,17 @@ class DayDao {
         }
         return true;
       });
+
+  /// Rises after a fall (§5.6): full health and banked embers, but no flask,
+  /// no lesson or picks, and the day is not covered. False when not fallen.
+  Future<bool> rise() => _db.transaction(() async {
+    await _health.resolveDue();
+    final day = await _today();
+    if (!await _health.isDead(day)) return false;
+    await _health.restore(HealthReason.rise, day, _clock());
+    await _embers.bank();
+    return true;
+  });
 
   Future<DaySummaryData> summary() async {
     final day = await _today();
@@ -212,14 +231,27 @@ class DayDao {
     );
   }
 
-  /// Active bosses that were created before [day] (plan D4).
-  Future<List<Boss>> _affected(String day, int hour) async {
+  /// Active bosses that were created before the last of [days] (plan D4),
+  /// except those that already fell by health on one of them (Stage 4 D14).
+  Future<List<Boss>> _affected(List<String> days, int hour) async {
     final active = await (_db.select(
       _db.bosses,
     )..where((b) => b.status.equalsValue(BossStatus.active))).get();
+    final died = {
+      for (final a
+          in await (_db.select(_db.attempts)..where(
+                (a) =>
+                    a.cause.equalsValue(FallCause.healthDeath) &
+                    a.day.isIn(days),
+              ))
+              .get())
+        a.bossId,
+    };
     return [
       for (final b in active)
-        if (dayOf(b.createdAt, rolloverHour: hour).compareTo(day) < 0) b,
+        if (dayOf(b.createdAt, rolloverHour: hour).compareTo(days.last) < 0 &&
+            !died.contains(b.id))
+          b,
     ];
   }
 
@@ -233,7 +265,7 @@ class DayDao {
       days: missed,
       bosses: missed.isEmpty
           ? const []
-          : await _affected(missed.last, s.rolloverHour),
+          : await _affected(missed, s.rolloverHour),
       flasks: s.flasks,
     );
   }
@@ -257,7 +289,7 @@ class DayDao {
       final left = missed.skip(spend).toList();
       var fallen = 0;
       if (left.isNotEmpty) {
-        for (final boss in await _affected(left.last, s.rolloverHour)) {
+        for (final boss in await _affected(left, s.rolloverHour)) {
           await _attempts.failBoss(
             boss.id,
             FallCause.missedDay,

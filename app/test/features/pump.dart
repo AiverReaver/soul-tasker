@@ -20,7 +20,12 @@ Future<void> pumpApp(
   String location = '/',
   List<Override> overrides = const [],
   FakeReminders? reminders,
+
+  /// Existing installs skip onboarding; pass false to see it, or null to
+  /// leave what is stored (Stage 5 D11).
+  bool? onboarded = true,
 }) async {
+  if (onboarded != null) await h.settings.setOnboarded(onboarded);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [

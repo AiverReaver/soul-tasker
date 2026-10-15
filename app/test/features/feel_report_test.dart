@@ -25,6 +25,8 @@ AppSettings _settings({
   reminderEnabled: false,
   reminderMinutes: 21 * 60,
   flasks: 3,
+  sound: false,
+  onboarded: true,
 );
 
 FeelAttempt _a(Outcome outcome, {Weight? weight, bool hasLesson = false}) =>

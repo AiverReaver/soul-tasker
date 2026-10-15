@@ -23,5 +23,15 @@ class FakeReminders implements Reminders {
   @override
   Future<void> cancel() async => calls.add('cancel');
 
+  /// One-shot reminders now scheduled, by key: when and what they say.
+  final once = <String, ({DateTime at, String body})>{};
+
+  @override
+  Future<void> scheduleOnce(String key, DateTime at, String body) async =>
+      once[key] = (at: at, body: body);
+
+  @override
+  Future<void> cancelOnce(String key) async => once.remove(key);
+
   Override get asOverride => remindersProvider.overrideWithValue(this);
 }

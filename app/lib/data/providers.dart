@@ -2,12 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/clock.dart';
 import '../core/haptics.dart';
+import '../core/sounds.dart';
 import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
+import 'commitment_dao.dart';
 import 'database.dart';
 import 'day_dao.dart';
+import 'health_dao.dart';
 import 'plan_pick_dao.dart';
+import 'profile_dao.dart';
+import 'relic_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
 
@@ -89,6 +94,38 @@ final daySummaryProvider = StreamProvider(
 );
 
 /// Open tasks to pick from, read once when the bonfire opens.
+final commitmentDaoProvider = Provider(
+  (ref) => CommitmentDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+/// Today's commitments by task id.
+final todayCommitmentsProvider = StreamProvider(
+  (ref) => ref.watch(commitmentDaoProvider).watchToday(),
+);
+
+final healthDaoProvider = Provider(
+  (ref) => HealthDao(
+    ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+    ref.watch(attemptDaoProvider),
+  ),
+);
+
+/// Today's health in half points.
+final healthProvider = StreamProvider(
+  (ref) => ref.watch(healthDaoProvider).watchHealth(),
+);
+
+/// Today's and this week's promises, again whenever today's change.
+final accuracyProvider = FutureProvider.autoDispose((ref) async {
+  ref.watch(todayCommitmentsProvider);
+  ref.watch(healthProvider);
+  final health = ref.watch(healthDaoProvider);
+  final commits = ref.watch(commitmentDaoProvider);
+  final today = await health.today();
+  return (today: await commits.record(today), week: await commits.week(today));
+});
+
 final pickCandidatesProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(planPickDaoProvider).candidates(),
 );
@@ -98,3 +135,34 @@ final tomorrowPicksProvider = FutureProvider.autoDispose((ref) {
   ref.watch(dayStatusProvider);
   return ref.watch(planPickDaoProvider).tomorrow();
 });
+
+final relicDaoProvider = Provider(
+  (ref) => RelicDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final relicListProvider = StreamProvider(
+  (ref) => ref.watch(relicDaoProvider).watchAll(),
+);
+
+final relicProvider = StreamProvider.family<RelicView?, String>(
+  (ref, id) => ref.watch(relicDaoProvider).watch(id),
+);
+
+final profileProvider = StreamProvider(
+  (ref) =>
+      ProfileDao(ref.watch(databaseProvider), ref.watch(clockProvider)).watch(),
+);
+
+/// Overridden in `main` with the real audio player and in tests with a fake.
+final soundPlayerProvider = Provider<SoundPlayer>(
+  (ref) => const SilentSoundPlayer(),
+);
+
+/// Reads the setting on every cue, like [hapticsProvider]. Off while
+/// settings load.
+final soundsProvider = Provider(
+  (ref) => Sounds(
+    ref.watch(soundPlayerProvider),
+    () => ref.read(settingsProvider).value?.sound ?? false,
+  ),
+);

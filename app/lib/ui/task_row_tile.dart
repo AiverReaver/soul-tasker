@@ -14,6 +14,7 @@ class TaskRowTile extends StatelessWidget {
     required this.progress,
     this.sweep,
     this.trailing,
+    this.deadline,
   });
 
   final String title;
@@ -26,6 +27,9 @@ class TaskRowTile extends StatelessWidget {
   /// Drawn over the fill while a strike lands; null when idle.
   final Widget? sweep;
   final Widget? trailing;
+
+  /// The commitment's chip, when the task is promised today.
+  final Widget? deadline;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +75,7 @@ class TaskRowTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ?deadline,
                   Text(weightLabel, style: text.bodySmall),
                   ?trailing,
                 ],

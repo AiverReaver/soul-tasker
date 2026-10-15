@@ -4,7 +4,7 @@
 //
 import 'package:drift/drift.dart';
 
-class Bosses extends Table with TableInfo {
+class Bosses extends Table with TableInfo<Bosses, BossesData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -140,8 +140,62 @@ class Bosses extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  BossesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BossesData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      defeatMeaning: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}defeat_meaning'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+      attemptNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempt_number'],
+      )!,
+      resetOnFail: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reset_on_fail'],
+      )!,
+      isPinned: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_pinned'],
+      )!,
+      targetDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_date'],
+      ),
+      lastFoughtAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_fought_at'],
+      ),
+      openFromAttempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}open_from_attempt'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      defeatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}defeated_at'],
+      ),
+    );
   }
 
   @override
@@ -155,7 +209,438 @@ class Bosses extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class Phases extends Table with TableInfo {
+class BossesData extends DataClass implements Insertable<BossesData> {
+  final String id;
+  final String title;
+  final String? defeatMeaning;
+  final int status;
+  final int attemptNumber;
+  final int resetOnFail;
+  final int isPinned;
+  final String? targetDate;
+  final String? lastFoughtAt;
+  final int openFromAttempt;
+  final String createdAt;
+  final String updatedAt;
+  final String? defeatedAt;
+  const BossesData({
+    required this.id,
+    required this.title,
+    this.defeatMeaning,
+    required this.status,
+    required this.attemptNumber,
+    required this.resetOnFail,
+    required this.isPinned,
+    this.targetDate,
+    this.lastFoughtAt,
+    required this.openFromAttempt,
+    required this.createdAt,
+    required this.updatedAt,
+    this.defeatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || defeatMeaning != null) {
+      map['defeat_meaning'] = Variable<String>(defeatMeaning);
+    }
+    map['status'] = Variable<int>(status);
+    map['attempt_number'] = Variable<int>(attemptNumber);
+    map['reset_on_fail'] = Variable<int>(resetOnFail);
+    map['is_pinned'] = Variable<int>(isPinned);
+    if (!nullToAbsent || targetDate != null) {
+      map['target_date'] = Variable<String>(targetDate);
+    }
+    if (!nullToAbsent || lastFoughtAt != null) {
+      map['last_fought_at'] = Variable<String>(lastFoughtAt);
+    }
+    map['open_from_attempt'] = Variable<int>(openFromAttempt);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    if (!nullToAbsent || defeatedAt != null) {
+      map['defeated_at'] = Variable<String>(defeatedAt);
+    }
+    return map;
+  }
+
+  BossesCompanion toCompanion(bool nullToAbsent) {
+    return BossesCompanion(
+      id: Value(id),
+      title: Value(title),
+      defeatMeaning: defeatMeaning == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defeatMeaning),
+      status: Value(status),
+      attemptNumber: Value(attemptNumber),
+      resetOnFail: Value(resetOnFail),
+      isPinned: Value(isPinned),
+      targetDate: targetDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetDate),
+      lastFoughtAt: lastFoughtAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastFoughtAt),
+      openFromAttempt: Value(openFromAttempt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      defeatedAt: defeatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defeatedAt),
+    );
+  }
+
+  factory BossesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BossesData(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      defeatMeaning: serializer.fromJson<String?>(json['defeatMeaning']),
+      status: serializer.fromJson<int>(json['status']),
+      attemptNumber: serializer.fromJson<int>(json['attemptNumber']),
+      resetOnFail: serializer.fromJson<int>(json['resetOnFail']),
+      isPinned: serializer.fromJson<int>(json['isPinned']),
+      targetDate: serializer.fromJson<String?>(json['targetDate']),
+      lastFoughtAt: serializer.fromJson<String?>(json['lastFoughtAt']),
+      openFromAttempt: serializer.fromJson<int>(json['openFromAttempt']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+      defeatedAt: serializer.fromJson<String?>(json['defeatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'defeatMeaning': serializer.toJson<String?>(defeatMeaning),
+      'status': serializer.toJson<int>(status),
+      'attemptNumber': serializer.toJson<int>(attemptNumber),
+      'resetOnFail': serializer.toJson<int>(resetOnFail),
+      'isPinned': serializer.toJson<int>(isPinned),
+      'targetDate': serializer.toJson<String?>(targetDate),
+      'lastFoughtAt': serializer.toJson<String?>(lastFoughtAt),
+      'openFromAttempt': serializer.toJson<int>(openFromAttempt),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+      'defeatedAt': serializer.toJson<String?>(defeatedAt),
+    };
+  }
+
+  BossesData copyWith({
+    String? id,
+    String? title,
+    Value<String?> defeatMeaning = const Value.absent(),
+    int? status,
+    int? attemptNumber,
+    int? resetOnFail,
+    int? isPinned,
+    Value<String?> targetDate = const Value.absent(),
+    Value<String?> lastFoughtAt = const Value.absent(),
+    int? openFromAttempt,
+    String? createdAt,
+    String? updatedAt,
+    Value<String?> defeatedAt = const Value.absent(),
+  }) => BossesData(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    defeatMeaning: defeatMeaning.present
+        ? defeatMeaning.value
+        : this.defeatMeaning,
+    status: status ?? this.status,
+    attemptNumber: attemptNumber ?? this.attemptNumber,
+    resetOnFail: resetOnFail ?? this.resetOnFail,
+    isPinned: isPinned ?? this.isPinned,
+    targetDate: targetDate.present ? targetDate.value : this.targetDate,
+    lastFoughtAt: lastFoughtAt.present ? lastFoughtAt.value : this.lastFoughtAt,
+    openFromAttempt: openFromAttempt ?? this.openFromAttempt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    defeatedAt: defeatedAt.present ? defeatedAt.value : this.defeatedAt,
+  );
+  BossesData copyWithCompanion(BossesCompanion data) {
+    return BossesData(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      defeatMeaning: data.defeatMeaning.present
+          ? data.defeatMeaning.value
+          : this.defeatMeaning,
+      status: data.status.present ? data.status.value : this.status,
+      attemptNumber: data.attemptNumber.present
+          ? data.attemptNumber.value
+          : this.attemptNumber,
+      resetOnFail: data.resetOnFail.present
+          ? data.resetOnFail.value
+          : this.resetOnFail,
+      isPinned: data.isPinned.present ? data.isPinned.value : this.isPinned,
+      targetDate: data.targetDate.present
+          ? data.targetDate.value
+          : this.targetDate,
+      lastFoughtAt: data.lastFoughtAt.present
+          ? data.lastFoughtAt.value
+          : this.lastFoughtAt,
+      openFromAttempt: data.openFromAttempt.present
+          ? data.openFromAttempt.value
+          : this.openFromAttempt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      defeatedAt: data.defeatedAt.present
+          ? data.defeatedAt.value
+          : this.defeatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BossesData(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('defeatMeaning: $defeatMeaning, ')
+          ..write('status: $status, ')
+          ..write('attemptNumber: $attemptNumber, ')
+          ..write('resetOnFail: $resetOnFail, ')
+          ..write('isPinned: $isPinned, ')
+          ..write('targetDate: $targetDate, ')
+          ..write('lastFoughtAt: $lastFoughtAt, ')
+          ..write('openFromAttempt: $openFromAttempt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('defeatedAt: $defeatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    defeatMeaning,
+    status,
+    attemptNumber,
+    resetOnFail,
+    isPinned,
+    targetDate,
+    lastFoughtAt,
+    openFromAttempt,
+    createdAt,
+    updatedAt,
+    defeatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BossesData &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.defeatMeaning == this.defeatMeaning &&
+          other.status == this.status &&
+          other.attemptNumber == this.attemptNumber &&
+          other.resetOnFail == this.resetOnFail &&
+          other.isPinned == this.isPinned &&
+          other.targetDate == this.targetDate &&
+          other.lastFoughtAt == this.lastFoughtAt &&
+          other.openFromAttempt == this.openFromAttempt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.defeatedAt == this.defeatedAt);
+}
+
+class BossesCompanion extends UpdateCompanion<BossesData> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> defeatMeaning;
+  final Value<int> status;
+  final Value<int> attemptNumber;
+  final Value<int> resetOnFail;
+  final Value<int> isPinned;
+  final Value<String?> targetDate;
+  final Value<String?> lastFoughtAt;
+  final Value<int> openFromAttempt;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<String?> defeatedAt;
+  final Value<int> rowid;
+  const BossesCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.defeatMeaning = const Value.absent(),
+    this.status = const Value.absent(),
+    this.attemptNumber = const Value.absent(),
+    this.resetOnFail = const Value.absent(),
+    this.isPinned = const Value.absent(),
+    this.targetDate = const Value.absent(),
+    this.lastFoughtAt = const Value.absent(),
+    this.openFromAttempt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.defeatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BossesCompanion.insert({
+    required String id,
+    required String title,
+    this.defeatMeaning = const Value.absent(),
+    required int status,
+    this.attemptNumber = const Value.absent(),
+    required int resetOnFail,
+    this.isPinned = const Value.absent(),
+    this.targetDate = const Value.absent(),
+    this.lastFoughtAt = const Value.absent(),
+    this.openFromAttempt = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+    this.defeatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       status = Value(status),
+       resetOnFail = Value(resetOnFail),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<BossesData> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? defeatMeaning,
+    Expression<int>? status,
+    Expression<int>? attemptNumber,
+    Expression<int>? resetOnFail,
+    Expression<int>? isPinned,
+    Expression<String>? targetDate,
+    Expression<String>? lastFoughtAt,
+    Expression<int>? openFromAttempt,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? defeatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (defeatMeaning != null) 'defeat_meaning': defeatMeaning,
+      if (status != null) 'status': status,
+      if (attemptNumber != null) 'attempt_number': attemptNumber,
+      if (resetOnFail != null) 'reset_on_fail': resetOnFail,
+      if (isPinned != null) 'is_pinned': isPinned,
+      if (targetDate != null) 'target_date': targetDate,
+      if (lastFoughtAt != null) 'last_fought_at': lastFoughtAt,
+      if (openFromAttempt != null) 'open_from_attempt': openFromAttempt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (defeatedAt != null) 'defeated_at': defeatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BossesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String?>? defeatMeaning,
+    Value<int>? status,
+    Value<int>? attemptNumber,
+    Value<int>? resetOnFail,
+    Value<int>? isPinned,
+    Value<String?>? targetDate,
+    Value<String?>? lastFoughtAt,
+    Value<int>? openFromAttempt,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<String?>? defeatedAt,
+    Value<int>? rowid,
+  }) {
+    return BossesCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      defeatMeaning: defeatMeaning ?? this.defeatMeaning,
+      status: status ?? this.status,
+      attemptNumber: attemptNumber ?? this.attemptNumber,
+      resetOnFail: resetOnFail ?? this.resetOnFail,
+      isPinned: isPinned ?? this.isPinned,
+      targetDate: targetDate ?? this.targetDate,
+      lastFoughtAt: lastFoughtAt ?? this.lastFoughtAt,
+      openFromAttempt: openFromAttempt ?? this.openFromAttempt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      defeatedAt: defeatedAt ?? this.defeatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (defeatMeaning.present) {
+      map['defeat_meaning'] = Variable<String>(defeatMeaning.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (attemptNumber.present) {
+      map['attempt_number'] = Variable<int>(attemptNumber.value);
+    }
+    if (resetOnFail.present) {
+      map['reset_on_fail'] = Variable<int>(resetOnFail.value);
+    }
+    if (isPinned.present) {
+      map['is_pinned'] = Variable<int>(isPinned.value);
+    }
+    if (targetDate.present) {
+      map['target_date'] = Variable<String>(targetDate.value);
+    }
+    if (lastFoughtAt.present) {
+      map['last_fought_at'] = Variable<String>(lastFoughtAt.value);
+    }
+    if (openFromAttempt.present) {
+      map['open_from_attempt'] = Variable<int>(openFromAttempt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (defeatedAt.present) {
+      map['defeated_at'] = Variable<String>(defeatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BossesCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('defeatMeaning: $defeatMeaning, ')
+          ..write('status: $status, ')
+          ..write('attemptNumber: $attemptNumber, ')
+          ..write('resetOnFail: $resetOnFail, ')
+          ..write('isPinned: $isPinned, ')
+          ..write('targetDate: $targetDate, ')
+          ..write('lastFoughtAt: $lastFoughtAt, ')
+          ..write('openFromAttempt: $openFromAttempt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('defeatedAt: $defeatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Phases extends Table with TableInfo<Phases, PhasesData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -235,8 +720,38 @@ class Phases extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  PhasesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PhasesData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bossId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boss_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      openFromAttempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}open_from_attempt'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
   }
 
   @override
@@ -250,7 +765,270 @@ class Phases extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class Tasks extends Table with TableInfo {
+class PhasesData extends DataClass implements Insertable<PhasesData> {
+  final String id;
+  final String bossId;
+  final String name;
+  final int position;
+  final int openFromAttempt;
+  final String createdAt;
+  final String updatedAt;
+  const PhasesData({
+    required this.id,
+    required this.bossId,
+    required this.name,
+    required this.position,
+    required this.openFromAttempt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['boss_id'] = Variable<String>(bossId);
+    map['name'] = Variable<String>(name);
+    map['position'] = Variable<int>(position);
+    map['open_from_attempt'] = Variable<int>(openFromAttempt);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    return map;
+  }
+
+  PhasesCompanion toCompanion(bool nullToAbsent) {
+    return PhasesCompanion(
+      id: Value(id),
+      bossId: Value(bossId),
+      name: Value(name),
+      position: Value(position),
+      openFromAttempt: Value(openFromAttempt),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PhasesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PhasesData(
+      id: serializer.fromJson<String>(json['id']),
+      bossId: serializer.fromJson<String>(json['bossId']),
+      name: serializer.fromJson<String>(json['name']),
+      position: serializer.fromJson<int>(json['position']),
+      openFromAttempt: serializer.fromJson<int>(json['openFromAttempt']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bossId': serializer.toJson<String>(bossId),
+      'name': serializer.toJson<String>(name),
+      'position': serializer.toJson<int>(position),
+      'openFromAttempt': serializer.toJson<int>(openFromAttempt),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+    };
+  }
+
+  PhasesData copyWith({
+    String? id,
+    String? bossId,
+    String? name,
+    int? position,
+    int? openFromAttempt,
+    String? createdAt,
+    String? updatedAt,
+  }) => PhasesData(
+    id: id ?? this.id,
+    bossId: bossId ?? this.bossId,
+    name: name ?? this.name,
+    position: position ?? this.position,
+    openFromAttempt: openFromAttempt ?? this.openFromAttempt,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PhasesData copyWithCompanion(PhasesCompanion data) {
+    return PhasesData(
+      id: data.id.present ? data.id.value : this.id,
+      bossId: data.bossId.present ? data.bossId.value : this.bossId,
+      name: data.name.present ? data.name.value : this.name,
+      position: data.position.present ? data.position.value : this.position,
+      openFromAttempt: data.openFromAttempt.present
+          ? data.openFromAttempt.value
+          : this.openFromAttempt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PhasesData(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('name: $name, ')
+          ..write('position: $position, ')
+          ..write('openFromAttempt: $openFromAttempt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bossId,
+    name,
+    position,
+    openFromAttempt,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PhasesData &&
+          other.id == this.id &&
+          other.bossId == this.bossId &&
+          other.name == this.name &&
+          other.position == this.position &&
+          other.openFromAttempt == this.openFromAttempt &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PhasesCompanion extends UpdateCompanion<PhasesData> {
+  final Value<String> id;
+  final Value<String> bossId;
+  final Value<String> name;
+  final Value<int> position;
+  final Value<int> openFromAttempt;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<int> rowid;
+  const PhasesCompanion({
+    this.id = const Value.absent(),
+    this.bossId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.position = const Value.absent(),
+    this.openFromAttempt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PhasesCompanion.insert({
+    required String id,
+    required String bossId,
+    required String name,
+    required int position,
+    this.openFromAttempt = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bossId = Value(bossId),
+       name = Value(name),
+       position = Value(position),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<PhasesData> custom({
+    Expression<String>? id,
+    Expression<String>? bossId,
+    Expression<String>? name,
+    Expression<int>? position,
+    Expression<int>? openFromAttempt,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bossId != null) 'boss_id': bossId,
+      if (name != null) 'name': name,
+      if (position != null) 'position': position,
+      if (openFromAttempt != null) 'open_from_attempt': openFromAttempt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PhasesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bossId,
+    Value<String>? name,
+    Value<int>? position,
+    Value<int>? openFromAttempt,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PhasesCompanion(
+      id: id ?? this.id,
+      bossId: bossId ?? this.bossId,
+      name: name ?? this.name,
+      position: position ?? this.position,
+      openFromAttempt: openFromAttempt ?? this.openFromAttempt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bossId.present) {
+      map['boss_id'] = Variable<String>(bossId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (openFromAttempt.present) {
+      map['open_from_attempt'] = Variable<int>(openFromAttempt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PhasesCompanion(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('name: $name, ')
+          ..write('position: $position, ')
+          ..write('openFromAttempt: $openFromAttempt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Tasks extends Table with TableInfo<Tasks, TasksData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -357,8 +1135,50 @@ class Tasks extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  TasksData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TasksData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bossId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boss_id'],
+      )!,
+      phaseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phase_id'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weight'],
+      )!,
+      recurrence: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recurrence'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      isSplit: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_split'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
   }
 
   @override
@@ -372,7 +1192,345 @@ class Tasks extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class Attempts extends Table with TableInfo {
+class TasksData extends DataClass implements Insertable<TasksData> {
+  final String id;
+  final String bossId;
+  final String? phaseId;
+  final String title;
+  final int weight;
+  final int recurrence;
+  final int position;
+  final int isSplit;
+  final String createdAt;
+  final String updatedAt;
+  const TasksData({
+    required this.id,
+    required this.bossId,
+    this.phaseId,
+    required this.title,
+    required this.weight,
+    required this.recurrence,
+    required this.position,
+    required this.isSplit,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['boss_id'] = Variable<String>(bossId);
+    if (!nullToAbsent || phaseId != null) {
+      map['phase_id'] = Variable<String>(phaseId);
+    }
+    map['title'] = Variable<String>(title);
+    map['weight'] = Variable<int>(weight);
+    map['recurrence'] = Variable<int>(recurrence);
+    map['position'] = Variable<int>(position);
+    map['is_split'] = Variable<int>(isSplit);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    return map;
+  }
+
+  TasksCompanion toCompanion(bool nullToAbsent) {
+    return TasksCompanion(
+      id: Value(id),
+      bossId: Value(bossId),
+      phaseId: phaseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phaseId),
+      title: Value(title),
+      weight: Value(weight),
+      recurrence: Value(recurrence),
+      position: Value(position),
+      isSplit: Value(isSplit),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory TasksData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TasksData(
+      id: serializer.fromJson<String>(json['id']),
+      bossId: serializer.fromJson<String>(json['bossId']),
+      phaseId: serializer.fromJson<String?>(json['phaseId']),
+      title: serializer.fromJson<String>(json['title']),
+      weight: serializer.fromJson<int>(json['weight']),
+      recurrence: serializer.fromJson<int>(json['recurrence']),
+      position: serializer.fromJson<int>(json['position']),
+      isSplit: serializer.fromJson<int>(json['isSplit']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bossId': serializer.toJson<String>(bossId),
+      'phaseId': serializer.toJson<String?>(phaseId),
+      'title': serializer.toJson<String>(title),
+      'weight': serializer.toJson<int>(weight),
+      'recurrence': serializer.toJson<int>(recurrence),
+      'position': serializer.toJson<int>(position),
+      'isSplit': serializer.toJson<int>(isSplit),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+    };
+  }
+
+  TasksData copyWith({
+    String? id,
+    String? bossId,
+    Value<String?> phaseId = const Value.absent(),
+    String? title,
+    int? weight,
+    int? recurrence,
+    int? position,
+    int? isSplit,
+    String? createdAt,
+    String? updatedAt,
+  }) => TasksData(
+    id: id ?? this.id,
+    bossId: bossId ?? this.bossId,
+    phaseId: phaseId.present ? phaseId.value : this.phaseId,
+    title: title ?? this.title,
+    weight: weight ?? this.weight,
+    recurrence: recurrence ?? this.recurrence,
+    position: position ?? this.position,
+    isSplit: isSplit ?? this.isSplit,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  TasksData copyWithCompanion(TasksCompanion data) {
+    return TasksData(
+      id: data.id.present ? data.id.value : this.id,
+      bossId: data.bossId.present ? data.bossId.value : this.bossId,
+      phaseId: data.phaseId.present ? data.phaseId.value : this.phaseId,
+      title: data.title.present ? data.title.value : this.title,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      recurrence: data.recurrence.present
+          ? data.recurrence.value
+          : this.recurrence,
+      position: data.position.present ? data.position.value : this.position,
+      isSplit: data.isSplit.present ? data.isSplit.value : this.isSplit,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TasksData(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('phaseId: $phaseId, ')
+          ..write('title: $title, ')
+          ..write('weight: $weight, ')
+          ..write('recurrence: $recurrence, ')
+          ..write('position: $position, ')
+          ..write('isSplit: $isSplit, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bossId,
+    phaseId,
+    title,
+    weight,
+    recurrence,
+    position,
+    isSplit,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TasksData &&
+          other.id == this.id &&
+          other.bossId == this.bossId &&
+          other.phaseId == this.phaseId &&
+          other.title == this.title &&
+          other.weight == this.weight &&
+          other.recurrence == this.recurrence &&
+          other.position == this.position &&
+          other.isSplit == this.isSplit &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class TasksCompanion extends UpdateCompanion<TasksData> {
+  final Value<String> id;
+  final Value<String> bossId;
+  final Value<String?> phaseId;
+  final Value<String> title;
+  final Value<int> weight;
+  final Value<int> recurrence;
+  final Value<int> position;
+  final Value<int> isSplit;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<int> rowid;
+  const TasksCompanion({
+    this.id = const Value.absent(),
+    this.bossId = const Value.absent(),
+    this.phaseId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.recurrence = const Value.absent(),
+    this.position = const Value.absent(),
+    this.isSplit = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TasksCompanion.insert({
+    required String id,
+    required String bossId,
+    this.phaseId = const Value.absent(),
+    required String title,
+    required int weight,
+    required int recurrence,
+    required int position,
+    this.isSplit = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bossId = Value(bossId),
+       title = Value(title),
+       weight = Value(weight),
+       recurrence = Value(recurrence),
+       position = Value(position),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<TasksData> custom({
+    Expression<String>? id,
+    Expression<String>? bossId,
+    Expression<String>? phaseId,
+    Expression<String>? title,
+    Expression<int>? weight,
+    Expression<int>? recurrence,
+    Expression<int>? position,
+    Expression<int>? isSplit,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bossId != null) 'boss_id': bossId,
+      if (phaseId != null) 'phase_id': phaseId,
+      if (title != null) 'title': title,
+      if (weight != null) 'weight': weight,
+      if (recurrence != null) 'recurrence': recurrence,
+      if (position != null) 'position': position,
+      if (isSplit != null) 'is_split': isSplit,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TasksCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bossId,
+    Value<String?>? phaseId,
+    Value<String>? title,
+    Value<int>? weight,
+    Value<int>? recurrence,
+    Value<int>? position,
+    Value<int>? isSplit,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return TasksCompanion(
+      id: id ?? this.id,
+      bossId: bossId ?? this.bossId,
+      phaseId: phaseId ?? this.phaseId,
+      title: title ?? this.title,
+      weight: weight ?? this.weight,
+      recurrence: recurrence ?? this.recurrence,
+      position: position ?? this.position,
+      isSplit: isSplit ?? this.isSplit,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bossId.present) {
+      map['boss_id'] = Variable<String>(bossId.value);
+    }
+    if (phaseId.present) {
+      map['phase_id'] = Variable<String>(phaseId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<int>(weight.value);
+    }
+    if (recurrence.present) {
+      map['recurrence'] = Variable<int>(recurrence.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (isSplit.present) {
+      map['is_split'] = Variable<int>(isSplit.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TasksCompanion(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('phaseId: $phaseId, ')
+          ..write('title: $title, ')
+          ..write('weight: $weight, ')
+          ..write('recurrence: $recurrence, ')
+          ..write('position: $position, ')
+          ..write('isSplit: $isSplit, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Attempts extends Table with TableInfo<Attempts, AttemptsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -487,8 +1645,54 @@ class Attempts extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  AttemptsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AttemptsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bossId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boss_id'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      ),
+      bossAttempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}boss_attempt'],
+      )!,
+      outcome: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}outcome'],
+      )!,
+      cause: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cause'],
+      ),
+      phaseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phase_id'],
+      ),
+      lesson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lesson'],
+      ),
+      weight: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}weight'],
+      ),
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}at'],
+      )!,
+    );
   }
 
   @override
@@ -502,7 +1706,382 @@ class Attempts extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class Settings extends Table with TableInfo {
+class AttemptsData extends DataClass implements Insertable<AttemptsData> {
+  final String id;
+  final String bossId;
+  final String? taskId;
+  final int bossAttempt;
+  final int outcome;
+  final int? cause;
+  final String? phaseId;
+  final String? lesson;
+  final int? weight;
+  final String day;
+  final String at;
+  const AttemptsData({
+    required this.id,
+    required this.bossId,
+    this.taskId,
+    required this.bossAttempt,
+    required this.outcome,
+    this.cause,
+    this.phaseId,
+    this.lesson,
+    this.weight,
+    required this.day,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['boss_id'] = Variable<String>(bossId);
+    if (!nullToAbsent || taskId != null) {
+      map['task_id'] = Variable<String>(taskId);
+    }
+    map['boss_attempt'] = Variable<int>(bossAttempt);
+    map['outcome'] = Variable<int>(outcome);
+    if (!nullToAbsent || cause != null) {
+      map['cause'] = Variable<int>(cause);
+    }
+    if (!nullToAbsent || phaseId != null) {
+      map['phase_id'] = Variable<String>(phaseId);
+    }
+    if (!nullToAbsent || lesson != null) {
+      map['lesson'] = Variable<String>(lesson);
+    }
+    if (!nullToAbsent || weight != null) {
+      map['weight'] = Variable<int>(weight);
+    }
+    map['day'] = Variable<String>(day);
+    map['at'] = Variable<String>(at);
+    return map;
+  }
+
+  AttemptsCompanion toCompanion(bool nullToAbsent) {
+    return AttemptsCompanion(
+      id: Value(id),
+      bossId: Value(bossId),
+      taskId: taskId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taskId),
+      bossAttempt: Value(bossAttempt),
+      outcome: Value(outcome),
+      cause: cause == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cause),
+      phaseId: phaseId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phaseId),
+      lesson: lesson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lesson),
+      weight: weight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weight),
+      day: Value(day),
+      at: Value(at),
+    );
+  }
+
+  factory AttemptsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AttemptsData(
+      id: serializer.fromJson<String>(json['id']),
+      bossId: serializer.fromJson<String>(json['bossId']),
+      taskId: serializer.fromJson<String?>(json['taskId']),
+      bossAttempt: serializer.fromJson<int>(json['bossAttempt']),
+      outcome: serializer.fromJson<int>(json['outcome']),
+      cause: serializer.fromJson<int?>(json['cause']),
+      phaseId: serializer.fromJson<String?>(json['phaseId']),
+      lesson: serializer.fromJson<String?>(json['lesson']),
+      weight: serializer.fromJson<int?>(json['weight']),
+      day: serializer.fromJson<String>(json['day']),
+      at: serializer.fromJson<String>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bossId': serializer.toJson<String>(bossId),
+      'taskId': serializer.toJson<String?>(taskId),
+      'bossAttempt': serializer.toJson<int>(bossAttempt),
+      'outcome': serializer.toJson<int>(outcome),
+      'cause': serializer.toJson<int?>(cause),
+      'phaseId': serializer.toJson<String?>(phaseId),
+      'lesson': serializer.toJson<String?>(lesson),
+      'weight': serializer.toJson<int?>(weight),
+      'day': serializer.toJson<String>(day),
+      'at': serializer.toJson<String>(at),
+    };
+  }
+
+  AttemptsData copyWith({
+    String? id,
+    String? bossId,
+    Value<String?> taskId = const Value.absent(),
+    int? bossAttempt,
+    int? outcome,
+    Value<int?> cause = const Value.absent(),
+    Value<String?> phaseId = const Value.absent(),
+    Value<String?> lesson = const Value.absent(),
+    Value<int?> weight = const Value.absent(),
+    String? day,
+    String? at,
+  }) => AttemptsData(
+    id: id ?? this.id,
+    bossId: bossId ?? this.bossId,
+    taskId: taskId.present ? taskId.value : this.taskId,
+    bossAttempt: bossAttempt ?? this.bossAttempt,
+    outcome: outcome ?? this.outcome,
+    cause: cause.present ? cause.value : this.cause,
+    phaseId: phaseId.present ? phaseId.value : this.phaseId,
+    lesson: lesson.present ? lesson.value : this.lesson,
+    weight: weight.present ? weight.value : this.weight,
+    day: day ?? this.day,
+    at: at ?? this.at,
+  );
+  AttemptsData copyWithCompanion(AttemptsCompanion data) {
+    return AttemptsData(
+      id: data.id.present ? data.id.value : this.id,
+      bossId: data.bossId.present ? data.bossId.value : this.bossId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      bossAttempt: data.bossAttempt.present
+          ? data.bossAttempt.value
+          : this.bossAttempt,
+      outcome: data.outcome.present ? data.outcome.value : this.outcome,
+      cause: data.cause.present ? data.cause.value : this.cause,
+      phaseId: data.phaseId.present ? data.phaseId.value : this.phaseId,
+      lesson: data.lesson.present ? data.lesson.value : this.lesson,
+      weight: data.weight.present ? data.weight.value : this.weight,
+      day: data.day.present ? data.day.value : this.day,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AttemptsData(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('taskId: $taskId, ')
+          ..write('bossAttempt: $bossAttempt, ')
+          ..write('outcome: $outcome, ')
+          ..write('cause: $cause, ')
+          ..write('phaseId: $phaseId, ')
+          ..write('lesson: $lesson, ')
+          ..write('weight: $weight, ')
+          ..write('day: $day, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bossId,
+    taskId,
+    bossAttempt,
+    outcome,
+    cause,
+    phaseId,
+    lesson,
+    weight,
+    day,
+    at,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AttemptsData &&
+          other.id == this.id &&
+          other.bossId == this.bossId &&
+          other.taskId == this.taskId &&
+          other.bossAttempt == this.bossAttempt &&
+          other.outcome == this.outcome &&
+          other.cause == this.cause &&
+          other.phaseId == this.phaseId &&
+          other.lesson == this.lesson &&
+          other.weight == this.weight &&
+          other.day == this.day &&
+          other.at == this.at);
+}
+
+class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
+  final Value<String> id;
+  final Value<String> bossId;
+  final Value<String?> taskId;
+  final Value<int> bossAttempt;
+  final Value<int> outcome;
+  final Value<int?> cause;
+  final Value<String?> phaseId;
+  final Value<String?> lesson;
+  final Value<int?> weight;
+  final Value<String> day;
+  final Value<String> at;
+  final Value<int> rowid;
+  const AttemptsCompanion({
+    this.id = const Value.absent(),
+    this.bossId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.bossAttempt = const Value.absent(),
+    this.outcome = const Value.absent(),
+    this.cause = const Value.absent(),
+    this.phaseId = const Value.absent(),
+    this.lesson = const Value.absent(),
+    this.weight = const Value.absent(),
+    this.day = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AttemptsCompanion.insert({
+    required String id,
+    required String bossId,
+    this.taskId = const Value.absent(),
+    required int bossAttempt,
+    required int outcome,
+    this.cause = const Value.absent(),
+    this.phaseId = const Value.absent(),
+    this.lesson = const Value.absent(),
+    this.weight = const Value.absent(),
+    required String day,
+    required String at,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       bossId = Value(bossId),
+       bossAttempt = Value(bossAttempt),
+       outcome = Value(outcome),
+       day = Value(day),
+       at = Value(at);
+  static Insertable<AttemptsData> custom({
+    Expression<String>? id,
+    Expression<String>? bossId,
+    Expression<String>? taskId,
+    Expression<int>? bossAttempt,
+    Expression<int>? outcome,
+    Expression<int>? cause,
+    Expression<String>? phaseId,
+    Expression<String>? lesson,
+    Expression<int>? weight,
+    Expression<String>? day,
+    Expression<String>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bossId != null) 'boss_id': bossId,
+      if (taskId != null) 'task_id': taskId,
+      if (bossAttempt != null) 'boss_attempt': bossAttempt,
+      if (outcome != null) 'outcome': outcome,
+      if (cause != null) 'cause': cause,
+      if (phaseId != null) 'phase_id': phaseId,
+      if (lesson != null) 'lesson': lesson,
+      if (weight != null) 'weight': weight,
+      if (day != null) 'day': day,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AttemptsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? bossId,
+    Value<String?>? taskId,
+    Value<int>? bossAttempt,
+    Value<int>? outcome,
+    Value<int?>? cause,
+    Value<String?>? phaseId,
+    Value<String?>? lesson,
+    Value<int?>? weight,
+    Value<String>? day,
+    Value<String>? at,
+    Value<int>? rowid,
+  }) {
+    return AttemptsCompanion(
+      id: id ?? this.id,
+      bossId: bossId ?? this.bossId,
+      taskId: taskId ?? this.taskId,
+      bossAttempt: bossAttempt ?? this.bossAttempt,
+      outcome: outcome ?? this.outcome,
+      cause: cause ?? this.cause,
+      phaseId: phaseId ?? this.phaseId,
+      lesson: lesson ?? this.lesson,
+      weight: weight ?? this.weight,
+      day: day ?? this.day,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bossId.present) {
+      map['boss_id'] = Variable<String>(bossId.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (bossAttempt.present) {
+      map['boss_attempt'] = Variable<int>(bossAttempt.value);
+    }
+    if (outcome.present) {
+      map['outcome'] = Variable<int>(outcome.value);
+    }
+    if (cause.present) {
+      map['cause'] = Variable<int>(cause.value);
+    }
+    if (phaseId.present) {
+      map['phase_id'] = Variable<String>(phaseId.value);
+    }
+    if (lesson.present) {
+      map['lesson'] = Variable<String>(lesson.value);
+    }
+    if (weight.present) {
+      map['weight'] = Variable<int>(weight.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<String>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AttemptsCompanion(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('taskId: $taskId, ')
+          ..write('bossAttempt: $bossAttempt, ')
+          ..write('outcome: $outcome, ')
+          ..write('cause: $cause, ')
+          ..write('phaseId: $phaseId, ')
+          ..write('lesson: $lesson, ')
+          ..write('weight: $weight, ')
+          ..write('day: $day, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Settings extends Table with TableInfo<Settings, SettingsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -607,8 +2186,46 @@ class Settings extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  SettingsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SettingsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      tapMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tap_mode'],
+      )!,
+      defaultResetOnFail: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}default_reset_on_fail'],
+      )!,
+      haptics: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}haptics'],
+      )!,
+      rolloverHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rollover_hour'],
+      )!,
+      reminderEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_enabled'],
+      )!,
+      reminderMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_minutes'],
+      )!,
+      flasks: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}flasks'],
+      )!,
+      lastResolvedDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_resolved_day'],
+      ),
+    );
   }
 
   @override
@@ -622,7 +2239,315 @@ class Settings extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DayLogs extends Table with TableInfo {
+class SettingsData extends DataClass implements Insertable<SettingsData> {
+  final int id;
+  final int tapMode;
+  final int defaultResetOnFail;
+  final int haptics;
+  final int rolloverHour;
+  final int reminderEnabled;
+  final int reminderMinutes;
+  final int flasks;
+  final String? lastResolvedDay;
+  const SettingsData({
+    required this.id,
+    required this.tapMode,
+    required this.defaultResetOnFail,
+    required this.haptics,
+    required this.rolloverHour,
+    required this.reminderEnabled,
+    required this.reminderMinutes,
+    required this.flasks,
+    this.lastResolvedDay,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['tap_mode'] = Variable<int>(tapMode);
+    map['default_reset_on_fail'] = Variable<int>(defaultResetOnFail);
+    map['haptics'] = Variable<int>(haptics);
+    map['rollover_hour'] = Variable<int>(rolloverHour);
+    map['reminder_enabled'] = Variable<int>(reminderEnabled);
+    map['reminder_minutes'] = Variable<int>(reminderMinutes);
+    map['flasks'] = Variable<int>(flasks);
+    if (!nullToAbsent || lastResolvedDay != null) {
+      map['last_resolved_day'] = Variable<String>(lastResolvedDay);
+    }
+    return map;
+  }
+
+  SettingsCompanion toCompanion(bool nullToAbsent) {
+    return SettingsCompanion(
+      id: Value(id),
+      tapMode: Value(tapMode),
+      defaultResetOnFail: Value(defaultResetOnFail),
+      haptics: Value(haptics),
+      rolloverHour: Value(rolloverHour),
+      reminderEnabled: Value(reminderEnabled),
+      reminderMinutes: Value(reminderMinutes),
+      flasks: Value(flasks),
+      lastResolvedDay: lastResolvedDay == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastResolvedDay),
+    );
+  }
+
+  factory SettingsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SettingsData(
+      id: serializer.fromJson<int>(json['id']),
+      tapMode: serializer.fromJson<int>(json['tapMode']),
+      defaultResetOnFail: serializer.fromJson<int>(json['defaultResetOnFail']),
+      haptics: serializer.fromJson<int>(json['haptics']),
+      rolloverHour: serializer.fromJson<int>(json['rolloverHour']),
+      reminderEnabled: serializer.fromJson<int>(json['reminderEnabled']),
+      reminderMinutes: serializer.fromJson<int>(json['reminderMinutes']),
+      flasks: serializer.fromJson<int>(json['flasks']),
+      lastResolvedDay: serializer.fromJson<String?>(json['lastResolvedDay']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'tapMode': serializer.toJson<int>(tapMode),
+      'defaultResetOnFail': serializer.toJson<int>(defaultResetOnFail),
+      'haptics': serializer.toJson<int>(haptics),
+      'rolloverHour': serializer.toJson<int>(rolloverHour),
+      'reminderEnabled': serializer.toJson<int>(reminderEnabled),
+      'reminderMinutes': serializer.toJson<int>(reminderMinutes),
+      'flasks': serializer.toJson<int>(flasks),
+      'lastResolvedDay': serializer.toJson<String?>(lastResolvedDay),
+    };
+  }
+
+  SettingsData copyWith({
+    int? id,
+    int? tapMode,
+    int? defaultResetOnFail,
+    int? haptics,
+    int? rolloverHour,
+    int? reminderEnabled,
+    int? reminderMinutes,
+    int? flasks,
+    Value<String?> lastResolvedDay = const Value.absent(),
+  }) => SettingsData(
+    id: id ?? this.id,
+    tapMode: tapMode ?? this.tapMode,
+    defaultResetOnFail: defaultResetOnFail ?? this.defaultResetOnFail,
+    haptics: haptics ?? this.haptics,
+    rolloverHour: rolloverHour ?? this.rolloverHour,
+    reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+    reminderMinutes: reminderMinutes ?? this.reminderMinutes,
+    flasks: flasks ?? this.flasks,
+    lastResolvedDay: lastResolvedDay.present
+        ? lastResolvedDay.value
+        : this.lastResolvedDay,
+  );
+  SettingsData copyWithCompanion(SettingsCompanion data) {
+    return SettingsData(
+      id: data.id.present ? data.id.value : this.id,
+      tapMode: data.tapMode.present ? data.tapMode.value : this.tapMode,
+      defaultResetOnFail: data.defaultResetOnFail.present
+          ? data.defaultResetOnFail.value
+          : this.defaultResetOnFail,
+      haptics: data.haptics.present ? data.haptics.value : this.haptics,
+      rolloverHour: data.rolloverHour.present
+          ? data.rolloverHour.value
+          : this.rolloverHour,
+      reminderEnabled: data.reminderEnabled.present
+          ? data.reminderEnabled.value
+          : this.reminderEnabled,
+      reminderMinutes: data.reminderMinutes.present
+          ? data.reminderMinutes.value
+          : this.reminderMinutes,
+      flasks: data.flasks.present ? data.flasks.value : this.flasks,
+      lastResolvedDay: data.lastResolvedDay.present
+          ? data.lastResolvedDay.value
+          : this.lastResolvedDay,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SettingsData(')
+          ..write('id: $id, ')
+          ..write('tapMode: $tapMode, ')
+          ..write('defaultResetOnFail: $defaultResetOnFail, ')
+          ..write('haptics: $haptics, ')
+          ..write('rolloverHour: $rolloverHour, ')
+          ..write('reminderEnabled: $reminderEnabled, ')
+          ..write('reminderMinutes: $reminderMinutes, ')
+          ..write('flasks: $flasks, ')
+          ..write('lastResolvedDay: $lastResolvedDay')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    tapMode,
+    defaultResetOnFail,
+    haptics,
+    rolloverHour,
+    reminderEnabled,
+    reminderMinutes,
+    flasks,
+    lastResolvedDay,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SettingsData &&
+          other.id == this.id &&
+          other.tapMode == this.tapMode &&
+          other.defaultResetOnFail == this.defaultResetOnFail &&
+          other.haptics == this.haptics &&
+          other.rolloverHour == this.rolloverHour &&
+          other.reminderEnabled == this.reminderEnabled &&
+          other.reminderMinutes == this.reminderMinutes &&
+          other.flasks == this.flasks &&
+          other.lastResolvedDay == this.lastResolvedDay);
+}
+
+class SettingsCompanion extends UpdateCompanion<SettingsData> {
+  final Value<int> id;
+  final Value<int> tapMode;
+  final Value<int> defaultResetOnFail;
+  final Value<int> haptics;
+  final Value<int> rolloverHour;
+  final Value<int> reminderEnabled;
+  final Value<int> reminderMinutes;
+  final Value<int> flasks;
+  final Value<String?> lastResolvedDay;
+  const SettingsCompanion({
+    this.id = const Value.absent(),
+    this.tapMode = const Value.absent(),
+    this.defaultResetOnFail = const Value.absent(),
+    this.haptics = const Value.absent(),
+    this.rolloverHour = const Value.absent(),
+    this.reminderEnabled = const Value.absent(),
+    this.reminderMinutes = const Value.absent(),
+    this.flasks = const Value.absent(),
+    this.lastResolvedDay = const Value.absent(),
+  });
+  SettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.tapMode = const Value.absent(),
+    this.defaultResetOnFail = const Value.absent(),
+    this.haptics = const Value.absent(),
+    this.rolloverHour = const Value.absent(),
+    this.reminderEnabled = const Value.absent(),
+    this.reminderMinutes = const Value.absent(),
+    this.flasks = const Value.absent(),
+    this.lastResolvedDay = const Value.absent(),
+  });
+  static Insertable<SettingsData> custom({
+    Expression<int>? id,
+    Expression<int>? tapMode,
+    Expression<int>? defaultResetOnFail,
+    Expression<int>? haptics,
+    Expression<int>? rolloverHour,
+    Expression<int>? reminderEnabled,
+    Expression<int>? reminderMinutes,
+    Expression<int>? flasks,
+    Expression<String>? lastResolvedDay,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (tapMode != null) 'tap_mode': tapMode,
+      if (defaultResetOnFail != null)
+        'default_reset_on_fail': defaultResetOnFail,
+      if (haptics != null) 'haptics': haptics,
+      if (rolloverHour != null) 'rollover_hour': rolloverHour,
+      if (reminderEnabled != null) 'reminder_enabled': reminderEnabled,
+      if (reminderMinutes != null) 'reminder_minutes': reminderMinutes,
+      if (flasks != null) 'flasks': flasks,
+      if (lastResolvedDay != null) 'last_resolved_day': lastResolvedDay,
+    });
+  }
+
+  SettingsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? tapMode,
+    Value<int>? defaultResetOnFail,
+    Value<int>? haptics,
+    Value<int>? rolloverHour,
+    Value<int>? reminderEnabled,
+    Value<int>? reminderMinutes,
+    Value<int>? flasks,
+    Value<String?>? lastResolvedDay,
+  }) {
+    return SettingsCompanion(
+      id: id ?? this.id,
+      tapMode: tapMode ?? this.tapMode,
+      defaultResetOnFail: defaultResetOnFail ?? this.defaultResetOnFail,
+      haptics: haptics ?? this.haptics,
+      rolloverHour: rolloverHour ?? this.rolloverHour,
+      reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      reminderMinutes: reminderMinutes ?? this.reminderMinutes,
+      flasks: flasks ?? this.flasks,
+      lastResolvedDay: lastResolvedDay ?? this.lastResolvedDay,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (tapMode.present) {
+      map['tap_mode'] = Variable<int>(tapMode.value);
+    }
+    if (defaultResetOnFail.present) {
+      map['default_reset_on_fail'] = Variable<int>(defaultResetOnFail.value);
+    }
+    if (haptics.present) {
+      map['haptics'] = Variable<int>(haptics.value);
+    }
+    if (rolloverHour.present) {
+      map['rollover_hour'] = Variable<int>(rolloverHour.value);
+    }
+    if (reminderEnabled.present) {
+      map['reminder_enabled'] = Variable<int>(reminderEnabled.value);
+    }
+    if (reminderMinutes.present) {
+      map['reminder_minutes'] = Variable<int>(reminderMinutes.value);
+    }
+    if (flasks.present) {
+      map['flasks'] = Variable<int>(flasks.value);
+    }
+    if (lastResolvedDay.present) {
+      map['last_resolved_day'] = Variable<String>(lastResolvedDay.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('tapMode: $tapMode, ')
+          ..write('defaultResetOnFail: $defaultResetOnFail, ')
+          ..write('haptics: $haptics, ')
+          ..write('rolloverHour: $rolloverHour, ')
+          ..write('reminderEnabled: $reminderEnabled, ')
+          ..write('reminderMinutes: $reminderMinutes, ')
+          ..write('flasks: $flasks, ')
+          ..write('lastResolvedDay: $lastResolvedDay')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class DayLogs extends Table with TableInfo<DayLogs, DayLogsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -669,8 +2594,26 @@ class DayLogs extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {day, kind};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  DayLogsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DayLogsData(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}kind'],
+      )!,
+      lesson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lesson'],
+      ),
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}at'],
+      )!,
+    );
   }
 
   @override
@@ -684,7 +2627,195 @@ class DayLogs extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class EmberEvents extends Table with TableInfo {
+class DayLogsData extends DataClass implements Insertable<DayLogsData> {
+  final String day;
+  final int kind;
+  final String? lesson;
+  final String at;
+  const DayLogsData({
+    required this.day,
+    required this.kind,
+    this.lesson,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    map['kind'] = Variable<int>(kind);
+    if (!nullToAbsent || lesson != null) {
+      map['lesson'] = Variable<String>(lesson);
+    }
+    map['at'] = Variable<String>(at);
+    return map;
+  }
+
+  DayLogsCompanion toCompanion(bool nullToAbsent) {
+    return DayLogsCompanion(
+      day: Value(day),
+      kind: Value(kind),
+      lesson: lesson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lesson),
+      at: Value(at),
+    );
+  }
+
+  factory DayLogsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DayLogsData(
+      day: serializer.fromJson<String>(json['day']),
+      kind: serializer.fromJson<int>(json['kind']),
+      lesson: serializer.fromJson<String?>(json['lesson']),
+      at: serializer.fromJson<String>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'day': serializer.toJson<String>(day),
+      'kind': serializer.toJson<int>(kind),
+      'lesson': serializer.toJson<String?>(lesson),
+      'at': serializer.toJson<String>(at),
+    };
+  }
+
+  DayLogsData copyWith({
+    String? day,
+    int? kind,
+    Value<String?> lesson = const Value.absent(),
+    String? at,
+  }) => DayLogsData(
+    day: day ?? this.day,
+    kind: kind ?? this.kind,
+    lesson: lesson.present ? lesson.value : this.lesson,
+    at: at ?? this.at,
+  );
+  DayLogsData copyWithCompanion(DayLogsCompanion data) {
+    return DayLogsData(
+      day: data.day.present ? data.day.value : this.day,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      lesson: data.lesson.present ? data.lesson.value : this.lesson,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayLogsData(')
+          ..write('day: $day, ')
+          ..write('kind: $kind, ')
+          ..write('lesson: $lesson, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(day, kind, lesson, at);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DayLogsData &&
+          other.day == this.day &&
+          other.kind == this.kind &&
+          other.lesson == this.lesson &&
+          other.at == this.at);
+}
+
+class DayLogsCompanion extends UpdateCompanion<DayLogsData> {
+  final Value<String> day;
+  final Value<int> kind;
+  final Value<String?> lesson;
+  final Value<String> at;
+  final Value<int> rowid;
+  const DayLogsCompanion({
+    this.day = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.lesson = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DayLogsCompanion.insert({
+    required String day,
+    required int kind,
+    this.lesson = const Value.absent(),
+    required String at,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day),
+       kind = Value(kind),
+       at = Value(at);
+  static Insertable<DayLogsData> custom({
+    Expression<String>? day,
+    Expression<int>? kind,
+    Expression<String>? lesson,
+    Expression<String>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (kind != null) 'kind': kind,
+      if (lesson != null) 'lesson': lesson,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DayLogsCompanion copyWith({
+    Value<String>? day,
+    Value<int>? kind,
+    Value<String?>? lesson,
+    Value<String>? at,
+    Value<int>? rowid,
+  }) {
+    return DayLogsCompanion(
+      day: day ?? this.day,
+      kind: kind ?? this.kind,
+      lesson: lesson ?? this.lesson,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<int>(kind.value);
+    }
+    if (lesson.present) {
+      map['lesson'] = Variable<String>(lesson.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<String>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DayLogsCompanion(')
+          ..write('day: $day, ')
+          ..write('kind: $kind, ')
+          ..write('lesson: $lesson, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class EmberEvents extends Table with TableInfo<EmberEvents, EmberEventsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -763,8 +2894,38 @@ class EmberEvents extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  EmberEventsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EmberEventsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}kind'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      bossId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boss_id'],
+      ),
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      ),
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}at'],
+      )!,
+    );
   }
 
   @override
@@ -778,7 +2939,267 @@ class EmberEvents extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class PlanPicks extends Table with TableInfo {
+class EmberEventsData extends DataClass implements Insertable<EmberEventsData> {
+  final String id;
+  final int kind;
+  final int amount;
+  final String? bossId;
+  final String? taskId;
+  final String day;
+  final String at;
+  const EmberEventsData({
+    required this.id,
+    required this.kind,
+    required this.amount,
+    this.bossId,
+    this.taskId,
+    required this.day,
+    required this.at,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['kind'] = Variable<int>(kind);
+    map['amount'] = Variable<int>(amount);
+    if (!nullToAbsent || bossId != null) {
+      map['boss_id'] = Variable<String>(bossId);
+    }
+    if (!nullToAbsent || taskId != null) {
+      map['task_id'] = Variable<String>(taskId);
+    }
+    map['day'] = Variable<String>(day);
+    map['at'] = Variable<String>(at);
+    return map;
+  }
+
+  EmberEventsCompanion toCompanion(bool nullToAbsent) {
+    return EmberEventsCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      amount: Value(amount),
+      bossId: bossId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bossId),
+      taskId: taskId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(taskId),
+      day: Value(day),
+      at: Value(at),
+    );
+  }
+
+  factory EmberEventsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EmberEventsData(
+      id: serializer.fromJson<String>(json['id']),
+      kind: serializer.fromJson<int>(json['kind']),
+      amount: serializer.fromJson<int>(json['amount']),
+      bossId: serializer.fromJson<String?>(json['bossId']),
+      taskId: serializer.fromJson<String?>(json['taskId']),
+      day: serializer.fromJson<String>(json['day']),
+      at: serializer.fromJson<String>(json['at']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<int>(kind),
+      'amount': serializer.toJson<int>(amount),
+      'bossId': serializer.toJson<String?>(bossId),
+      'taskId': serializer.toJson<String?>(taskId),
+      'day': serializer.toJson<String>(day),
+      'at': serializer.toJson<String>(at),
+    };
+  }
+
+  EmberEventsData copyWith({
+    String? id,
+    int? kind,
+    int? amount,
+    Value<String?> bossId = const Value.absent(),
+    Value<String?> taskId = const Value.absent(),
+    String? day,
+    String? at,
+  }) => EmberEventsData(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    amount: amount ?? this.amount,
+    bossId: bossId.present ? bossId.value : this.bossId,
+    taskId: taskId.present ? taskId.value : this.taskId,
+    day: day ?? this.day,
+    at: at ?? this.at,
+  );
+  EmberEventsData copyWithCompanion(EmberEventsCompanion data) {
+    return EmberEventsData(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      bossId: data.bossId.present ? data.bossId.value : this.bossId,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      day: data.day.present ? data.day.value : this.day,
+      at: data.at.present ? data.at.value : this.at,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmberEventsData(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('amount: $amount, ')
+          ..write('bossId: $bossId, ')
+          ..write('taskId: $taskId, ')
+          ..write('day: $day, ')
+          ..write('at: $at')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, kind, amount, bossId, taskId, day, at);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EmberEventsData &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.amount == this.amount &&
+          other.bossId == this.bossId &&
+          other.taskId == this.taskId &&
+          other.day == this.day &&
+          other.at == this.at);
+}
+
+class EmberEventsCompanion extends UpdateCompanion<EmberEventsData> {
+  final Value<String> id;
+  final Value<int> kind;
+  final Value<int> amount;
+  final Value<String?> bossId;
+  final Value<String?> taskId;
+  final Value<String> day;
+  final Value<String> at;
+  final Value<int> rowid;
+  const EmberEventsCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.bossId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.day = const Value.absent(),
+    this.at = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EmberEventsCompanion.insert({
+    required String id,
+    required int kind,
+    required int amount,
+    this.bossId = const Value.absent(),
+    this.taskId = const Value.absent(),
+    required String day,
+    required String at,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       amount = Value(amount),
+       day = Value(day),
+       at = Value(at);
+  static Insertable<EmberEventsData> custom({
+    Expression<String>? id,
+    Expression<int>? kind,
+    Expression<int>? amount,
+    Expression<String>? bossId,
+    Expression<String>? taskId,
+    Expression<String>? day,
+    Expression<String>? at,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (amount != null) 'amount': amount,
+      if (bossId != null) 'boss_id': bossId,
+      if (taskId != null) 'task_id': taskId,
+      if (day != null) 'day': day,
+      if (at != null) 'at': at,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EmberEventsCompanion copyWith({
+    Value<String>? id,
+    Value<int>? kind,
+    Value<int>? amount,
+    Value<String?>? bossId,
+    Value<String?>? taskId,
+    Value<String>? day,
+    Value<String>? at,
+    Value<int>? rowid,
+  }) {
+    return EmberEventsCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      amount: amount ?? this.amount,
+      bossId: bossId ?? this.bossId,
+      taskId: taskId ?? this.taskId,
+      day: day ?? this.day,
+      at: at ?? this.at,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<int>(kind.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (bossId.present) {
+      map['boss_id'] = Variable<String>(bossId.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<String>(at.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmberEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('amount: $amount, ')
+          ..write('bossId: $bossId, ')
+          ..write('taskId: $taskId, ')
+          ..write('day: $day, ')
+          ..write('at: $at, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class PlanPicks extends Table with TableInfo<PlanPicks, PlanPicksData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -817,8 +3238,22 @@ class PlanPicks extends Table with TableInfo {
   @override
   Set<GeneratedColumn> get $primaryKey => {day, taskId};
   @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
+  PlanPicksData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlanPicksData(
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}day'],
+      )!,
+      taskId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}task_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+    );
   }
 
   @override
@@ -830,6 +3265,165 @@ class PlanPicks extends Table with TableInfo {
   List<String> get customConstraints => const ['PRIMARY KEY(day, task_id)'];
   @override
   bool get dontWriteConstraints => true;
+}
+
+class PlanPicksData extends DataClass implements Insertable<PlanPicksData> {
+  final String day;
+  final String taskId;
+  final int position;
+  const PlanPicksData({
+    required this.day,
+    required this.taskId,
+    required this.position,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['day'] = Variable<String>(day);
+    map['task_id'] = Variable<String>(taskId);
+    map['position'] = Variable<int>(position);
+    return map;
+  }
+
+  PlanPicksCompanion toCompanion(bool nullToAbsent) {
+    return PlanPicksCompanion(
+      day: Value(day),
+      taskId: Value(taskId),
+      position: Value(position),
+    );
+  }
+
+  factory PlanPicksData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlanPicksData(
+      day: serializer.fromJson<String>(json['day']),
+      taskId: serializer.fromJson<String>(json['taskId']),
+      position: serializer.fromJson<int>(json['position']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'day': serializer.toJson<String>(day),
+      'taskId': serializer.toJson<String>(taskId),
+      'position': serializer.toJson<int>(position),
+    };
+  }
+
+  PlanPicksData copyWith({String? day, String? taskId, int? position}) =>
+      PlanPicksData(
+        day: day ?? this.day,
+        taskId: taskId ?? this.taskId,
+        position: position ?? this.position,
+      );
+  PlanPicksData copyWithCompanion(PlanPicksCompanion data) {
+    return PlanPicksData(
+      day: data.day.present ? data.day.value : this.day,
+      taskId: data.taskId.present ? data.taskId.value : this.taskId,
+      position: data.position.present ? data.position.value : this.position,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlanPicksData(')
+          ..write('day: $day, ')
+          ..write('taskId: $taskId, ')
+          ..write('position: $position')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(day, taskId, position);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlanPicksData &&
+          other.day == this.day &&
+          other.taskId == this.taskId &&
+          other.position == this.position);
+}
+
+class PlanPicksCompanion extends UpdateCompanion<PlanPicksData> {
+  final Value<String> day;
+  final Value<String> taskId;
+  final Value<int> position;
+  final Value<int> rowid;
+  const PlanPicksCompanion({
+    this.day = const Value.absent(),
+    this.taskId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PlanPicksCompanion.insert({
+    required String day,
+    required String taskId,
+    required int position,
+    this.rowid = const Value.absent(),
+  }) : day = Value(day),
+       taskId = Value(taskId),
+       position = Value(position);
+  static Insertable<PlanPicksData> custom({
+    Expression<String>? day,
+    Expression<String>? taskId,
+    Expression<int>? position,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (day != null) 'day': day,
+      if (taskId != null) 'task_id': taskId,
+      if (position != null) 'position': position,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PlanPicksCompanion copyWith({
+    Value<String>? day,
+    Value<String>? taskId,
+    Value<int>? position,
+    Value<int>? rowid,
+  }) {
+    return PlanPicksCompanion(
+      day: day ?? this.day,
+      taskId: taskId ?? this.taskId,
+      position: position ?? this.position,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (day.present) {
+      map['day'] = Variable<String>(day.value);
+    }
+    if (taskId.present) {
+      map['task_id'] = Variable<String>(taskId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlanPicksCompanion(')
+          ..write('day: $day, ')
+          ..write('taskId: $taskId, ')
+          ..write('position: $position, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
 }
 
 class DatabaseAtV3 extends GeneratedDatabase {

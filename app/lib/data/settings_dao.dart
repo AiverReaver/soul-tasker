@@ -19,6 +19,13 @@ class SettingsDao {
   Future<void> setHaptics(bool isOn) =>
       _db.update(_db.settings).write(SettingsCompanion(haptics: Value(isOn)));
 
+  Future<void> setOnboarded(bool isDone) => _db
+      .update(_db.settings)
+      .write(SettingsCompanion(onboarded: Value(isDone)));
+
+  Future<void> setSound(bool isOn) =>
+      _db.update(_db.settings).write(SettingsCompanion(sound: Value(isOn)));
+
   /// A day ends at this local hour (0 to 6, plan D10).
   Future<void> setRolloverHour(int hour) {
     RangeError.checkValueInInterval(hour, 0, 6, 'hour');

@@ -97,4 +97,44 @@ class LocalReminders implements Reminders {
     await _init();
     await _plugin.cancel(id: _id);
   }
+
+  static const _onceDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'deadlines',
+      'Promise reminders',
+      channelDescription: 'Ten minutes before a promise you asked about.',
+      // The task title stays off a locked screen unless the user allows it.
+      visibility: NotificationVisibility.private,
+    ),
+    iOS: DarwinNotificationDetails(),
+  );
+
+  @override
+  Future<void> scheduleOnce(String key, DateTime at, String body) async {
+    await _init();
+    await _plugin.zonedSchedule(
+      id: reminderIdFor(key),
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      notificationDetails: _onceDetails,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      title: kDeadlineReminderTitle,
+      body: body,
+    );
+  }
+
+  @override
+  Future<void> cancelOnce(String key) async {
+    await _init();
+    await _plugin.cancel(id: reminderIdFor(key));
+  }
+}
+
+/// A notification id for [key] that is the same on every run (FNV-1a,
+/// 31 bits) and never the daily reminder's id 1.
+int reminderIdFor(String key) {
+  var hash = 0x811c9dc5;
+  for (final unit in key.codeUnits) {
+    hash = ((hash ^ unit) * 0x01000193) & 0x7fffffff;
+  }
+  return hash <= 1 ? hash + 2 : hash;
 }
