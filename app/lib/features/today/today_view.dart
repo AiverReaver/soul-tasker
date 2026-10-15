@@ -8,6 +8,8 @@ import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/plan_banner.dart';
+import '../../ui/player_health_bar.dart';
+import '../../core/commitment_resolver.dart';
 import '../boss/task_row.dart';
 
 /// The day's tasks for one boss, in Today order (plan §8.3): open daily
@@ -48,6 +50,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
         .where((b) => b.boss.status == BossStatus.active)
         .toList();
     final tally = ref.watch(emberTallyProvider).value;
+    final health = ref.watch(healthProvider).value;
     final picks = ref.watch(todayPicksProvider).value ?? const [];
     final groups = [
       for (final b in active)
@@ -57,6 +60,11 @@ class _TodayViewState extends ConsumerState<TodayView> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
       children: [
+        if (health != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: Space.sm),
+            child: PlayerHealthBar(health: health, max: kMaxHealthHalfPoints),
+          ),
         if (tally != null)
           Padding(
             padding: const EdgeInsets.only(bottom: Space.sm),

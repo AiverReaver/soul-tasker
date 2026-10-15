@@ -229,4 +229,24 @@ void main() {
     final cleared = taskNamed((await h.bosses.loadAll()).single, 'Walk').task;
     expect(cleared.dailyDeadlineMinutes, isNull);
   });
+
+  test(
+    'watchToday emits today\'s commitments by task, again on change',
+    () async {
+      await h.seed();
+      final seen = <Set<String>>[];
+      final sub = commits.watchToday().listen(
+        (m) => seen.add({for (final v in m.values) v.taskTitle}),
+      );
+      await pumpEventQueue();
+      await commits.commit(
+        await taskId('Read chapter 4'),
+        DeadlinePreset.tonight,
+      );
+      await pumpEventQueue();
+      await sub.cancel();
+      expect(seen.first, isEmpty);
+      expect(seen.last, {'Read chapter 4'});
+    },
+  );
 }

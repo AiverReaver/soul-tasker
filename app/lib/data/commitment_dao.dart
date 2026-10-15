@@ -130,6 +130,22 @@ class CommitmentDao {
     },
   );
 
+  /// Today's commitments by task id, again whenever a commitment or the
+  /// settings change.
+  Stream<Map<String, CommitmentView>> watchToday() async* {
+    Future<Map<String, CommitmentView>> read() async {
+      final day = dayOf(_clock(), rolloverHour: await _db.rolloverHour());
+      return {for (final v in await load(day)) v.commitment.taskId: v};
+    }
+
+    yield await read();
+    yield* _db
+        .tableUpdates(
+          TableUpdateQuery.onAllTables([_db.commitments, _db.settings]),
+        )
+        .asyncMap((_) => read());
+  }
+
   /// A day's commitments in deadline order.
   Future<List<CommitmentView>> load(String day) async {
     final query =

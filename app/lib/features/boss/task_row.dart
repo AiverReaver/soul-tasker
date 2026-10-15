@@ -2,15 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/clock.dart';
+import '../../core/deadlines.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/confirm_dialog.dart';
+import '../../ui/deadline_chip.dart';
+import '../commit/commit_flow.dart';
 import '../strike/hold_to_strike.dart';
 import 'rule_of_three_sheet.dart';
 
-enum _Action { tried, edit, delete }
+enum _Action { promise, extend, tried, edit, delete }
 
 /// A task with hold-to-strike and its "..." menu. Shared by the boss screen
 /// and Today, so strike, tried and their prompts behave the same in both.
@@ -20,9 +24,13 @@ class TaskRow extends ConsumerWidget {
     required this.view,
     required this.tapMode,
     required this.onMessage,
+    this.canCommit = true,
   });
 
   final TaskView view;
+
+  /// False for a waiting or defeated boss (Stage 4 plan D11).
+  final bool canCommit;
   final bool tapMode;
 
   /// Shows a quiet one-line message on the host screen.
@@ -40,6 +48,10 @@ class TaskRow extends ConsumerWidget {
 
   Future<void> _act(BuildContext context, WidgetRef ref, _Action action) async {
     switch (action) {
+      case _Action.promise:
+        await showCommitSheet(context, ref, view, onMessage: onMessage);
+      case _Action.extend:
+        await showExtendSheet(context, ref, view.task.id, onMessage: onMessage);
       case _Action.tried:
         final prompt = await ref.read(attemptDaoProvider).tried(view.task.id);
         onMessage('You tried. That counts.');
@@ -67,6 +79,18 @@ class TaskRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final task = view.task;
+    final promise = ref
+        .watch(todayCommitmentsProvider)
+        .value?[task.id]
+        ?.commitment;
+    final now = ref.read(clockProvider)();
+    final label = promise == null
+        ? null
+        : deadlineLabel(promise.outcome, promise.deadline, now);
+    final canExtend =
+        promise != null &&
+        promise.outcome == null &&
+        now.isBefore(promise.deadline);
     return HoldToStrike(
       key: ValueKey(task.id),
       title: task.recurrence == Recurrence.daily
@@ -76,11 +100,24 @@ class TaskRow extends ConsumerWidget {
       isDone: view.isStruck,
       tapMode: tapMode,
       onStrike: () => _strike(context, ref),
+      deadline: label == null
+          ? null
+          : DeadlineChip(label: label.text, isSoon: label.isSoon),
       trailing: PopupMenuButton<_Action>(
         tooltip: 'Actions for ${task.title}',
         iconColor: kTextMuted,
         onSelected: (a) => _act(context, ref, a),
         itemBuilder: (_) => [
+          if (canCommit && promise == null && !view.isStruck)
+            const PopupMenuItem(
+              value: _Action.promise,
+              child: Text('Promise by…'),
+            ),
+          if (canExtend)
+            const PopupMenuItem(
+              value: _Action.extend,
+              child: Text('Move it later'),
+            ),
           if (!view.isStruck)
             const PopupMenuItem(
               value: _Action.tried,

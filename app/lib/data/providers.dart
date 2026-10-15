@@ -5,8 +5,10 @@ import '../core/haptics.dart';
 import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
+import 'commitment_dao.dart';
 import 'database.dart';
 import 'day_dao.dart';
+import 'health_dao.dart';
 import 'plan_pick_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
@@ -89,6 +91,28 @@ final daySummaryProvider = StreamProvider(
 );
 
 /// Open tasks to pick from, read once when the bonfire opens.
+final commitmentDaoProvider = Provider(
+  (ref) => CommitmentDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+/// Today's commitments by task id.
+final todayCommitmentsProvider = StreamProvider(
+  (ref) => ref.watch(commitmentDaoProvider).watchToday(),
+);
+
+final healthDaoProvider = Provider(
+  (ref) => HealthDao(
+    ref.watch(databaseProvider),
+    ref.watch(clockProvider),
+    ref.watch(attemptDaoProvider),
+  ),
+);
+
+/// Today's health in half points.
+final healthProvider = StreamProvider(
+  (ref) => ref.watch(healthDaoProvider).watchHealth(),
+);
+
 final pickCandidatesProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(planPickDaoProvider).candidates(),
 );
