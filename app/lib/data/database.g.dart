@@ -2763,6 +2763,34 @@ class $SettingsTable extends Settings
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _soundMeta = const VerificationMeta('sound');
+  @override
+  late final GeneratedColumn<bool> sound = GeneratedColumn<bool>(
+    'sound',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("sound" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _onboardedMeta = const VerificationMeta(
+    'onboarded',
+  );
+  @override
+  late final GeneratedColumn<bool> onboarded = GeneratedColumn<bool>(
+    'onboarded',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("onboarded" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2775,6 +2803,8 @@ class $SettingsTable extends Settings
     flasks,
     lastResolvedDay,
     firstDay,
+    sound,
+    onboarded,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2851,6 +2881,18 @@ class $SettingsTable extends Settings
         firstDay.isAcceptableOrUnknown(data['first_day']!, _firstDayMeta),
       );
     }
+    if (data.containsKey('sound')) {
+      context.handle(
+        _soundMeta,
+        sound.isAcceptableOrUnknown(data['sound']!, _soundMeta),
+      );
+    }
+    if (data.containsKey('onboarded')) {
+      context.handle(
+        _onboardedMeta,
+        onboarded.isAcceptableOrUnknown(data['onboarded']!, _onboardedMeta),
+      );
+    }
     return context;
   }
 
@@ -2902,6 +2944,14 @@ class $SettingsTable extends Settings
         DriftSqlType.string,
         data['${effectivePrefix}first_day'],
       ),
+      sound: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}sound'],
+      )!,
+      onboarded: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}onboarded'],
+      )!,
     );
   }
 
@@ -2937,6 +2987,13 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
   /// The install or v4 upgrade day; the newcomer grace week counts from here
   /// (Stage 4 plan D13).
   final String? firstDay;
+
+  /// Sound cues are off until the user turns them on (Stage 5 plan D12).
+  final bool sound;
+
+  /// False until onboarding is finished or skipped. The v5 upgrade sets it
+  /// true so existing installs never see it (Stage 5 plan D11).
+  final bool onboarded;
   const AppSettings({
     required this.id,
     required this.tapMode,
@@ -2948,6 +3005,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     required this.flasks,
     this.lastResolvedDay,
     this.firstDay,
+    required this.sound,
+    required this.onboarded,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2970,6 +3029,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     if (!nullToAbsent || firstDay != null) {
       map['first_day'] = Variable<String>(firstDay);
     }
+    map['sound'] = Variable<bool>(sound);
+    map['onboarded'] = Variable<bool>(onboarded);
     return map;
   }
 
@@ -2989,6 +3050,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       firstDay: firstDay == null && nullToAbsent
           ? const Value.absent()
           : Value(firstDay),
+      sound: Value(sound),
+      onboarded: Value(onboarded),
     );
   }
 
@@ -3010,6 +3073,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       flasks: serializer.fromJson<int>(json['flasks']),
       lastResolvedDay: serializer.fromJson<String?>(json['lastResolvedDay']),
       firstDay: serializer.fromJson<String?>(json['firstDay']),
+      sound: serializer.fromJson<bool>(json['sound']),
+      onboarded: serializer.fromJson<bool>(json['onboarded']),
     );
   }
   @override
@@ -3028,6 +3093,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
       'flasks': serializer.toJson<int>(flasks),
       'lastResolvedDay': serializer.toJson<String?>(lastResolvedDay),
       'firstDay': serializer.toJson<String?>(firstDay),
+      'sound': serializer.toJson<bool>(sound),
+      'onboarded': serializer.toJson<bool>(onboarded),
     };
   }
 
@@ -3042,6 +3109,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     int? flasks,
     Value<String?> lastResolvedDay = const Value.absent(),
     Value<String?> firstDay = const Value.absent(),
+    bool? sound,
+    bool? onboarded,
   }) => AppSettings(
     id: id ?? this.id,
     tapMode: tapMode ?? this.tapMode,
@@ -3055,6 +3124,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
         ? lastResolvedDay.value
         : this.lastResolvedDay,
     firstDay: firstDay.present ? firstDay.value : this.firstDay,
+    sound: sound ?? this.sound,
+    onboarded: onboarded ?? this.onboarded,
   );
   AppSettings copyWithCompanion(SettingsCompanion data) {
     return AppSettings(
@@ -3078,6 +3149,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
           ? data.lastResolvedDay.value
           : this.lastResolvedDay,
       firstDay: data.firstDay.present ? data.firstDay.value : this.firstDay,
+      sound: data.sound.present ? data.sound.value : this.sound,
+      onboarded: data.onboarded.present ? data.onboarded.value : this.onboarded,
     );
   }
 
@@ -3093,7 +3166,9 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
           ..write('reminderMinutes: $reminderMinutes, ')
           ..write('flasks: $flasks, ')
           ..write('lastResolvedDay: $lastResolvedDay, ')
-          ..write('firstDay: $firstDay')
+          ..write('firstDay: $firstDay, ')
+          ..write('sound: $sound, ')
+          ..write('onboarded: $onboarded')
           ..write(')'))
         .toString();
   }
@@ -3110,6 +3185,8 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
     flasks,
     lastResolvedDay,
     firstDay,
+    sound,
+    onboarded,
   );
   @override
   bool operator ==(Object other) =>
@@ -3124,7 +3201,9 @@ class AppSettings extends DataClass implements Insertable<AppSettings> {
           other.reminderMinutes == this.reminderMinutes &&
           other.flasks == this.flasks &&
           other.lastResolvedDay == this.lastResolvedDay &&
-          other.firstDay == this.firstDay);
+          other.firstDay == this.firstDay &&
+          other.sound == this.sound &&
+          other.onboarded == this.onboarded);
 }
 
 class SettingsCompanion extends UpdateCompanion<AppSettings> {
@@ -3138,6 +3217,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
   final Value<int> flasks;
   final Value<String?> lastResolvedDay;
   final Value<String?> firstDay;
+  final Value<bool> sound;
+  final Value<bool> onboarded;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.tapMode = const Value.absent(),
@@ -3149,6 +3230,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     this.flasks = const Value.absent(),
     this.lastResolvedDay = const Value.absent(),
     this.firstDay = const Value.absent(),
+    this.sound = const Value.absent(),
+    this.onboarded = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -3161,6 +3244,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     this.flasks = const Value.absent(),
     this.lastResolvedDay = const Value.absent(),
     this.firstDay = const Value.absent(),
+    this.sound = const Value.absent(),
+    this.onboarded = const Value.absent(),
   });
   static Insertable<AppSettings> custom({
     Expression<int>? id,
@@ -3173,6 +3258,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     Expression<int>? flasks,
     Expression<String>? lastResolvedDay,
     Expression<String>? firstDay,
+    Expression<bool>? sound,
+    Expression<bool>? onboarded,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -3186,6 +3273,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
       if (flasks != null) 'flasks': flasks,
       if (lastResolvedDay != null) 'last_resolved_day': lastResolvedDay,
       if (firstDay != null) 'first_day': firstDay,
+      if (sound != null) 'sound': sound,
+      if (onboarded != null) 'onboarded': onboarded,
     });
   }
 
@@ -3200,6 +3289,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     Value<int>? flasks,
     Value<String?>? lastResolvedDay,
     Value<String?>? firstDay,
+    Value<bool>? sound,
+    Value<bool>? onboarded,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
@@ -3212,6 +3303,8 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
       flasks: flasks ?? this.flasks,
       lastResolvedDay: lastResolvedDay ?? this.lastResolvedDay,
       firstDay: firstDay ?? this.firstDay,
+      sound: sound ?? this.sound,
+      onboarded: onboarded ?? this.onboarded,
     );
   }
 
@@ -3252,6 +3345,12 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
     if (firstDay.present) {
       map['first_day'] = Variable<String>(firstDay.value);
     }
+    if (sound.present) {
+      map['sound'] = Variable<bool>(sound.value);
+    }
+    if (onboarded.present) {
+      map['onboarded'] = Variable<bool>(onboarded.value);
+    }
     return map;
   }
 
@@ -3267,7 +3366,9 @@ class SettingsCompanion extends UpdateCompanion<AppSettings> {
           ..write('reminderMinutes: $reminderMinutes, ')
           ..write('flasks: $flasks, ')
           ..write('lastResolvedDay: $lastResolvedDay, ')
-          ..write('firstDay: $firstDay')
+          ..write('firstDay: $firstDay, ')
+          ..write('sound: $sound, ')
+          ..write('onboarded: $onboarded')
           ..write(')'))
         .toString();
   }
@@ -5385,6 +5486,728 @@ class HealthEventsCompanion extends UpdateCompanion<HealthEvent> {
   }
 }
 
+class $RelicsTable extends Relics with TableInfo<$RelicsTable, Relic> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RelicsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bossIdMeta = const VerificationMeta('bossId');
+  @override
+  late final GeneratedColumn<String> bossId = GeneratedColumn<String>(
+    'boss_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES bosses (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Weathering, int> emblem =
+      GeneratedColumn<int>(
+        'emblem',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<Weathering>($RelicsTable.$converteremblem);
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _daysMeta = const VerificationMeta('days');
+  @override
+  late final GeneratedColumn<int> days = GeneratedColumn<int>(
+    'days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _effortMeta = const VerificationMeta('effort');
+  @override
+  late final GeneratedColumn<int> effort = GeneratedColumn<int>(
+    'effort',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _storyMeta = const VerificationMeta('story');
+  @override
+  late final GeneratedColumn<String> story = GeneratedColumn<String>(
+    'story',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _inscriptionMeta = const VerificationMeta(
+    'inscription',
+  );
+  @override
+  late final GeneratedColumn<String> inscription = GeneratedColumn<String>(
+    'inscription',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 120),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _defeatedDayMeta = const VerificationMeta(
+    'defeatedDay',
+  );
+  @override
+  late final GeneratedColumn<String> defeatedDay = GeneratedColumn<String>(
+    'defeated_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bossId,
+    name,
+    emblem,
+    attempts,
+    days,
+    effort,
+    story,
+    inscription,
+    defeatedDay,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'relics';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Relic> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('boss_id')) {
+      context.handle(
+        _bossIdMeta,
+        bossId.isAcceptableOrUnknown(data['boss_id']!, _bossIdMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_attemptsMeta);
+    }
+    if (data.containsKey('days')) {
+      context.handle(
+        _daysMeta,
+        days.isAcceptableOrUnknown(data['days']!, _daysMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_daysMeta);
+    }
+    if (data.containsKey('effort')) {
+      context.handle(
+        _effortMeta,
+        effort.isAcceptableOrUnknown(data['effort']!, _effortMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_effortMeta);
+    }
+    if (data.containsKey('story')) {
+      context.handle(
+        _storyMeta,
+        story.isAcceptableOrUnknown(data['story']!, _storyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_storyMeta);
+    }
+    if (data.containsKey('inscription')) {
+      context.handle(
+        _inscriptionMeta,
+        inscription.isAcceptableOrUnknown(
+          data['inscription']!,
+          _inscriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('defeated_day')) {
+      context.handle(
+        _defeatedDayMeta,
+        defeatedDay.isAcceptableOrUnknown(
+          data['defeated_day']!,
+          _defeatedDayMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_defeatedDayMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {bossId},
+  ];
+  @override
+  Relic map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Relic(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bossId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}boss_id'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      emblem: $RelicsTable.$converteremblem.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}emblem'],
+        )!,
+      ),
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      days: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}days'],
+      )!,
+      effort: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}effort'],
+      )!,
+      story: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}story'],
+      )!,
+      inscription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}inscription'],
+      ),
+      defeatedDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}defeated_day'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RelicsTable createAlias(String alias) {
+    return $RelicsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<Weathering, int, int> $converteremblem =
+      const EnumIndexConverter<Weathering>(Weathering.values);
+}
+
+class Relic extends DataClass implements Insertable<Relic> {
+  final String id;
+
+  /// Cleared when the boss is deleted; the relic stays.
+  final String? bossId;
+  final String name;
+  final Weathering emblem;
+  final int attempts;
+  final int days;
+  final int effort;
+
+  /// JSON of a `RelicStory`.
+  final String story;
+  final String? inscription;
+  final String defeatedDay;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Relic({
+    required this.id,
+    this.bossId,
+    required this.name,
+    required this.emblem,
+    required this.attempts,
+    required this.days,
+    required this.effort,
+    required this.story,
+    this.inscription,
+    required this.defeatedDay,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || bossId != null) {
+      map['boss_id'] = Variable<String>(bossId);
+    }
+    map['name'] = Variable<String>(name);
+    {
+      map['emblem'] = Variable<int>(
+        $RelicsTable.$converteremblem.toSql(emblem),
+      );
+    }
+    map['attempts'] = Variable<int>(attempts);
+    map['days'] = Variable<int>(days);
+    map['effort'] = Variable<int>(effort);
+    map['story'] = Variable<String>(story);
+    if (!nullToAbsent || inscription != null) {
+      map['inscription'] = Variable<String>(inscription);
+    }
+    map['defeated_day'] = Variable<String>(defeatedDay);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RelicsCompanion toCompanion(bool nullToAbsent) {
+    return RelicsCompanion(
+      id: Value(id),
+      bossId: bossId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bossId),
+      name: Value(name),
+      emblem: Value(emblem),
+      attempts: Value(attempts),
+      days: Value(days),
+      effort: Value(effort),
+      story: Value(story),
+      inscription: inscription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(inscription),
+      defeatedDay: Value(defeatedDay),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Relic.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Relic(
+      id: serializer.fromJson<String>(json['id']),
+      bossId: serializer.fromJson<String?>(json['bossId']),
+      name: serializer.fromJson<String>(json['name']),
+      emblem: $RelicsTable.$converteremblem.fromJson(
+        serializer.fromJson<int>(json['emblem']),
+      ),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      days: serializer.fromJson<int>(json['days']),
+      effort: serializer.fromJson<int>(json['effort']),
+      story: serializer.fromJson<String>(json['story']),
+      inscription: serializer.fromJson<String?>(json['inscription']),
+      defeatedDay: serializer.fromJson<String>(json['defeatedDay']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bossId': serializer.toJson<String?>(bossId),
+      'name': serializer.toJson<String>(name),
+      'emblem': serializer.toJson<int>(
+        $RelicsTable.$converteremblem.toJson(emblem),
+      ),
+      'attempts': serializer.toJson<int>(attempts),
+      'days': serializer.toJson<int>(days),
+      'effort': serializer.toJson<int>(effort),
+      'story': serializer.toJson<String>(story),
+      'inscription': serializer.toJson<String?>(inscription),
+      'defeatedDay': serializer.toJson<String>(defeatedDay),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Relic copyWith({
+    String? id,
+    Value<String?> bossId = const Value.absent(),
+    String? name,
+    Weathering? emblem,
+    int? attempts,
+    int? days,
+    int? effort,
+    String? story,
+    Value<String?> inscription = const Value.absent(),
+    String? defeatedDay,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Relic(
+    id: id ?? this.id,
+    bossId: bossId.present ? bossId.value : this.bossId,
+    name: name ?? this.name,
+    emblem: emblem ?? this.emblem,
+    attempts: attempts ?? this.attempts,
+    days: days ?? this.days,
+    effort: effort ?? this.effort,
+    story: story ?? this.story,
+    inscription: inscription.present ? inscription.value : this.inscription,
+    defeatedDay: defeatedDay ?? this.defeatedDay,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Relic copyWithCompanion(RelicsCompanion data) {
+    return Relic(
+      id: data.id.present ? data.id.value : this.id,
+      bossId: data.bossId.present ? data.bossId.value : this.bossId,
+      name: data.name.present ? data.name.value : this.name,
+      emblem: data.emblem.present ? data.emblem.value : this.emblem,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      days: data.days.present ? data.days.value : this.days,
+      effort: data.effort.present ? data.effort.value : this.effort,
+      story: data.story.present ? data.story.value : this.story,
+      inscription: data.inscription.present
+          ? data.inscription.value
+          : this.inscription,
+      defeatedDay: data.defeatedDay.present
+          ? data.defeatedDay.value
+          : this.defeatedDay,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Relic(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('name: $name, ')
+          ..write('emblem: $emblem, ')
+          ..write('attempts: $attempts, ')
+          ..write('days: $days, ')
+          ..write('effort: $effort, ')
+          ..write('story: $story, ')
+          ..write('inscription: $inscription, ')
+          ..write('defeatedDay: $defeatedDay, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bossId,
+    name,
+    emblem,
+    attempts,
+    days,
+    effort,
+    story,
+    inscription,
+    defeatedDay,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Relic &&
+          other.id == this.id &&
+          other.bossId == this.bossId &&
+          other.name == this.name &&
+          other.emblem == this.emblem &&
+          other.attempts == this.attempts &&
+          other.days == this.days &&
+          other.effort == this.effort &&
+          other.story == this.story &&
+          other.inscription == this.inscription &&
+          other.defeatedDay == this.defeatedDay &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RelicsCompanion extends UpdateCompanion<Relic> {
+  final Value<String> id;
+  final Value<String?> bossId;
+  final Value<String> name;
+  final Value<Weathering> emblem;
+  final Value<int> attempts;
+  final Value<int> days;
+  final Value<int> effort;
+  final Value<String> story;
+  final Value<String?> inscription;
+  final Value<String> defeatedDay;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RelicsCompanion({
+    this.id = const Value.absent(),
+    this.bossId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.emblem = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.days = const Value.absent(),
+    this.effort = const Value.absent(),
+    this.story = const Value.absent(),
+    this.inscription = const Value.absent(),
+    this.defeatedDay = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RelicsCompanion.insert({
+    required String id,
+    this.bossId = const Value.absent(),
+    required String name,
+    required Weathering emblem,
+    required int attempts,
+    required int days,
+    required int effort,
+    required String story,
+    this.inscription = const Value.absent(),
+    required String defeatedDay,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       emblem = Value(emblem),
+       attempts = Value(attempts),
+       days = Value(days),
+       effort = Value(effort),
+       story = Value(story),
+       defeatedDay = Value(defeatedDay),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Relic> custom({
+    Expression<String>? id,
+    Expression<String>? bossId,
+    Expression<String>? name,
+    Expression<int>? emblem,
+    Expression<int>? attempts,
+    Expression<int>? days,
+    Expression<int>? effort,
+    Expression<String>? story,
+    Expression<String>? inscription,
+    Expression<String>? defeatedDay,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bossId != null) 'boss_id': bossId,
+      if (name != null) 'name': name,
+      if (emblem != null) 'emblem': emblem,
+      if (attempts != null) 'attempts': attempts,
+      if (days != null) 'days': days,
+      if (effort != null) 'effort': effort,
+      if (story != null) 'story': story,
+      if (inscription != null) 'inscription': inscription,
+      if (defeatedDay != null) 'defeated_day': defeatedDay,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RelicsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? bossId,
+    Value<String>? name,
+    Value<Weathering>? emblem,
+    Value<int>? attempts,
+    Value<int>? days,
+    Value<int>? effort,
+    Value<String>? story,
+    Value<String?>? inscription,
+    Value<String>? defeatedDay,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RelicsCompanion(
+      id: id ?? this.id,
+      bossId: bossId ?? this.bossId,
+      name: name ?? this.name,
+      emblem: emblem ?? this.emblem,
+      attempts: attempts ?? this.attempts,
+      days: days ?? this.days,
+      effort: effort ?? this.effort,
+      story: story ?? this.story,
+      inscription: inscription ?? this.inscription,
+      defeatedDay: defeatedDay ?? this.defeatedDay,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bossId.present) {
+      map['boss_id'] = Variable<String>(bossId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (emblem.present) {
+      map['emblem'] = Variable<int>(
+        $RelicsTable.$converteremblem.toSql(emblem.value),
+      );
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (days.present) {
+      map['days'] = Variable<int>(days.value);
+    }
+    if (effort.present) {
+      map['effort'] = Variable<int>(effort.value);
+    }
+    if (story.present) {
+      map['story'] = Variable<String>(story.value);
+    }
+    if (inscription.present) {
+      map['inscription'] = Variable<String>(inscription.value);
+    }
+    if (defeatedDay.present) {
+      map['defeated_day'] = Variable<String>(defeatedDay.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RelicsCompanion(')
+          ..write('id: $id, ')
+          ..write('bossId: $bossId, ')
+          ..write('name: $name, ')
+          ..write('emblem: $emblem, ')
+          ..write('attempts: $attempts, ')
+          ..write('days: $days, ')
+          ..write('effort: $effort, ')
+          ..write('story: $story, ')
+          ..write('inscription: $inscription, ')
+          ..write('defeatedDay: $defeatedDay, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5398,6 +6221,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PlanPicksTable planPicks = $PlanPicksTable(this);
   late final $CommitmentsTable commitments = $CommitmentsTable(this);
   late final $HealthEventsTable healthEvents = $HealthEventsTable(this);
+  late final $RelicsTable relics = $RelicsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5413,6 +6237,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     planPicks,
     commitments,
     healthEvents,
+    relics,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5499,6 +6324,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('health_events', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'bosses',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('relics', kind: UpdateKind.update)],
     ),
   ]);
   @override
@@ -5631,6 +6463,25 @@ final class $$BossesTableReferences
     ).filter((f) => f.bossId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_commitmentsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$RelicsTable, List<Relic>> _relicsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.relics,
+    aliasName: 'bosses__id__relics__boss_id',
+  );
+
+  $$RelicsTableProcessedTableManager get relicsRefs {
+    final manager = $$RelicsTableTableManager(
+      $_db,
+      $_db.relics,
+    ).filter((f) => f.bossId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_relicsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5829,6 +6680,31 @@ class $$BossesTableFilterComposer
           }) => $$CommitmentsTableFilterComposer(
             $db: $db,
             $table: $db.commitments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> relicsRefs(
+    Expression<bool> Function($$RelicsTableFilterComposer f) f,
+  ) {
+    final $$RelicsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.relics,
+      getReferencedColumn: (t) => t.bossId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RelicsTableFilterComposer(
+            $db: $db,
+            $table: $db.relics,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6101,6 +6977,31 @@ class $$BossesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> relicsRefs<T extends Object>(
+    Expression<T> Function($$RelicsTableAnnotationComposer a) f,
+  ) {
+    final $$RelicsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.relics,
+      getReferencedColumn: (t) => t.bossId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RelicsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.relics,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$BossesTableTableManager
@@ -6122,6 +7023,7 @@ class $$BossesTableTableManager
             bool attemptsRefs,
             bool emberEventsRefs,
             bool commitmentsRefs,
+            bool relicsRefs,
           })
         > {
   $$BossesTableTableManager(_$AppDatabase db, $BossesTable table)
@@ -6214,6 +7116,7 @@ class $$BossesTableTableManager
                 attemptsRefs = false,
                 emberEventsRefs = false,
                 commitmentsRefs = false,
+                relicsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -6223,6 +7126,7 @@ class $$BossesTableTableManager
                     if (attemptsRefs) db.attempts,
                     if (emberEventsRefs) db.emberEvents,
                     if (commitmentsRefs) db.commitments,
+                    if (relicsRefs) db.relics,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -6312,6 +7216,19 @@ class $$BossesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (relicsRefs)
+                        await $_getPrefetchedData<Boss, $BossesTable, Relic>(
+                          currentTable: table,
+                          referencedTable: $$BossesTableReferences
+                              ._relicsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BossesTableReferences(db, table, p0).relicsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.bossId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6338,6 +7255,7 @@ typedef $$BossesTableProcessedTableManager =
         bool attemptsRefs,
         bool emberEventsRefs,
         bool commitmentsRefs,
+        bool relicsRefs,
       })
     >;
 typedef $$PhasesTableCreateCompanionBuilder = PhasesCompanion Function({
@@ -8376,6 +9294,8 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> flasks,
   Value<String?> lastResolvedDay,
   Value<String?> firstDay,
+  Value<bool> sound,
+  Value<bool> onboarded,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
@@ -8388,6 +9308,8 @@ typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> flasks,
   Value<String?> lastResolvedDay,
   Value<String?> firstDay,
+  Value<bool> sound,
+  Value<bool> onboarded,
 });
 
 class $$SettingsTableFilterComposer
@@ -8447,6 +9369,16 @@ class $$SettingsTableFilterComposer
 
   ColumnFilters<String> get firstDay => $composableBuilder(
     column: $table.firstDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get sound => $composableBuilder(
+    column: $table.sound,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get onboarded => $composableBuilder(
+    column: $table.onboarded,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8509,6 +9441,16 @@ class $$SettingsTableOrderingComposer
     column: $table.firstDay,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get sound => $composableBuilder(
+    column: $table.sound,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get onboarded => $composableBuilder(
+    column: $table.onboarded,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -8560,6 +9502,12 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<String> get firstDay =>
       $composableBuilder(column: $table.firstDay, builder: (column) => column);
+
+  GeneratedColumn<bool> get sound =>
+      $composableBuilder(column: $table.sound, builder: (column) => column);
+
+  GeneratedColumn<bool> get onboarded =>
+      $composableBuilder(column: $table.onboarded, builder: (column) => column);
 }
 
 class $$SettingsTableTableManager
@@ -8603,6 +9551,8 @@ class $$SettingsTableTableManager
                 Value<int> flasks = const Value.absent(),
                 Value<String?> lastResolvedDay = const Value.absent(),
                 Value<String?> firstDay = const Value.absent(),
+                Value<bool> sound = const Value.absent(),
+                Value<bool> onboarded = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 tapMode: tapMode,
@@ -8614,6 +9564,8 @@ class $$SettingsTableTableManager
                 flasks: flasks,
                 lastResolvedDay: lastResolvedDay,
                 firstDay: firstDay,
+                sound: sound,
+                onboarded: onboarded,
               ),
           createCompanionCallback:
               ({
@@ -8627,6 +9579,8 @@ class $$SettingsTableTableManager
                 Value<int> flasks = const Value.absent(),
                 Value<String?> lastResolvedDay = const Value.absent(),
                 Value<String?> firstDay = const Value.absent(),
+                Value<bool> sound = const Value.absent(),
+                Value<bool> onboarded = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 tapMode: tapMode,
@@ -8638,6 +9592,8 @@ class $$SettingsTableTableManager
                 flasks: flasks,
                 lastResolvedDay: lastResolvedDay,
                 firstDay: firstDay,
+                sound: sound,
+                onboarded: onboarded,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -10517,6 +11473,458 @@ typedef $$HealthEventsTableProcessedTableManager =
       HealthEvent,
       PrefetchHooks Function({bool commitmentId})
     >;
+typedef $$RelicsTableCreateCompanionBuilder = RelicsCompanion Function({
+  required String id,
+  Value<String?> bossId,
+  required String name,
+  required Weathering emblem,
+  required int attempts,
+  required int days,
+  required int effort,
+  required String story,
+  Value<String?> inscription,
+  required String defeatedDay,
+  required DateTime createdAt,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$RelicsTableUpdateCompanionBuilder = RelicsCompanion Function({
+  Value<String> id,
+  Value<String?> bossId,
+  Value<String> name,
+  Value<Weathering> emblem,
+  Value<int> attempts,
+  Value<int> days,
+  Value<int> effort,
+  Value<String> story,
+  Value<String?> inscription,
+  Value<String> defeatedDay,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+final class $$RelicsTableReferences
+    extends BaseReferences<_$AppDatabase, $RelicsTable, Relic> {
+  $$RelicsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BossesTable _bossIdTable(_$AppDatabase db) =>
+      db.bosses.createAlias('relics__boss_id__bosses__id');
+
+  $$BossesTableProcessedTableManager? get bossId {
+    final $_column = $_itemColumn<String>('boss_id');
+    if ($_column == null) return null;
+    final manager = $$BossesTableTableManager(
+      $_db,
+      $_db.bosses,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_bossIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RelicsTableFilterComposer
+    extends Composer<_$AppDatabase, $RelicsTable> {
+  $$RelicsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Weathering, Weathering, int> get emblem =>
+      $composableBuilder(
+        column: $table.emblem,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get days => $composableBuilder(
+    column: $table.days,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get effort => $composableBuilder(
+    column: $table.effort,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get story => $composableBuilder(
+    column: $table.story,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get inscription => $composableBuilder(
+    column: $table.inscription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defeatedDay => $composableBuilder(
+    column: $table.defeatedDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BossesTableFilterComposer get bossId {
+    final $$BossesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bossId,
+      referencedTable: $db.bosses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BossesTableFilterComposer(
+            $db: $db,
+            $table: $db.bosses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelicsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RelicsTable> {
+  $$RelicsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get emblem => $composableBuilder(
+    column: $table.emblem,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get days => $composableBuilder(
+    column: $table.days,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get effort => $composableBuilder(
+    column: $table.effort,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get story => $composableBuilder(
+    column: $table.story,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get inscription => $composableBuilder(
+    column: $table.inscription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defeatedDay => $composableBuilder(
+    column: $table.defeatedDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BossesTableOrderingComposer get bossId {
+    final $$BossesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bossId,
+      referencedTable: $db.bosses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BossesTableOrderingComposer(
+            $db: $db,
+            $table: $db.bosses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelicsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RelicsTable> {
+  $$RelicsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Weathering, int> get emblem =>
+      $composableBuilder(column: $table.emblem, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<int> get days =>
+      $composableBuilder(column: $table.days, builder: (column) => column);
+
+  GeneratedColumn<int> get effort =>
+      $composableBuilder(column: $table.effort, builder: (column) => column);
+
+  GeneratedColumn<String> get story =>
+      $composableBuilder(column: $table.story, builder: (column) => column);
+
+  GeneratedColumn<String> get inscription => $composableBuilder(
+    column: $table.inscription,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defeatedDay => $composableBuilder(
+    column: $table.defeatedDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$BossesTableAnnotationComposer get bossId {
+    final $$BossesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.bossId,
+      referencedTable: $db.bosses,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BossesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.bosses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelicsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RelicsTable,
+          Relic,
+          $$RelicsTableFilterComposer,
+          $$RelicsTableOrderingComposer,
+          $$RelicsTableAnnotationComposer,
+          $$RelicsTableCreateCompanionBuilder,
+          $$RelicsTableUpdateCompanionBuilder,
+          (Relic, $$RelicsTableReferences),
+          Relic,
+          PrefetchHooks Function({bool bossId})
+        > {
+  $$RelicsTableTableManager(_$AppDatabase db, $RelicsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RelicsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RelicsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RelicsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> bossId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<Weathering> emblem = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<int> days = const Value.absent(),
+                Value<int> effort = const Value.absent(),
+                Value<String> story = const Value.absent(),
+                Value<String?> inscription = const Value.absent(),
+                Value<String> defeatedDay = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RelicsCompanion(
+                id: id,
+                bossId: bossId,
+                name: name,
+                emblem: emblem,
+                attempts: attempts,
+                days: days,
+                effort: effort,
+                story: story,
+                inscription: inscription,
+                defeatedDay: defeatedDay,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String?> bossId = const Value.absent(),
+                required String name,
+                required Weathering emblem,
+                required int attempts,
+                required int days,
+                required int effort,
+                required String story,
+                Value<String?> inscription = const Value.absent(),
+                required String defeatedDay,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RelicsCompanion.insert(
+                id: id,
+                bossId: bossId,
+                name: name,
+                emblem: emblem,
+                attempts: attempts,
+                days: days,
+                effort: effort,
+                story: story,
+                inscription: inscription,
+                defeatedDay: defeatedDay,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RelicsTable, Relic>(table),
+                  $$RelicsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({bossId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (bossId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.bossId,
+                        referencedTable: $$RelicsTableReferences._bossIdTable(
+                          db,
+                        ),
+                        referencedColumn: $$RelicsTableReferences
+                            ._bossIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RelicsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RelicsTable,
+      Relic,
+      $$RelicsTableFilterComposer,
+      $$RelicsTableOrderingComposer,
+      $$RelicsTableAnnotationComposer,
+      $$RelicsTableCreateCompanionBuilder,
+      $$RelicsTableUpdateCompanionBuilder,
+      (Relic, $$RelicsTableReferences),
+      Relic,
+      PrefetchHooks Function({bool bossId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10541,4 +11949,6 @@ class $AppDatabaseManager {
       $$CommitmentsTableTableManager(_db, _db.commitments);
   $$HealthEventsTableTableManager get healthEvents =>
       $$HealthEventsTableTableManager(_db, _db.healthEvents);
+  $$RelicsTableTableManager get relics =>
+      $$RelicsTableTableManager(_db, _db.relics);
 }

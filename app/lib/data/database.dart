@@ -4,6 +4,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../core/clock.dart';
 import 'database.steps.dart';
 import 'enums.dart';
+import 'relic_dao.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -20,6 +21,7 @@ part 'database.g.dart';
     PlanPicks,
     Commitments,
     HealthEvents,
+    Relics,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -33,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   final Clock _clock;
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// The hour a day ends. Every `dayOf` call reads this, so what is written
   /// and what is shown agree (plan step 1).
@@ -83,10 +85,22 @@ class AppDatabase extends _$AppDatabase {
           dayOf(_clock(), rolloverHour: hour),
         ]);
       },
+      from4To5: (m, schema) async {
+        await m.createTable(schema.relics);
+        await m.addColumn(schema.settings, schema.settings.sound);
+        await m.addColumn(schema.settings, schema.settings.onboarded);
+        // Existing installs have no use for the welcome.
+        await customStatement('UPDATE settings SET onboarded = 1');
+      },
     ),
     beforeOpen: (details) async {
       // SQLite leaves foreign keys off unless asked; cascades need them.
       await customStatement('PRAGMA foreign_keys = ON');
+      // Bosses defeated before relics existed get one from what is left of
+      // them. After the steps, so the same builder as a live defeat runs.
+      if (details.hadUpgrade && (details.versionBefore ?? 5) < 5) {
+        await RelicDao(this, _clock).backfill();
+      }
     },
   );
 }

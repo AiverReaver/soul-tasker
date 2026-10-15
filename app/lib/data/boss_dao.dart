@@ -6,6 +6,7 @@ import 'boss_draft.dart';
 import 'boss_view.dart';
 import 'database.dart';
 import 'enums.dart';
+import 'relic_dao.dart';
 
 /// Bosses, phases and tasks: reads as derived views, writes as transactions.
 class BossDao {
@@ -13,6 +14,7 @@ class BossDao {
 
   final AppDatabase _db;
   final Clock _clock;
+  late final _relics = RelicDao(_db, _clock);
 
   /// Emits now and after every change to the fight tables.
   Stream<void> _changes() async* {
@@ -221,9 +223,18 @@ class BossDao {
   }
 
   /// Waiting or defeated cancels the boss's open commitments, so they never
-  /// expire while it rests (Stage 4 plan D11).
+  /// expire while it rests (Stage 4 plan D11). Defeat is final: it writes the
+  /// relic in the same transaction, and a defeated boss cannot move again
+  /// (Stage 5 plan D2).
   Future<void> setStatus(String bossId, BossStatus status) =>
       _db.transaction(() async {
+        final current = await (_db.select(
+          _db.bosses,
+        )..where((b) => b.id.equals(bossId))).getSingle();
+        if (current.status == BossStatus.defeated) {
+          if (status == BossStatus.defeated) return;
+          throw StateError('A defeated boss stays defeated.');
+        }
         final now = _clock();
         await _updateBoss(
           bossId,
@@ -234,6 +245,7 @@ class BossDao {
           ),
         );
         if (status == BossStatus.active) return;
+        if (status == BossStatus.defeated) await _relics.createFor(bossId);
         await (_db.update(
           _db.commitments,
         )..where((c) => c.bossId.equals(bossId) & c.outcome.isNull())).write(

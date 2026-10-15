@@ -27,4 +27,20 @@ void main() {
       'rise',
     ]);
   });
+
+  test('weathering follows attempts: 1, 2-3, 4-8, 9+', () {
+    expect(Weathering.forAttempts(1), Weathering.unmarked);
+    expect(Weathering.forAttempts(2), Weathering.worn);
+    expect(Weathering.forAttempts(3), Weathering.worn);
+    expect(Weathering.forAttempts(4), Weathering.scarred);
+    expect(Weathering.forAttempts(8), Weathering.scarred);
+    expect(Weathering.forAttempts(9), Weathering.weathered);
+    expect(Weathering.forAttempts(40), Weathering.weathered);
+    expect(Weathering.values.map((w) => w.name), [
+      'unmarked',
+      'worn',
+      'scarred',
+      'weathered',
+    ]);
+  });
 }

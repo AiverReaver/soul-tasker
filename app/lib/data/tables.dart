@@ -116,6 +116,13 @@ class Settings extends Table {
   /// (Stage 4 plan D13).
   TextColumn get firstDay => text().nullable()();
 
+  /// Sound cues are off until the user turns them on (Stage 5 plan D12).
+  BoolColumn get sound => boolean().withDefault(const Constant(false))();
+
+  /// False until onboarding is finished or skipped. The v5 upgrade sets it
+  /// true so existing installs never see it (Stage 5 plan D11).
+  BoolColumn get onboarded => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -201,4 +208,34 @@ class HealthEvents extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+/// A permanent record of a defeated boss (Stage 5 plan D1). Written once at
+/// defeat with its own copy of the story; only [inscription] changes after.
+class Relics extends Table {
+  TextColumn get id => text()();
+
+  /// Cleared when the boss is deleted; the relic stays.
+  TextColumn get bossId =>
+      text().nullable().references(Bosses, #id, onDelete: KeyAction.setNull)();
+  TextColumn get name => text()();
+  IntColumn get emblem => intEnum<Weathering>()();
+  IntColumn get attempts => integer()();
+  IntColumn get days => integer()();
+  IntColumn get effort => integer()();
+
+  /// JSON of a `RelicStory`.
+  TextColumn get story => text()();
+  TextColumn get inscription => text().nullable().withLength(max: 120)();
+  TextColumn get defeatedDay => text()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {bossId},
+  ];
 }
