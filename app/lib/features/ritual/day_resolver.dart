@@ -41,6 +41,7 @@ class _DayResolverState extends ConsumerState<DayResolver>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(reminderCoordinatorProvider).rearm();
+      _visit();
       _check(isTick: false);
     });
     _startTimer();
@@ -80,11 +81,25 @@ class _DayResolverState extends ConsumerState<DayResolver>
     switch (state) {
       case AppLifecycleState.resumed:
         _startTimer();
+        _visit();
         _check(isTick: false);
       case AppLifecycleState.paused || AppLifecycleState.hidden:
         _timer?.cancel();
       case _:
     }
+  }
+
+  /// Every open counts as a visit (Stage 6 plan D2), even while a fallen
+  /// prompt keeps [_check] busy.
+  void _visit() {
+    ref
+        .read(visitDaoProvider)
+        .record()
+        .catchError(
+          (Object e, StackTrace s) => FlutterError.reportError(
+            FlutterErrorDetails(exception: e, stack: s, library: 'visits'),
+          ),
+        );
   }
 
   Future<void> _check({required bool isTick}) async {

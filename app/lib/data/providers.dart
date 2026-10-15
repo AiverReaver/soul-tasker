@@ -15,6 +15,7 @@ import 'profile_dao.dart';
 import 'relic_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
+import 'visit_dao.dart';
 
 /// Overridden in tests with an in-memory database.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -165,4 +166,8 @@ final soundsProvider = Provider(
     ref.watch(soundPlayerProvider),
     () => ref.read(settingsProvider).value?.sound ?? false,
   ),
+);
+
+final visitDaoProvider = Provider(
+  (ref) => VisitDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
