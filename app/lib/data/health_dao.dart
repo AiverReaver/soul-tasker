@@ -116,18 +116,21 @@ class HealthDao {
       a.id,
   ];
 
-  /// Writes one health event. [amount] is negative for a loss.
+  /// Writes one health event. [amount] is negative for a loss. An [id] that
+  /// is already there writes nothing (Stage 7 plan D6).
   Future<void> record(
     int amount,
     HealthReason reason,
     String day,
     DateTime at, {
     String? commitmentId,
+    String? id,
   }) => _db
       .into(_db.healthEvents)
       .insert(
+        onConflict: DoNothing(),
         HealthEventsCompanion.insert(
-          id: newId(),
+          id: id ?? newId(),
           amount: amount,
           reason: reason,
           commitmentId: Value(commitmentId),
@@ -140,7 +143,21 @@ class HealthDao {
   Future<bool> restore(HealthReason reason, String day, DateTime at) async {
     final missing = kMaxHealthHalfPoints - await health(day);
     if (missing == 0) return false;
-    await record(missing, reason, day, at);
+    // One bonfire restore a day; rises counted within the day (D6).
+    final rises = reason == HealthReason.rise
+        ? (await (_db.select(_db.healthEvents)..where(
+                    (e) => e.day.equals(day) & e.reason.equalsValue(reason),
+                  ))
+                  .get())
+              .length
+        : 0;
+    await record(
+      missing,
+      reason,
+      day,
+      at,
+      id: systemId([day, reason.name, rises]),
+    );
     return true;
   }
 
@@ -212,7 +229,14 @@ class HealthDao {
       ),
     );
     if (s.loss > 0) {
-      await record(-s.loss, HealthReason.miss, c.day, s.at, commitmentId: c.id);
+      await record(
+        -s.loss,
+        HealthReason.miss,
+        c.day,
+        s.at,
+        commitmentId: c.id,
+        id: systemId([c.id, HealthReason.miss.name]),
+      );
     }
   }
 
@@ -272,7 +296,7 @@ class HealthDao {
           .into(_db.commitments)
           .insert(
             CommitmentsCompanion.insert(
-              id: newId(),
+              id: systemId([task.id, today]),
               taskId: task.id,
               bossId: task.bossId,
               day: today,

@@ -47,7 +47,8 @@ class EmberDao {
   }
 
   /// Writes the earn event for an attempt. Call inside the attempt's
-  /// transaction. Nothing is written for a zero amount.
+  /// transaction. Nothing is written for a zero amount, or when an event
+  /// with [id] is already there (Stage 7 plan D6).
   Future<void> earn({
     required Outcome outcome,
     required Weight? weight,
@@ -56,10 +57,11 @@ class EmberDao {
     required String day,
     required DateTime at,
     bool isLate = false,
+    String? id,
   }) async {
     final amount = amountFor(outcome, weight, isLate: isLate);
     if (amount == 0) return;
-    await _insert(EmberKind.earn, amount, bossId, taskId, day, at);
+    await _insert(EmberKind.earn, amount, bossId, taskId, day, at, id: id);
   }
 
   /// Makes the carried embers permanent. Returns the amount banked; with
@@ -92,12 +94,14 @@ class EmberDao {
     String? bossId,
     String? taskId,
     String day,
-    DateTime at,
-  ) => _db
+    DateTime at, {
+    String? id,
+  }) => _db
       .into(_db.emberEvents)
       .insert(
+        onConflict: DoNothing(),
         EmberEventsCompanion.insert(
-          id: newId(),
+          id: id ?? newId(),
           kind: kind,
           amount: amount,
           bossId: Value(bossId),

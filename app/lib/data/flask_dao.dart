@@ -44,8 +44,17 @@ class FlaskDao {
     DateTime? at,
   }) => _add(FlaskKind.spend, amount, reason, day, at);
 
-  Future<void> restore(FlaskReason reason, String day, {DateTime? at}) =>
-      _add(FlaskKind.restore, 1, reason, day, at);
+  /// A bonfire restore is one per day, alike on every phone (D6).
+  Future<void> restore(FlaskReason reason, String day, {DateTime? at}) => _add(
+    FlaskKind.restore,
+    1,
+    reason,
+    day,
+    at,
+    id: reason == FlaskReason.bonfire
+        ? systemId([day, FlaskKind.restore.name])
+        : null,
+  );
 
   /// Writes one event that brings the count to [target], or none if it is
   /// there already.
@@ -67,12 +76,14 @@ class FlaskDao {
     int amount,
     FlaskReason reason,
     String day,
-    DateTime? at,
-  ) => _db
+    DateTime? at, {
+    String? id,
+  }) => _db
       .into(_db.flaskEvents)
       .insert(
+        onConflict: DoNothing(),
         FlaskEventsCompanion.insert(
-          id: newId(),
+          id: id ?? newId(),
           kind: kind,
           amount: amount,
           reason: reason,

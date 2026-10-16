@@ -71,7 +71,8 @@ class RelicDao {
             ),
       ],
     );
-    final id = newId();
+    // One relic per boss, alike on every phone (D6).
+    final id = systemId([bossId]);
     await _db
         .into(_db.relics)
         .insert(

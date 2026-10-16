@@ -99,7 +99,8 @@ class CommitmentDao {
       _db.commitments,
     )..where((c) => c.taskId.equals(taskId) & c.day.equals(day))).get();
     if (existing.isNotEmpty) return null;
-    final id = newId();
+    // One commitment per task per day, alike on every phone (D6).
+    final id = systemId([taskId, day]);
     await _db
         .into(_db.commitments)
         .insert(

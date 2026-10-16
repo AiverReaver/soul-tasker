@@ -45,7 +45,8 @@ class AttemptDao {
   Future<Boss> _boss(String bossId) =>
       (_db.select(_db.bosses)..where((b) => b.id.equals(bossId))).getSingle();
 
-  /// Inserts the attempt and its ember earn. Returns the attempt id.
+  /// Inserts the attempt and its ember earn. Returns the attempt id. [id]
+  /// and [earnId] are given for records two phones make alike (D6).
   Future<String> _insert({
     required Boss boss,
     required Outcome outcome,
@@ -57,9 +58,11 @@ class AttemptDao {
     String? lesson,
     String? onDay,
     bool isLate = false,
+    String? id,
+    String? earnId,
   }) async {
     final day = onDay ?? dayOf(now, rolloverHour: await _db.rolloverHour());
-    final id = newId();
+    id ??= newId();
     await _db
         .into(_db.attempts)
         .insert(
@@ -85,6 +88,7 @@ class AttemptDao {
       day: day,
       at: now,
       isLate: isLate,
+      id: earnId,
     );
     await (_db.update(_db.bosses)..where((b) => b.id.equals(boss.id))).write(
       BossesCompanion(
@@ -125,6 +129,7 @@ class AttemptDao {
         taskId: taskId,
         weight: task.weight,
         isLate: promise != null && _paysLate.contains(outcome),
+        earnId: systemId([taskId, await _strikePeriod(task, before, now)]),
       );
       if (promise != null && outcome == null) {
         await _close(promise, CommitmentOutcome.kept, now);
@@ -138,6 +143,20 @@ class AttemptDao {
         isVanquished: !before.isVanquished && after!.isVanquished,
       );
     });
+  }
+
+  /// What one paid strike of [task] covers (D6): the day for a daily task,
+  /// the attempt it is open from for a one-time task, so a reset task pays
+  /// again but two phones striking it once pay once.
+  Future<String> _strikePeriod(Task task, BossView view, DateTime now) async {
+    if (task.recurrence == Recurrence.daily) {
+      return dayOf(now, rolloverHour: await _db.rolloverHour());
+    }
+    final phase = view.phases
+        .where((p) => p.phase.id == task.phaseId)
+        .firstOrNull
+        ?.phase;
+    return 'attempt ${phase?.openFromAttempt ?? view.boss.openFromAttempt}';
   }
 
   /// Records a try that fell short. Returns true when the rule of three
@@ -236,14 +255,25 @@ class AttemptDao {
       final view = (await _bosses.loadBoss(bossId))!;
       final boss = view.boss;
       final current = view.currentPhase?.phase;
+      final day = onDay ?? dayOf(now, rolloverHour: await _db.rolloverHour());
+      final systemMade = await _fallId(bossId, cause, day);
+      if (systemMade != null &&
+          await (_db.select(
+                _db.attempts,
+              )..where((a) => a.id.equals(systemMade))).getSingleOrNull() !=
+              null) {
+        // Another phone's fall for the same reason is already here.
+        return systemMade;
+      }
       final id = await _insert(
+        id: systemMade,
         boss: boss,
         outcome: Outcome.fallen,
         now: now,
         phaseId: current?.id,
         cause: cause,
         lesson: lesson,
-        onDay: onDay,
+        onDay: day,
       );
       final fall = await (_db.select(
         _db.attempts,
@@ -257,6 +287,28 @@ class AttemptDao {
       await _reset(view, current, next, now);
       return id;
     });
+  }
+
+  /// The id of a fall the app makes, alike on every phone (D6): one per
+  /// boss per missed day; one per health death, counted within the day.
+  /// Null for a declared fall, which the user makes.
+  Future<String?> _fallId(String bossId, FallCause cause, String day) async {
+    switch (cause) {
+      case FallCause.declared:
+        return null;
+      case FallCause.missedDay:
+        return systemId([bossId, day, cause.name]);
+      case FallCause.healthDeath:
+        final before =
+            await (_db.select(_db.attempts)..where(
+                  (a) =>
+                      a.bossId.equals(bossId) &
+                      a.day.equals(day) &
+                      a.cause.equalsValue(FallCause.healthDeath),
+                ))
+                .get();
+        return systemId([bossId, day, cause.name, before.length]);
+    }
   }
 
   /// Adds the lesson to a fall written before it was asked (a health death,
