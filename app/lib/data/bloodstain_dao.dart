@@ -95,13 +95,19 @@ class BloodstainDao {
             .get();
     if (live.length < 2) return;
     final winner = live.first;
-    await (_db.update(
-      _db.bloodstains,
-    )..where((b) => b.id.isIn([for (final s in live.skip(1)) s.id]))).write(
-      BloodstainsCompanion(
-        lostAt: Value(winner.createdAt),
-        updatedAt: Value(_clock()),
-      ),
-    );
+    for (final loser in live.skip(1)) {
+      final updatedAt = stainUpdatedAt(loser.createdAt, (
+        recoveredAt: null,
+        lostAt: winner.createdAt,
+      ));
+      await (_db.update(
+        _db.bloodstains,
+      )..where((b) => b.id.equals(loser.id))).write(
+        BloodstainsCompanion(
+          lostAt: Value(winner.createdAt),
+          updatedAt: Value(updatedAt),
+        ),
+      );
+    }
   });
 }

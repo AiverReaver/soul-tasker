@@ -2,15 +2,34 @@
 
 _Last updated: [date]_
 
-Hearthrise is a task tracker that runs entirely on your phone.
+Hearthrise is a task tracker that works fully on your phone. An account is optional. It is only for backing up your data and using it on more than one phone.
 
-## What we collect
+## Without an account
 
-Nothing. Hearthrise has no account and no sign-in, and it makes no network requests. The app does not include analytics, advertising or crash-reporting libraries.
+If you never sign in, Hearthrise collects nothing and makes no network requests. Your bosses, tasks, attempts, lessons, embers, relics and settings stay in the app's private storage on your phone. Uninstalling the app deletes them. The app does not include analytics, advertising or crash-reporting libraries.
 
-## What stays on your phone
+## With an account
 
-Your bosses, tasks, attempts, lessons, embers, relics and settings are stored only in the app's private storage on your device. Uninstalling the app deletes them.
+You can turn on "Back up and sync" in Settings. It uses Google Sign-In.
+
+**What we receive from Google:** your email address and a Google account id. We use them only to find your account.
+
+**What is backed up to our server:** your bosses, phases, tasks, attempts, lessons you typed, relics and inscriptions, embers, health and flask records, bloodstains, daily plans, day records, and the app settings that are the same on every phone (hold or tap, haptics, when a day ends, reminder choice, sound).
+
+**What never leaves your phone:** tester signals (visits and the counts behind "Copy tester report"), the time of your last missed-day check, and your notification schedule.
+
+**Where it is stored:** on our server in a PostgreSQL database, sent over an encrypted (HTTPS) connection. Backups are kept for 7 days. We do not sell or share your data, and we do not use it for advertising.
+
+**Sessions:** after sign-in, your phone keeps a random session token in the device's secure storage. The server keeps only a hash of it. Signing out forgets the token on your phone and ends the session on the server.
+
+## Deleting your account
+
+You can delete your account in two ways. Everything backed up to it, and the account itself, is removed.
+
+- In the app: Settings, "Delete account".
+- On the web, without the app: [deletion page URL]
+
+Deleting the account does not delete the data on your phone. Uninstalling the app does.
 
 ## Notifications
 

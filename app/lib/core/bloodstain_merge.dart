@@ -18,3 +18,14 @@ DateTime? _earliest(DateTime? a, DateTime? b) {
   if (b == null) return a;
   return a.isBefore(b) ? a : b;
 }
+
+/// A bloodstain's `updatedAt`: the latest of its own times. Its fields
+/// merge instead of racing on a write time (D19), so this is a function of
+/// the merged row and every phone and the server store the same value.
+DateTime stainUpdatedAt(DateTime createdAt, StainTimes times) {
+  var latest = createdAt;
+  for (final t in [times.recoveredAt, times.lostAt]) {
+    if (t != null && t.isAfter(latest)) latest = t;
+  }
+  return latest;
+}

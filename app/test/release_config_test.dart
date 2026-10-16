@@ -10,12 +10,12 @@ void main() {
   final manifest = File('android/app/src/main/AndroidManifest.xml')
       .readAsStringSync();
 
-  test('version is 0.6.0+N and kAppVersion matches (plan D9)', () {
+  test('version is 0.7.0+N and kAppVersion matches (plan D9)', () {
     final version = RegExp(
       r'^version:\s*(\S+)',
       multiLine: true,
     ).firstMatch(File('pubspec.yaml').readAsStringSync())!.group(1)!;
-    final match = RegExp(r'^0\.6\.0\+(\d+)$').firstMatch(version);
+    final match = RegExp(r'^0\.7\.0\+(\d+)$').firstMatch(version);
 
     expect(match, isNotNull, reason: 'version was $version');
     expect(int.parse(match!.group(1)!), greaterThanOrEqualTo(1));
@@ -45,16 +45,26 @@ void main() {
     }
   });
 
-  test('only the two notification permissions; no INTERNET (plan D1)', () {
+  test('INTERNET and the two notification permissions, nothing else', () {
     final permissions = RegExp(r'uses-permission\s+android:name="([^"]+)"')
         .allMatches(manifest)
         .map((m) => m.group(1))
         .toSet();
 
     expect(permissions, {
+      'android.permission.INTERNET',
       'android.permission.POST_NOTIFICATIONS',
       'android.permission.RECEIVE_BOOT_COMPLETED',
     });
+  });
+
+  test('traffic is encrypted: no cleartext, no user-added certificates', () {
+    expect(manifest, isNot(contains('usesCleartextTraffic="true"')));
+    expect(manifest, isNot(contains('networkSecurityConfig')));
+    expect(
+      File('lib/server_config.dart').readAsStringSync(),
+      isNot(contains('http://')),
+    );
   });
 
   test('the launcher icon is adaptive with a vector foreground (D14)', () {

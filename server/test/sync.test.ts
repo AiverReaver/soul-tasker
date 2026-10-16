@@ -402,6 +402,21 @@ describe('bloodstains (D11, D19)', () => {
     }
   }
 
+  test.each([
+    ['recovery first', 0],
+    ['loss first', 1],
+  ])('updated_at is the latest of its own times, whatever the order (%s)', async (_, first) => {
+    const recovered = { id: 's1', created_at: T0, recovered_at: T1, updated_at: T1 };
+    const lost = { id: 's1', created_at: T0, lost_at: T2, updated_at: T2 };
+    const batches = [[recovered], [lost]];
+    for (const [i, batch] of [batches[first]!, batches[1 - first]!].entries()) {
+      await push(batch.map(stain), `dev-${i}`);
+    }
+    const latest = (await pull()).changes.filter((c) => c.table === 'bloodstains').at(-1)!;
+    expect(latest.row!.lost_at).toBeNull();
+    expect(new Date(latest.updatedAt!).toISOString()).toBe(T1);
+  });
+
   test('a second active bloodstain on one boss fails the unique index', async () => {
     await push([stain({ id: 's1', created_at: T0 })]);
     const { rows } = await t.db.pool.query('SELECT user_id FROM bloodstains');

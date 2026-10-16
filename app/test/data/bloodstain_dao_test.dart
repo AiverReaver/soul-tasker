@@ -92,6 +92,16 @@ void main() {
     });
   });
 
+  test('stainUpdatedAt is the latest of its own times (server rule)', () {
+    final created = DateTime.utc(2026, 10, 13, 9);
+    final rec = DateTime.utc(2026, 10, 13, 9, 30);
+    final lost = DateTime.utc(2026, 10, 13, 10);
+    expect(stainUpdatedAt(created, (recoveredAt: null, lostAt: null)), created);
+    expect(stainUpdatedAt(created, (recoveredAt: rec, lostAt: null)), rec);
+    expect(stainUpdatedAt(created, (recoveredAt: null, lostAt: lost)), lost);
+    expect(stainUpdatedAt(created, (recoveredAt: rec, lostAt: lost)), lost);
+  });
+
   group('mergeStainTimes (D19)', () {
     final t1 = DateTime(2026, 10, 13, 9);
     final t2 = DateTime(2026, 10, 13, 10);
@@ -184,6 +194,20 @@ void main() {
       await stains.settleBloodstains(bossA);
       expect((await stains.active(bossA))?.id, 's-new');
       expect((await row('s-old')).lostAt, newer);
+    });
+
+    test('the loser keeps the later of its own time and the winner\'s, as the '
+        'server does, so both ends store the same row', () async {
+      final older = DateTime(2026, 10, 13, 9);
+      final newer = DateTime(2026, 10, 13, 10);
+      await applying(() async {
+        await insertActive('s-old', older);
+        await insertActive('s-new', newer);
+      });
+      h.clock.now = DateTime(2026, 10, 20); // not a time the server knows
+      await stains.settleBloodstains(bossA);
+      expect((await row('s-old')).updatedAt, newer);
+      expect((await row('s-new')).updatedAt, newer);
     });
 
     test(

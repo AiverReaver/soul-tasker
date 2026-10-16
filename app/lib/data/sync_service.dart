@@ -455,7 +455,12 @@ class SyncService {
       ));
       row['recovered_at'] = merged.recoveredAt?.toIso8601String();
       row['lost_at'] = merged.lostAt?.toIso8601String();
-      await _write('bloodstains', id, row, remoteAt);
+      await _write(
+        'bloodstains',
+        id,
+        row,
+        stainUpdatedAt(_parse(row['created_at']), merged),
+      );
       return _Applied(bossId: bossId);
     }
     final localTimes = (
@@ -463,16 +468,17 @@ class SyncService {
       lostAt: time(local['lost_at']),
     );
     final merged = mergeStainTimes(localTimes, remoteTimes);
+    final updatedAt = stainUpdatedAt(_parse(local['created_at']), merged);
     if (merged.recoveredAt != localTimes.recoveredAt ||
-        merged.lostAt != localTimes.lostAt) {
-      final localAt = _parse(local['updated_at']);
+        merged.lostAt != localTimes.lostAt ||
+        updatedAt != _parse(local['updated_at'])) {
       await _db.customStatement(
         'UPDATE bloodstains SET recovered_at = ?, lost_at = ?, updated_at = ? '
         'WHERE id = ?',
         [
           _toSql('timestamptz', merged.recoveredAt?.toIso8601String()),
           _toSql('timestamptz', merged.lostAt?.toIso8601String()),
-          sqlTime((remoteAt.isAfter(localAt) ? remoteAt : localAt).toLocal()),
+          sqlTime(updatedAt.toLocal()),
           id,
         ],
       );
@@ -568,16 +574,16 @@ class SyncScheduler {
   bool _again = false;
   bool _disposed = false;
 
-  /// App start.
-  void start() => _now();
+  /// App start, or a fresh sign-in. Completes with how the run ended.
+  Future<SyncOutcome> start() => _now();
 
   /// App back in the foreground.
-  void resumed() => _now();
+  Future<SyncOutcome> resumed() => _now();
 
-  void _now() {
+  Future<SyncOutcome> _now() {
     _waiting?.cancel();
     _failures = 0;
-    unawaited(_go());
+    return _go();
   }
 
   /// A local write happened. Ignored while waiting out a failure or after
@@ -588,11 +594,13 @@ class SyncScheduler {
     _waiting = _timer(debounce, () => unawaited(_go()));
   }
 
-  Future<void> _go() async {
-    if (_disposed) return;
+  /// Runs now. Completes `failed` when it could not run: one is already
+  /// in flight (it will go again) or the scheduler is gone.
+  Future<SyncOutcome> _go() async {
+    if (_disposed) return SyncOutcome.failed;
     if (_running) {
       _again = true;
-      return;
+      return SyncOutcome.failed;
     }
     _running = true;
     SyncOutcome outcome;
@@ -601,25 +609,26 @@ class SyncScheduler {
     } finally {
       _running = false;
     }
-    if (_disposed) return;
+    if (_disposed) return outcome;
     switch (outcome) {
       case SyncOutcome.synced:
         _failures = 0;
       case SyncOutcome.signedOut:
         _failures = 0;
-        return;
+        return outcome;
       case SyncOutcome.failed:
         _failures++;
         if (_failures <= backoff.length) {
           _waiting?.cancel();
           _waiting = _timer(backoff[_failures - 1], () => unawaited(_go()));
         }
-        return;
+        return outcome;
     }
     if (_again) {
       _again = false;
       localWrite();
     }
+    return outcome;
   }
 
   void dispose() {

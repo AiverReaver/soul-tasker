@@ -223,6 +223,19 @@ class Push {
   }
 
   /**
+   * A bloodstain's updated_at is not a last-write-wins key (its fields merge,
+   * D19); it is the latest of its own times, so every phone and the server
+   * store the same value whatever order the pushes arrive in.
+   */
+  private async stainTime(id: string) {
+    await this.db.query(
+      `UPDATE bloodstains SET updated_at = GREATEST(created_at, recovered_at, lost_at)
+       WHERE user_id = $1 AND id = $2`,
+      [this.userId, id],
+    );
+  }
+
+  /**
    * Field merge (D19), then one active per boss (D11): the newest active
    * stays, the rest are lost at its time. Losers are written before the
    * winner, so the partial unique index never sees two.
@@ -271,7 +284,7 @@ class Push {
       for (const loser of others) {
         if (loser.id === winner.id) continue;
         await this.db.query(
-          `UPDATE bloodstains SET lost_at = $3, updated_at = GREATEST(updated_at, $3), seq = $4
+          `UPDATE bloodstains SET lost_at = $3, updated_at = GREATEST(created_at, $3), seq = $4
            WHERE user_id = $1 AND id = $2`,
           [u, loser.id, winner.created_at, await this.nextSeq()],
         );
@@ -287,15 +300,16 @@ class Push {
         { ...row, lost_at: merged.lost_at, recovered_at: merged.recovered_at },
         change.updatedAt,
       );
+      await this.stainTime(change.id);
       return 'applied';
     }
     if (!merged.changed) return 'ignored';
     await this.db.query(
-      `UPDATE bloodstains SET recovered_at = $3, lost_at = $4,
-         updated_at = GREATEST(updated_at, $5), device_id = $6, seq = $7
+      `UPDATE bloodstains SET recovered_at = $3, lost_at = $4, device_id = $5, seq = $6
        WHERE user_id = $1 AND id = $2`,
-      [u, change.id, merged.recovered_at, merged.lost_at, change.updatedAt, this.deviceId, await this.nextSeq()],
+      [u, change.id, merged.recovered_at, merged.lost_at, this.deviceId, await this.nextSeq()],
     );
+    await this.stainTime(change.id);
     return 'applied';
   }
 }
