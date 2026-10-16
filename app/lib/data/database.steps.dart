@@ -1956,7 +1956,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape3 attempts = Shape3(
+  late final Shape17 attempts = Shape17(
     source: i0.VersionedTable(
       entityName: 'attempts',
       withoutRowId: false,
@@ -1974,12 +1974,13 @@ final class Schema7 extends i0.VersionedSchema {
         _column_26,
         _column_27,
         _column_28,
+        _column_11,
       ],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape17 settings = Shape17(
+  late final Shape18 settings = Shape18(
     source: i0.VersionedTable(
       entityName: 'settings',
       withoutRowId: false,
@@ -1990,7 +1991,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape18 dayLogs = Shape18(
+  late final Shape19 dayLogs = Shape19(
     source: i0.VersionedTable(
       entityName: 'day_logs',
       withoutRowId: false,
@@ -2107,7 +2108,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape19 userSettings = Shape19(
+  late final Shape20 userSettings = Shape20(
     source: i0.VersionedTable(
       entityName: 'user_settings',
       withoutRowId: false,
@@ -2129,7 +2130,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape20 flaskEvents = Shape20(
+  late final Shape21 flaskEvents = Shape21(
     source: i0.VersionedTable(
       entityName: 'flask_events',
       withoutRowId: false,
@@ -2147,7 +2148,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape21 bloodstains = Shape21(
+  late final Shape22 bloodstains = Shape22(
     source: i0.VersionedTable(
       entityName: 'bloodstains',
       withoutRowId: false,
@@ -2168,7 +2169,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape22 syncOutbox = Shape22(
+  late final Shape23 syncOutbox = Shape23(
     source: i0.VersionedTable(
       entityName: 'sync_outbox',
       withoutRowId: false,
@@ -2186,7 +2187,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape23 dayPlans = Shape23(
+  late final Shape24 dayPlans = Shape24(
     source: i0.VersionedTable(
       entityName: 'day_plans',
       withoutRowId: false,
@@ -2197,7 +2198,7 @@ final class Schema7 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape24 syncState = Shape24(
+  late final Shape25 syncState = Shape25(
     source: i0.VersionedTable(
       entityName: 'sync_state',
       withoutRowId: false,
@@ -2224,6 +2225,34 @@ final class Schema7 extends i0.VersionedSchema {
 
 class Shape17 extends i0.VersionedTable {
   Shape17({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get bossId =>
+      columnsByName['boss_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get taskId =>
+      columnsByName['task_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get bossAttempt =>
+      columnsByName['boss_attempt']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get outcome =>
+      columnsByName['outcome']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get cause =>
+      columnsByName['cause']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get phaseId =>
+      columnsByName['phase_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get lesson =>
+      columnsByName['lesson']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get weight =>
+      columnsByName['weight']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get day =>
+      columnsByName['day']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get at =>
+      columnsByName['at']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get updatedAt =>
+      columnsByName['updated_at']! as i1.GeneratedColumn<String>;
+}
+
+class Shape18 extends i0.VersionedTable {
+  Shape18({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<int> get id =>
       columnsByName['id']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<String> get lastResolvedDay =>
@@ -2232,8 +2261,8 @@ class Shape17 extends i0.VersionedTable {
       columnsByName['onboarded']! as i1.GeneratedColumn<int>;
 }
 
-class Shape18 extends i0.VersionedTable {
-  Shape18({required super.source, required super.alias}) : super.aliased();
+class Shape19 extends i0.VersionedTable {
+  Shape19({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get day =>
       columnsByName['day']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get kind =>
@@ -2246,8 +2275,8 @@ class Shape18 extends i0.VersionedTable {
       columnsByName['updated_at']! as i1.GeneratedColumn<String>;
 }
 
-class Shape19 extends i0.VersionedTable {
-  Shape19({required super.source, required super.alias}) : super.aliased();
+class Shape20 extends i0.VersionedTable {
+  Shape20({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get id =>
       columnsByName['id']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get tapMode =>
@@ -2280,8 +2309,8 @@ i1.GeneratedColumn<String> _column_62(String aliasedName) =>
       defaultValue: const i1.CustomExpression('\'user\''),
     );
 
-class Shape20 extends i0.VersionedTable {
-  Shape20({required super.source, required super.alias}) : super.aliased();
+class Shape21 extends i0.VersionedTable {
+  Shape21({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get id =>
       columnsByName['id']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get kind =>
@@ -2296,8 +2325,8 @@ class Shape20 extends i0.VersionedTable {
       columnsByName['at']! as i1.GeneratedColumn<String>;
 }
 
-class Shape21 extends i0.VersionedTable {
-  Shape21({required super.source, required super.alias}) : super.aliased();
+class Shape22 extends i0.VersionedTable {
+  Shape22({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get id =>
       columnsByName['id']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get bossId =>
@@ -2343,8 +2372,8 @@ i1.GeneratedColumn<String> _column_65(String aliasedName) =>
       $customConstraints: 'NULL',
     );
 
-class Shape22 extends i0.VersionedTable {
-  Shape22({required super.source, required super.alias}) : super.aliased();
+class Shape23 extends i0.VersionedTable {
+  Shape23({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<int> get seq =>
       columnsByName['seq']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<String> get tbl =>
@@ -2401,8 +2430,8 @@ i1.GeneratedColumn<String> _column_70(String aliasedName) =>
       $customConstraints: 'NULL',
     );
 
-class Shape23 extends i0.VersionedTable {
-  Shape23({required super.source, required super.alias}) : super.aliased();
+class Shape24 extends i0.VersionedTable {
+  Shape24({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get day =>
       columnsByName['day']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get taskIds =>
@@ -2420,8 +2449,8 @@ i1.GeneratedColumn<String> _column_71(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape24 extends i0.VersionedTable {
-  Shape24({required super.source, required super.alias}) : super.aliased();
+class Shape25 extends i0.VersionedTable {
+  Shape25({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<int> get id =>
       columnsByName['id']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<String> get deviceId =>

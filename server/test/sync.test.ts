@@ -94,7 +94,7 @@ describe('push then pull', () => {
     const results = await push([
       upsert('bosses', 'b1', { title: 'The Garage' }),
       upsert('phases', 'p1', { boss_id: 'b1' }),
-      event('attempts', 'a1', { boss_id: 'b1' }),
+      upsert('attempts', 'a1', { boss_id: 'b1' }),
     ]);
     expect(statuses(results)).toEqual(['applied', 'applied', 'applied']);
     const page = await pull(0);
@@ -144,6 +144,26 @@ describe('last write wins (D5)', () => {
   });
 });
 
+describe('attempts are last write wins', () => {
+  test('a lesson added later on one phone reaches the server', async () => {
+    await push([upsert('bosses', 'b1'), upsert('attempts', 'a1', { boss_id: 'b1', lesson: null }, T0)]);
+    // The other phone wrote the same fall (a system id) without a lesson.
+    expect(statuses(await push([upsert('attempts', 'a1', { boss_id: 'b1', lesson: null }, T0)], 'dev-0'))).toEqual([
+      'ignored',
+    ]);
+    expect(statuses(await push([upsert('attempts', 'a1', { boss_id: 'b1', lesson: 'Promise less.' }, T1)], 'dev-b'))).toEqual(
+      ['applied'],
+    );
+    expect((await current('attempts', 'a1'))!.row!.lesson).toBe('Promise less.');
+    expect(statuses(await push([upsert('attempts', 'a1', { boss_id: 'b1', lesson: null }, T0)]))).toEqual(['ignored']);
+  });
+
+  test('an attempt without updatedAt is malformed', async () => {
+    const [r] = await push([event('attempts', 'a1', { boss_id: 'b1' })]);
+    expect(r).toMatchObject({ status: 'rejected', reason: 'malformed' });
+  });
+});
+
 describe('events (D5, D6)', () => {
   test('the same event from two phones is stored once', async () => {
     await push([event('ember_events', 'e1', { amount: 3 })], 'dev-a');
@@ -183,14 +203,14 @@ describe('tombstones (D5)', () => {
     expect(statuses(await push([upsert('tasks', 't1', { boss_id: 'b1', phase_id: null }, T2)], 'dev-b'))).toEqual([
       'ignored',
     ]);
-    expect(statuses(await push([event('attempts', 'a1', { boss_id: 'b1' })], 'dev-b'))).toEqual(['ignored']);
+    expect(statuses(await push([upsert('attempts', 'a1', { boss_id: 'b1' })], 'dev-b'))).toEqual(['ignored']);
     expect((await pull(before)).changes).toEqual([]);
   });
 
   test('an event inserted after its tombstone stays deleted', async () => {
-    await push([del('attempts', 'a1')]);
-    expect(statuses(await push([event('attempts', 'a1', { boss_id: 'b1' })]))).toEqual(['ignored']);
-    expect((await current('attempts', 'a1'))!.op).toBe('delete');
+    await push([del('ember_events', 'e1')]);
+    expect(statuses(await push([event('ember_events', 'e1')]))).toEqual(['ignored']);
+    expect((await current('ember_events', 'e1'))!.op).toBe('delete');
   });
 
   test('deleting a boss tombstones what the app cascades; a relic keeps its row', async () => {
@@ -200,7 +220,7 @@ describe('tombstones (D5)', () => {
       upsert('tasks', 't1', { boss_id: 'b1', phase_id: 'p1' }),
       upsert('tasks', 't2', { boss_id: 'b1', phase_id: null }),
       upsert('commitments', 'c1', { boss_id: 'b1', task_id: 't1' }),
-      event('attempts', 'a1', { boss_id: 'b1', task_id: 't1', phase_id: 'p1' }),
+      upsert('attempts', 'a1', { boss_id: 'b1', task_id: 't1', phase_id: 'p1' }),
       event('health_events', 'h1', { commitment_id: 'c1' }),
       event('ember_events', 'e1', { boss_id: 'b1', task_id: 't1' }),
       upsert('relics', 'r1', { boss_id: 'b1' }),

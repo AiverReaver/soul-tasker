@@ -196,6 +196,13 @@ class AppDatabase extends _$AppDatabase {
         await m.alterTable(TableMigration(schema.settings));
         await m.alterTable(
           TableMigration(
+            schema.attempts,
+            columnTransformer: {schema.attempts.updatedAt: schema.attempts.at},
+            newColumns: [schema.attempts.updatedAt],
+          ),
+        );
+        await m.alterTable(
+          TableMigration(
             schema.dayLogs,
             columnTransformer: {schema.dayLogs.updatedAt: schema.dayLogs.at},
             newColumns: [schema.dayLogs.updatedAt],

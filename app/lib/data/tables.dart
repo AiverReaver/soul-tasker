@@ -86,6 +86,10 @@ class Attempts extends Table {
   TextColumn get day => text()();
   DateTimeColumn get at => dateTime()();
 
+  /// Sync's last-write-wins key: a lesson can be added to a fall after it
+  /// is written (Stage 7). Starts equal to [at].
+  DateTimeColumn get updatedAt => dateTime()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

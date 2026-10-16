@@ -80,12 +80,14 @@ void main() {
     expect(events.map((e) => e.kind), everyElement(SignalKind.fell));
     expect(events.map((e) => e.day), ['2026-10-02', '2026-10-04']);
     // Same instant as the fallen attempt it came from.
-    final falls =
-        await (db.select(db.attempts)
-              ..where((a) => a.outcome.equalsValue(Outcome.fallen))
-              ..orderBy([(a) => OrderingTerm(expression: a.at)]))
-            .get();
-    expect(events.map((e) => e.at), falls.map((a) => a.at));
+    // Raw SQL: a v6 attempt has no updated_at for the v7 class to read.
+    final falls = await db
+        .customSelect(
+          'SELECT at FROM attempts WHERE outcome = ? ORDER BY at',
+          variables: [Variable.withInt(Outcome.fallen.index)],
+        )
+        .get();
+    expect(events.map((e) => e.at), falls.map((a) => a.read<DateTime>('at')));
     expect(events.map((e) => e.value), everyElement(isNull));
     expect(events.map((e) => e.id).toSet(), hasLength(2));
     await db.close();

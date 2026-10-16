@@ -654,6 +654,16 @@
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
+          },
+          {
+            "name": "updated_at",
+            "getter_name": "updatedAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
           }
         ],
         "is_virtual": false,
@@ -2159,7 +2169,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"attempts\" (\"id\" TEXT NOT NULL, \"boss_id\" TEXT NOT NULL REFERENCES bosses (id) ON DELETE CASCADE, \"task_id\" TEXT NULL REFERENCES tasks (id) ON DELETE SET NULL, \"boss_attempt\" INTEGER NOT NULL, \"outcome\" INTEGER NOT NULL, \"cause\" INTEGER NULL, \"phase_id\" TEXT NULL REFERENCES phases (id) ON DELETE SET NULL, \"lesson\" TEXT NULL, \"weight\" INTEGER NULL, \"day\" TEXT NOT NULL, \"at\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"attempts\" (\"id\" TEXT NOT NULL, \"boss_id\" TEXT NOT NULL REFERENCES bosses (id) ON DELETE CASCADE, \"task_id\" TEXT NULL REFERENCES tasks (id) ON DELETE SET NULL, \"boss_attempt\" INTEGER NOT NULL, \"outcome\" INTEGER NOT NULL, \"cause\" INTEGER NULL, \"phase_id\" TEXT NULL REFERENCES phases (id) ON DELETE SET NULL, \"lesson\" TEXT NULL, \"weight\" INTEGER NULL, \"day\" TEXT NOT NULL, \"at\" TEXT NOT NULL, \"updated_at\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
         }
       ]
     },

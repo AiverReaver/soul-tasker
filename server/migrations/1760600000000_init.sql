@@ -90,6 +90,7 @@ CREATE TABLE attempts (
   weight integer,
   day text,
   at timestamptz,
+  updated_at timestamptz,
   device_id text NOT NULL,
   seq bigint NOT NULL,
   deleted_at timestamptz,

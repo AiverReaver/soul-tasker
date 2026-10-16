@@ -2072,6 +2072,17 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2085,6 +2096,7 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
     weight,
     day,
     at,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2153,6 +2165,14 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
     } else if (isInserting) {
       context.missing(_atMeta);
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
     return context;
   }
 
@@ -2212,6 +2232,10 @@ class $AttemptsTable extends Attempts with TableInfo<$AttemptsTable, Attempt> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}at'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -2247,6 +2271,10 @@ class Attempt extends DataClass implements Insertable<Attempt> {
   final Weight? weight;
   final String day;
   final DateTime at;
+
+  /// Sync's last-write-wins key: a lesson can be added to a fall after it
+  /// is written (Stage 7). Starts equal to [at].
+  final DateTime updatedAt;
   const Attempt({
     required this.id,
     required this.bossId,
@@ -2259,6 +2287,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     this.weight,
     required this.day,
     required this.at,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2292,6 +2321,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     }
     map['day'] = Variable<String>(day);
     map['at'] = Variable<DateTime>(at);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -2318,6 +2348,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
           : Value(weight),
       day: Value(day),
       at: Value(at),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -2344,6 +2375,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       ),
       day: serializer.fromJson<String>(json['day']),
       at: serializer.fromJson<DateTime>(json['at']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -2367,6 +2399,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       ),
       'day': serializer.toJson<String>(day),
       'at': serializer.toJson<DateTime>(at),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -2382,6 +2415,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     Value<Weight?> weight = const Value.absent(),
     String? day,
     DateTime? at,
+    DateTime? updatedAt,
   }) => Attempt(
     id: id ?? this.id,
     bossId: bossId ?? this.bossId,
@@ -2394,6 +2428,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     weight: weight.present ? weight.value : this.weight,
     day: day ?? this.day,
     at: at ?? this.at,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   Attempt copyWithCompanion(AttemptsCompanion data) {
     return Attempt(
@@ -2410,6 +2445,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
       weight: data.weight.present ? data.weight.value : this.weight,
       day: data.day.present ? data.day.value : this.day,
       at: data.at.present ? data.at.value : this.at,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -2426,7 +2462,8 @@ class Attempt extends DataClass implements Insertable<Attempt> {
           ..write('lesson: $lesson, ')
           ..write('weight: $weight, ')
           ..write('day: $day, ')
-          ..write('at: $at')
+          ..write('at: $at, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2444,6 +2481,7 @@ class Attempt extends DataClass implements Insertable<Attempt> {
     weight,
     day,
     at,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -2459,7 +2497,8 @@ class Attempt extends DataClass implements Insertable<Attempt> {
           other.lesson == this.lesson &&
           other.weight == this.weight &&
           other.day == this.day &&
-          other.at == this.at);
+          other.at == this.at &&
+          other.updatedAt == this.updatedAt);
 }
 
 class AttemptsCompanion extends UpdateCompanion<Attempt> {
@@ -2474,6 +2513,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
   final Value<Weight?> weight;
   final Value<String> day;
   final Value<DateTime> at;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const AttemptsCompanion({
     this.id = const Value.absent(),
@@ -2487,6 +2527,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     this.weight = const Value.absent(),
     this.day = const Value.absent(),
     this.at = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AttemptsCompanion.insert({
@@ -2501,13 +2542,15 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     this.weight = const Value.absent(),
     required String day,
     required DateTime at,
+    required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        bossId = Value(bossId),
        bossAttempt = Value(bossAttempt),
        outcome = Value(outcome),
        day = Value(day),
-       at = Value(at);
+       at = Value(at),
+       updatedAt = Value(updatedAt);
   static Insertable<Attempt> custom({
     Expression<String>? id,
     Expression<String>? bossId,
@@ -2520,6 +2563,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     Expression<int>? weight,
     Expression<String>? day,
     Expression<DateTime>? at,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2534,6 +2578,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
       if (weight != null) 'weight': weight,
       if (day != null) 'day': day,
       if (at != null) 'at': at,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2550,6 +2595,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     Value<Weight?>? weight,
     Value<String>? day,
     Value<DateTime>? at,
+    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return AttemptsCompanion(
@@ -2564,6 +2610,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
       weight: weight ?? this.weight,
       day: day ?? this.day,
       at: at ?? this.at,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2610,6 +2657,9 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
     if (at.present) {
       map['at'] = Variable<DateTime>(at.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2630,6 +2680,7 @@ class AttemptsCompanion extends UpdateCompanion<Attempt> {
           ..write('weight: $weight, ')
           ..write('day: $day, ')
           ..write('at: $at, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11657,6 +11708,7 @@ typedef $$AttemptsTableCreateCompanionBuilder = AttemptsCompanion Function({
   Value<Weight?> weight,
   required String day,
   required DateTime at,
+  required DateTime updatedAt,
   Value<int> rowid,
 });
 typedef $$AttemptsTableUpdateCompanionBuilder = AttemptsCompanion Function({
@@ -11671,6 +11723,7 @@ typedef $$AttemptsTableUpdateCompanionBuilder = AttemptsCompanion Function({
   Value<Weight?> weight,
   Value<String> day,
   Value<DateTime> at,
+  Value<DateTime> updatedAt,
   Value<int> rowid,
 });
 
@@ -11797,6 +11850,11 @@ class $$AttemptsTableFilterComposer
 
   ColumnFilters<DateTime> get at => $composableBuilder(
     column: $table.at,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11944,6 +12002,11 @@ class $$AttemptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$BossesTableOrderingComposer get bossId {
     final $$BossesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -12048,6 +12111,9 @@ class $$AttemptsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get at =>
       $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
   $$BossesTableAnnotationComposer get bossId {
     final $$BossesTableAnnotationComposer composer = $composerBuilder(
@@ -12188,6 +12254,7 @@ class $$AttemptsTableTableManager
                 Value<Weight?> weight = const Value.absent(),
                 Value<String> day = const Value.absent(),
                 Value<DateTime> at = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AttemptsCompanion(
                 id: id,
@@ -12201,6 +12268,7 @@ class $$AttemptsTableTableManager
                 weight: weight,
                 day: day,
                 at: at,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12216,6 +12284,7 @@ class $$AttemptsTableTableManager
                 Value<Weight?> weight = const Value.absent(),
                 required String day,
                 required DateTime at,
+                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => AttemptsCompanion.insert(
                 id: id,
@@ -12229,6 +12298,7 @@ class $$AttemptsTableTableManager
                 weight: weight,
                 day: day,
                 at: at,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

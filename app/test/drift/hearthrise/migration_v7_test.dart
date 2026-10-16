@@ -138,6 +138,16 @@ void main() {
     await db.close();
   });
 
+  test('attempts get updatedAt from at', () async {
+    final db = await upgraded();
+    final attempts = await db.select(db.attempts).get();
+    expect(attempts, hasLength(2));
+    for (final a in attempts) {
+      expect(a.updatedAt, a.at);
+    }
+    await db.close();
+  });
+
   test('day logs get updatedAt from at', () async {
     final db = await upgraded();
     final logs = await (db.select(

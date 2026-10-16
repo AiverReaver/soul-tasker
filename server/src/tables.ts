@@ -97,8 +97,10 @@ export const SYNCED_COLUMNS: Record<string, Record<string, ColumnType>> = {
   },
 };
 
-/** Insert-once tables (D5): never updated, so no updated_at. */
-export const EVENT_TABLES = new Set(['attempts', 'health_events', 'ember_events', 'flask_events']);
+/** Insert-once tables (D5): never updated, so no updated_at. Attempts are
+ * not among them: a lesson can be added to a fall later, so they merge by
+ * last write wins like other records. */
+export const EVENT_TABLES = new Set(['health_events', 'ember_events', 'flask_events']);
 
 /** Payload column names per synced table. */
 export const SYNCED_TABLES: Record<string, string[]> = Object.fromEntries(

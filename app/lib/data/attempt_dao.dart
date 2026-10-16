@@ -78,6 +78,7 @@ class AttemptDao {
             lesson: Value(lesson),
             day: day,
             at: now,
+            updatedAt: now,
           ),
         );
     await _embers.earn(
@@ -316,9 +317,11 @@ class AttemptDao {
   Future<void> addLesson(List<String> attemptIds, String? lesson) async {
     final clean = cleanLesson(lesson);
     if (clean == null) return;
-    await (_db.update(_db.attempts)
-          ..where((a) => a.id.isIn(attemptIds) & a.lesson.isNull()))
-        .write(AttemptsCompanion(lesson: Value(clean)));
+    await (_db.update(
+      _db.attempts,
+    )..where((a) => a.id.isIn(attemptIds) & a.lesson.isNull())).write(
+      AttemptsCompanion(lesson: Value(clean), updatedAt: Value(_clock())),
+    );
   }
 
   Future<void> _reset(

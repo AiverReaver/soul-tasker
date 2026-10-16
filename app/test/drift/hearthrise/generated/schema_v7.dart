@@ -1670,6 +1670,14 @@ class Attempts extends Table with TableInfo<Attempts, AttemptsData> {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1683,6 +1691,7 @@ class Attempts extends Table with TableInfo<Attempts, AttemptsData> {
     weight,
     day,
     at,
+    updatedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1739,6 +1748,10 @@ class Attempts extends Table with TableInfo<Attempts, AttemptsData> {
         DriftSqlType.string,
         data['${effectivePrefix}at'],
       )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -1765,6 +1778,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
   final int? weight;
   final String day;
   final String at;
+  final String updatedAt;
   const AttemptsData({
     required this.id,
     required this.bossId,
@@ -1777,6 +1791,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
     this.weight,
     required this.day,
     required this.at,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1802,6 +1817,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
     }
     map['day'] = Variable<String>(day);
     map['at'] = Variable<String>(at);
+    map['updated_at'] = Variable<String>(updatedAt);
     return map;
   }
 
@@ -1828,6 +1844,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
           : Value(weight),
       day: Value(day),
       at: Value(at),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -1848,6 +1865,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
       weight: serializer.fromJson<int?>(json['weight']),
       day: serializer.fromJson<String>(json['day']),
       at: serializer.fromJson<String>(json['at']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
     );
   }
   @override
@@ -1865,6 +1883,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
       'weight': serializer.toJson<int?>(weight),
       'day': serializer.toJson<String>(day),
       'at': serializer.toJson<String>(at),
+      'updatedAt': serializer.toJson<String>(updatedAt),
     };
   }
 
@@ -1880,6 +1899,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
     Value<int?> weight = const Value.absent(),
     String? day,
     String? at,
+    String? updatedAt,
   }) => AttemptsData(
     id: id ?? this.id,
     bossId: bossId ?? this.bossId,
@@ -1892,6 +1912,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
     weight: weight.present ? weight.value : this.weight,
     day: day ?? this.day,
     at: at ?? this.at,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   AttemptsData copyWithCompanion(AttemptsCompanion data) {
     return AttemptsData(
@@ -1908,6 +1929,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
       weight: data.weight.present ? data.weight.value : this.weight,
       day: data.day.present ? data.day.value : this.day,
       at: data.at.present ? data.at.value : this.at,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -1924,7 +1946,8 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
           ..write('lesson: $lesson, ')
           ..write('weight: $weight, ')
           ..write('day: $day, ')
-          ..write('at: $at')
+          ..write('at: $at, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1942,6 +1965,7 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
     weight,
     day,
     at,
+    updatedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -1957,7 +1981,8 @@ class AttemptsData extends DataClass implements Insertable<AttemptsData> {
           other.lesson == this.lesson &&
           other.weight == this.weight &&
           other.day == this.day &&
-          other.at == this.at);
+          other.at == this.at &&
+          other.updatedAt == this.updatedAt);
 }
 
 class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
@@ -1972,6 +1997,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
   final Value<int?> weight;
   final Value<String> day;
   final Value<String> at;
+  final Value<String> updatedAt;
   final Value<int> rowid;
   const AttemptsCompanion({
     this.id = const Value.absent(),
@@ -1985,6 +2011,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
     this.weight = const Value.absent(),
     this.day = const Value.absent(),
     this.at = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AttemptsCompanion.insert({
@@ -1999,13 +2026,15 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
     this.weight = const Value.absent(),
     required String day,
     required String at,
+    required String updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        bossId = Value(bossId),
        bossAttempt = Value(bossAttempt),
        outcome = Value(outcome),
        day = Value(day),
-       at = Value(at);
+       at = Value(at),
+       updatedAt = Value(updatedAt);
   static Insertable<AttemptsData> custom({
     Expression<String>? id,
     Expression<String>? bossId,
@@ -2018,6 +2047,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
     Expression<int>? weight,
     Expression<String>? day,
     Expression<String>? at,
+    Expression<String>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2032,6 +2062,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
       if (weight != null) 'weight': weight,
       if (day != null) 'day': day,
       if (at != null) 'at': at,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2048,6 +2079,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
     Value<int?>? weight,
     Value<String>? day,
     Value<String>? at,
+    Value<String>? updatedAt,
     Value<int>? rowid,
   }) {
     return AttemptsCompanion(
@@ -2062,6 +2094,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
       weight: weight ?? this.weight,
       day: day ?? this.day,
       at: at ?? this.at,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2102,6 +2135,9 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
     if (at.present) {
       map['at'] = Variable<String>(at.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2122,6 +2158,7 @@ class AttemptsCompanion extends UpdateCompanion<AttemptsData> {
           ..write('weight: $weight, ')
           ..write('day: $day, ')
           ..write('at: $at, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
