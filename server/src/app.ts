@@ -6,6 +6,8 @@ import type pg from 'pg';
 import type { JWTVerifyGetKey } from 'jose';
 import pkg from '../package.json' with { type: 'json' };
 import { hashToken, newSessionToken, sessionExpiry, verifyGoogleIdToken } from './auth.ts';
+import { syncRoutes } from './sync.ts';
+import type { SyncHooks } from './sync.ts';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -21,6 +23,7 @@ export type AppOptions = {
   jwks: JWTVerifyGetKey;
   now?: () => Date;
   logger?: boolean;
+  hooks?: SyncHooks;
 };
 
 const ErrorBody = Type.Object({ error: Type.String() });
@@ -29,6 +32,10 @@ const User = Type.Object({ id: Type.String(), email: Type.String() });
 export async function buildApp(opts: AppOptions) {
   const { pool } = opts;
   const now = opts.now ?? (() => new Date());
+  // Times leave as ISO 8601 in UTC, microseconds kept.
+  pool.on('connect', (client) => {
+    client.query("SET TIME ZONE 'UTC'").catch(() => {});
+  });
   const app = Fastify({ logger: opts.logger ?? false }).withTypeProvider<TypeBoxTypeProvider>();
   app.decorateRequest('userId', '');
 
@@ -112,6 +119,8 @@ export async function buildApp(opts: AppOptions) {
       return rows[0]!;
     },
   );
+
+  syncRoutes(app, { pool, now, hooks: opts.hooks ?? {}, authenticate });
 
   await app.ready();
   return app;

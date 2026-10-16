@@ -1,0 +1,97 @@
+{
+  "_comment": "Bloodstain merge cases (Stage 7 plan D11, D19), shared by server/test/sync.test.ts and the app's sync tests. Each case pushes its batches in every order; the final rows must equal expect. Rows list only the fields that matter; boss_id is b1 unless given.",
+  "cases": [
+    {
+      "name": "two phones drop one each: the newer stays active",
+      "batches": [
+        [{ "id": "s1", "created_at": "2026-10-16T09:00:00.000Z" }],
+        [{ "id": "s2", "created_at": "2026-10-16T10:00:00.000Z" }]
+      ],
+      "expect": [
+        { "id": "s1", "recovered_at": null, "lost_at": "2026-10-16T10:00:00.000Z" },
+        { "id": "s2", "recovered_at": null, "lost_at": null }
+      ]
+    },
+    {
+      "name": "equal drop times: the larger id stays active",
+      "batches": [
+        [{ "id": "s-a", "created_at": "2026-10-16T09:00:00.000Z" }],
+        [{ "id": "s-b", "created_at": "2026-10-16T09:00:00.000Z" }]
+      ],
+      "expect": [
+        { "id": "s-a", "recovered_at": null, "lost_at": "2026-10-16T09:00:00.000Z" },
+        { "id": "s-b", "recovered_at": null, "lost_at": null }
+      ]
+    },
+    {
+      "name": "a recovery on one phone stands against a newer drop on the other",
+      "batches": [
+        [
+          {
+            "id": "s1",
+            "created_at": "2026-10-16T09:00:00.000Z",
+            "lost_at": "2026-10-16T10:00:00.000Z",
+            "updated_at": "2026-10-16T10:00:00.000Z"
+          },
+          { "id": "s2", "created_at": "2026-10-16T10:00:00.000Z" }
+        ],
+        [
+          {
+            "id": "s1",
+            "created_at": "2026-10-16T09:00:00.000Z",
+            "recovered_at": "2026-10-16T09:30:00.000Z",
+            "updated_at": "2026-10-16T09:30:00.000Z"
+          }
+        ]
+      ],
+      "expect": [
+        { "id": "s1", "recovered_at": "2026-10-16T09:30:00.000Z", "lost_at": null },
+        { "id": "s2", "recovered_at": null, "lost_at": null }
+      ]
+    },
+    {
+      "name": "a later loss never undoes a recovery",
+      "batches": [
+        [
+          {
+            "id": "s1",
+            "created_at": "2026-10-16T09:00:00.000Z",
+            "recovered_at": "2026-10-16T09:30:00.000Z",
+            "updated_at": "2026-10-16T09:30:00.000Z"
+          }
+        ],
+        [
+          {
+            "id": "s1",
+            "created_at": "2026-10-16T09:00:00.000Z",
+            "lost_at": "2026-10-16T11:00:00.000Z",
+            "updated_at": "2026-10-16T11:00:00.000Z"
+          }
+        ]
+      ],
+      "expect": [{ "id": "s1", "recovered_at": "2026-10-16T09:30:00.000Z", "lost_at": null }]
+    },
+    {
+      "name": "the earliest of two losses is kept",
+      "batches": [
+        [
+          {
+            "id": "s1",
+            "created_at": "2026-10-16T09:00:00.000Z",
+            "lost_at": "2026-10-16T11:00:00.000Z",
+            "updated_at": "2026-10-16T11:00:00.000Z"
+          }
+        ],
+        [
+          {
+            "id": "s1",
+            "created_at": "2026-10-16T09:00:00.000Z",
+            "lost_at": "2026-10-16T10:00:00.000Z",
+            "updated_at": "2026-10-16T10:00:00.000Z"
+          }
+        ]
+      ],
+      "expect": [{ "id": "s1", "recovered_at": null, "lost_at": "2026-10-16T10:00:00.000Z" }]
+    }
+  ]
+}

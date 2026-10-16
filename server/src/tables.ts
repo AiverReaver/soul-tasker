@@ -104,3 +104,33 @@ export const EVENT_TABLES = new Set(['attempts', 'health_events', 'ember_events'
 export const SYNCED_TABLES: Record<string, string[]> = Object.fromEntries(
   Object.entries(SYNCED_COLUMNS).map(([table, cols]) => [table, Object.keys(cols)]),
 );
+
+/** Natural-key tables are only ever upserted, never deleted (D5). */
+export const NATURAL_KEY_TABLES = new Set(['user_settings', 'day_logs', 'day_plans']);
+
+export type Reference = {
+  table: string;
+  column: string;
+  parent: string;
+  onDelete: 'cascade' | 'setNull';
+};
+
+/** The app's foreign keys, so a deleted parent reaches its children here
+ * the way SQLite's cascades reach them on the phone (D5). */
+export const REFERENCES: Reference[] = [
+  { table: 'phases', column: 'boss_id', parent: 'bosses', onDelete: 'cascade' },
+  { table: 'tasks', column: 'boss_id', parent: 'bosses', onDelete: 'cascade' },
+  { table: 'tasks', column: 'phase_id', parent: 'phases', onDelete: 'cascade' },
+  { table: 'attempts', column: 'boss_id', parent: 'bosses', onDelete: 'cascade' },
+  { table: 'attempts', column: 'task_id', parent: 'tasks', onDelete: 'setNull' },
+  { table: 'attempts', column: 'phase_id', parent: 'phases', onDelete: 'setNull' },
+  { table: 'commitments', column: 'task_id', parent: 'tasks', onDelete: 'cascade' },
+  { table: 'commitments', column: 'boss_id', parent: 'bosses', onDelete: 'cascade' },
+  { table: 'health_events', column: 'commitment_id', parent: 'commitments', onDelete: 'setNull' },
+  { table: 'ember_events', column: 'boss_id', parent: 'bosses', onDelete: 'setNull' },
+  { table: 'ember_events', column: 'task_id', parent: 'tasks', onDelete: 'setNull' },
+  { table: 'relics', column: 'boss_id', parent: 'bosses', onDelete: 'setNull' },
+  { table: 'bloodstains', column: 'boss_id', parent: 'bosses', onDelete: 'cascade' },
+  { table: 'bloodstains', column: 'task_id', parent: 'tasks', onDelete: 'setNull' },
+  { table: 'bloodstains', column: 'attempt_id', parent: 'attempts', onDelete: 'setNull' },
+];

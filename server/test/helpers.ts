@@ -3,6 +3,7 @@ import pg from 'pg';
 import { exportJWK, generateKeyPair, createLocalJWKSet, SignJWT } from 'jose';
 import type { JWTPayload } from 'jose';
 import { buildApp } from '../src/app.ts';
+import type { SyncHooks } from '../src/sync.ts';
 import { runMigrations } from '../src/migrate.ts';
 
 export const TEST_DATABASE_URL =
@@ -67,14 +68,17 @@ export async function fakeGoogle(now: () => Date = () => new Date()) {
 export async function testApp(opts: { now?: () => Date } = {}) {
   const db = await testDb();
   const google = await fakeGoogle(opts.now);
+  const hooks: SyncHooks = {};
   const app = await buildApp({
     pool: db.pool,
     googleClientId: CLIENT_ID,
     jwks: google.jwks,
     now: opts.now,
+    hooks,
   });
   return {
     app,
+    hooks,
     db,
     google,
     async signIn(claims: Record<string, unknown> = {}) {
