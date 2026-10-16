@@ -9,6 +9,7 @@ import 'database.steps.dart';
 import 'day_dao.dart' show kFlaskCap;
 import 'enums.dart';
 import 'relic_dao.dart';
+import 'sync_sql.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -41,7 +42,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e, {this._clock = DateTime.now});
 
   /// The on-device database.
-  AppDatabase.open() : this(driftDatabase(name: 'hearthrise'));
+  AppDatabase.open()
+    : this(
+        driftDatabase(
+          name: 'hearthrise',
+          native: const DriftNativeOptions(setup: registerSyncFunctions),
+        ),
+      );
 
   final Clock _clock;
 
@@ -239,6 +246,13 @@ class AppDatabase extends _$AppDatabase {
           _ => null,
         };
         await RelicDao(this, _clock).backfill(rolloverHour: hour);
+      }
+      // Change capture for sync (Stage 7 plan D14). Last, so rows written
+      // by the upgrade are not queued: the first sign-in sends everything.
+      if (details.versionNow >= 7) {
+        for (final sql in syncTriggerSql()) {
+          await customStatement(sql);
+        }
       }
     },
   );

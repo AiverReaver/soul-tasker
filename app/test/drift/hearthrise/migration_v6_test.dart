@@ -5,6 +5,7 @@ import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/data/sync_sql.dart';
 
 import 'generated/schema.dart';
 import 'generated/schema_v5.dart' as v5;
@@ -98,6 +99,8 @@ void main() {
       await seedV5(oldDb);
       await oldDb.close();
 
+      // The delete is captured for sync, which needs the clock function.
+      registerSyncFunctions(schema.rawDatabase);
       final db = AppDatabase(
         schema.newConnection(),
         clock: () => DateTime(2026, 10, 16, 12),

@@ -9,6 +9,7 @@ import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/flask_dao.dart';
 import 'package:hearthrise/data/relic_dao.dart';
 import 'package:hearthrise/data/settings_dao.dart';
+import 'package:hearthrise/data/sync_sql.dart';
 
 /// A clock that moves one second per read, so event order is exact.
 class StepClock {
@@ -34,7 +35,14 @@ class Harness {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     final theClock = clock ?? StepClock();
     return Harness._(
-      AppDatabase(executor ?? NativeDatabase.memory(), clock: theClock.call),
+      AppDatabase(
+        executor ??
+            NativeDatabase.memory(
+              // Reads the time without moving the step clock.
+              setup: (raw) => registerSyncFunctions(raw, () => theClock.now),
+            ),
+        clock: theClock.call,
+      ),
       theClock,
     );
   }
