@@ -3,6 +3,7 @@ import { Type } from '@fastify/type-provider-typebox';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import type pg from 'pg';
 import { EVENT_TABLES, NATURAL_KEY_TABLES, REFERENCES, SYNCED_COLUMNS } from './tables.ts';
+import { ErrorBody, PullResponse, PushRequest, PushResponse, ref } from './schemas.ts';
 
 /** Seams for tests: [beforeCommit] runs inside each push transaction. */
 export type SyncHooks = { beforeCommit?: () => Promise<void> };
@@ -10,43 +11,6 @@ export type SyncHooks = { beforeCommit?: () => Promise<void> };
 /** A client time further ahead than this is refused for that record (D13). */
 const MAX_AHEAD_MS = 24 * 3_600_000;
 export const PAGE_SIZE = 500;
-const MAX_BATCH = 1000;
-
-const Status = Type.Union([Type.Literal('applied'), Type.Literal('ignored'), Type.Literal('rejected')]);
-const Op = Type.Union([Type.Literal('upsert'), Type.Literal('delete')]);
-
-export const ChangeSchema = Type.Object({
-  table: Type.String(),
-  id: Type.String(),
-  op: Op,
-  updatedAt: Type.Optional(Type.String()),
-  deletedAt: Type.Optional(Type.String()),
-  row: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
-});
-
-export const PushBody = Type.Object({
-  deviceId: Type.String({ minLength: 1, maxLength: 64 }),
-  changes: Type.Array(ChangeSchema, { maxItems: MAX_BATCH }),
-});
-
-export const PushResult = Type.Object({
-  table: Type.String(),
-  id: Type.String(),
-  status: Status,
-  reason: Type.Optional(Type.Union([Type.Literal('clock'), Type.Literal('malformed')])),
-  message: Type.Optional(Type.String()),
-});
-
-export const PulledChange = Type.Object({
-  table: Type.String(),
-  id: Type.String(),
-  op: Op,
-  seq: Type.Integer(),
-  deviceId: Type.String(),
-  updatedAt: Type.Optional(Type.String()),
-  deletedAt: Type.Optional(Type.String()),
-  row: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
-});
 
 type Change = {
   table: string;
@@ -366,9 +330,17 @@ export function syncRoutes(
     '/v1/sync/push',
     {
       preHandler: deps.authenticate,
-      schema: { body: PushBody, response: { 200: Type.Object({ results: Type.Array(PushResult) }) } },
+      schema: {
+        operationId: 'syncPush',
+        tags: ['sync'],
+        security: [{ session: [] }],
+        body: ref(PushRequest),
+        response: { 200: ref(PushResponse), 401: ref(ErrorBody) },
+      },
     },
     async (req) => {
+      // Validated against PushRequest; its $ref items type as unknown.
+      const body = req.body as { deviceId: string; changes: Change[] };
       const now = deps.now();
       const db = await deps.pool.connect();
       const results: Result[] = [];
@@ -377,8 +349,8 @@ export function syncRoutes(
         // Pushes for one user run one at a time, so seq order is commit
         // order and a pull cannot skip a change (D13).
         await db.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [req.userId]);
-        const push = new Push(db, req.userId, req.body.deviceId, now);
-        for (const change of req.body.changes) {
+        const push = new Push(db, req.userId, body.deviceId, now);
+        for (const change of body.changes) {
           const base = { table: change.table, id: change.id };
           try {
             validate(change, now);
@@ -412,10 +384,11 @@ export function syncRoutes(
     {
       preHandler: deps.authenticate,
       schema: {
+        operationId: 'syncPull',
+        tags: ['sync'],
+        security: [{ session: [] }],
         querystring: Type.Object({ since: Type.Integer({ minimum: 0 }) }),
-        response: {
-          200: Type.Object({ changes: Type.Array(PulledChange), cursor: Type.Integer(), hasMore: Type.Boolean() }),
-        },
+        response: { 200: ref(PullResponse), 401: ref(ErrorBody) },
       },
     },
     async (req) => {

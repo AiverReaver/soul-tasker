@@ -1,12 +1,14 @@
 import Fastify from 'fastify';
+import swagger from '@fastify/swagger';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { Type } from '@fastify/type-provider-typebox';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import type pg from 'pg';
 import type { JWTVerifyGetKey } from 'jose';
 import pkg from '../package.json' with { type: 'json' };
 import { hashToken, newSessionToken, sessionExpiry, verifyGoogleIdToken } from './auth.ts';
 import { syncRoutes } from './sync.ts';
+import { AuthGoogleRequest, ErrorBody, Health, SCHEMAS, Session, User, ref } from './schemas.ts';
+import type { Static } from '@fastify/type-provider-typebox';
 import type { SyncHooks } from './sync.ts';
 
 declare module 'fastify' {
@@ -26,9 +28,6 @@ export type AppOptions = {
   hooks?: SyncHooks;
 };
 
-const ErrorBody = Type.Object({ error: Type.String() });
-const User = Type.Object({ id: Type.String(), email: Type.String() });
-
 export async function buildApp(opts: AppOptions) {
   const { pool } = opts;
   const now = opts.now ?? (() => new Date());
@@ -38,6 +37,18 @@ export async function buildApp(opts: AppOptions) {
   });
   const app = Fastify({ logger: opts.logger ?? false }).withTypeProvider<TypeBoxTypeProvider>();
   app.decorateRequest('userId', '');
+  // The spec comes from these schemas, so it cannot drift from the code (D2).
+  await app.register(swagger, {
+    openapi: {
+      openapi: '3.1.0',
+      info: { title: 'Hearthrise API', version: pkg.version },
+      components: { securitySchemes: { session: { type: 'http', scheme: 'bearer' } } },
+    },
+    refResolver: {
+      buildLocalReference: (json, _base, _fragment, i) => (json.$id as string | undefined) ?? `def-${i}`,
+    },
+  });
+  for (const schema of SCHEMAS) app.addSchema(schema);
 
   /** Bearer session check; renews the session on use (D4). */
   async function authenticate(req: FastifyRequest, reply: FastifyReply) {
@@ -57,7 +68,7 @@ export async function buildApp(opts: AppOptions) {
 
   app.get(
     '/v1/health',
-    { schema: { response: { 200: Type.Object({ status: Type.String(), version: Type.String() }) } } },
+    { schema: { operationId: 'health', tags: ['health'], response: { 200: ref(Health) } } },
     async () => ({ status: 'ok', version: pkg.version }),
   );
 
@@ -65,16 +76,16 @@ export async function buildApp(opts: AppOptions) {
     '/v1/auth/google',
     {
       schema: {
-        body: Type.Object({ idToken: Type.String({ minLength: 1 }) }),
-        response: {
-          200: Type.Object({ token: Type.String(), expiresAt: Type.String(), user: User }),
-          401: ErrorBody,
-        },
+        operationId: 'authGoogle',
+        tags: ['auth'],
+        body: ref(AuthGoogleRequest),
+        response: { 200: ref(Session), 401: ref(ErrorBody) },
       },
     },
     async (req, reply) => {
       const at = now();
-      const identity = await verifyGoogleIdToken(req.body.idToken, {
+      const body = req.body as Static<typeof AuthGoogleRequest>;
+      const identity = await verifyGoogleIdToken(body.idToken, {
         jwks: opts.jwks,
         audience: opts.googleClientId,
         now: at,
@@ -100,7 +111,15 @@ export async function buildApp(opts: AppOptions) {
 
   app.post(
     '/v1/auth/logout',
-    { preHandler: authenticate, schema: { response: { 204: Type.Null(), 401: ErrorBody } } },
+    {
+      preHandler: authenticate,
+      schema: {
+        operationId: 'logout',
+        tags: ['auth'],
+        security: [{ session: [] }],
+        response: { 204: { type: 'null', description: 'Signed out' }, 401: ref(ErrorBody) },
+      },
+    },
     async (req, reply) => {
       const token = req.headers.authorization!.slice(7);
       await pool.query('DELETE FROM sessions WHERE token_hash = $1', [hashToken(token)]);
@@ -110,7 +129,15 @@ export async function buildApp(opts: AppOptions) {
 
   app.get(
     '/v1/me',
-    { preHandler: authenticate, schema: { response: { 200: User, 401: ErrorBody } } },
+    {
+      preHandler: authenticate,
+      schema: {
+        operationId: 'me',
+        tags: ['auth'],
+        security: [{ session: [] }],
+        response: { 200: ref(User), 401: ref(ErrorBody) },
+      },
+    },
     async (req) => {
       const { rows } = await pool.query<{ id: string; email: string }>(
         'SELECT id, email FROM users WHERE id = $1',

@@ -13,7 +13,8 @@
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "test": "vitest run",
-    "lint": "eslint . && tsc --noEmit"
+    "lint": "eslint . && tsc --noEmit",
+    "openapi": "tsx src/openapi.ts"
   },
   "dependencies": {
     "@fastify/swagger": "^9.9.2",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@seriousme/openapi-schema-validator": "^2.11.0",
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
     "eslint": "^10.12.0",
