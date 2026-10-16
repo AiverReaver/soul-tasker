@@ -1,6 +1,4 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/visit_dao.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -63,8 +61,7 @@ void main() {
     tester,
   ) async {
     await h.seed();
-    await (h.db.update(h.db.settings))
-        .write(const SettingsCompanion(flasks: Value(0)));
+    await h.setFlasks(0);
     h.clock.now = DateTime(2026, 10, 15, 12); // the 14th was missed
     await pumpApp(tester, h);
     expect(find.text('Fallen.'), findsOneWidget);

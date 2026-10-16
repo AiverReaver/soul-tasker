@@ -64,9 +64,11 @@ void main() {
       await db.customSelect('SELECT * FROM ember_events').get(),
       hasLength(1),
     );
-    final s = await db.select(db.settings).getSingle();
-    expect(s.onboarded, isTrue);
-    expect(s.firstDay, '2026-10-01');
+    final s = await db
+        .customSelect('SELECT onboarded, first_day FROM settings')
+        .getSingle();
+    expect(s.read<bool>('onboarded'), isTrue);
+    expect(s.read<String>('first_day'), '2026-10-01');
 
     expect(await db.select(db.visits).get(), isEmpty);
 

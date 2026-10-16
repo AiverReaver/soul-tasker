@@ -25,7 +25,7 @@ class BossDao {
         _db.phases,
         _db.tasks,
         _db.attempts,
-        _db.settings,
+        _db.userSettings,
       ]),
     );
   }

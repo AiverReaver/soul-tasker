@@ -6,6 +6,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/data/flask_dao.dart';
 import 'package:hearthrise/data/relic_dao.dart';
 import 'package:hearthrise/data/settings_dao.dart';
 
@@ -73,6 +74,13 @@ class Harness {
   }
 
   Future<BossView> reload(String id) async => (await bosses.loadBoss(id))!;
+
+  /// Flasks left, counted from the ledger (Stage 7 plan D8).
+  Future<int> flasks() => FlaskDao(db, clock.call).count();
+
+  /// Writes the one event that leaves [n] flasks.
+  Future<void> setFlasks(int n) =>
+      FlaskDao(db, clock.call).adjustTo(n, '2026-10-13');
 }
 
 TaskView taskNamed(BossView view, String title) =>

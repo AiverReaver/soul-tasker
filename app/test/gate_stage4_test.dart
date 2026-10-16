@@ -136,7 +136,7 @@ void main() {
     expect(await days.rise(), isTrue);
     expect(await health.health(day1), 20);
     expect(await embers.tally(), const EmberTally(carried: 0, banked: 5));
-    expect((await h.settings.read()).flasks, 3);
+    expect(await h.flasks(), 3);
     expect(await days.rest(lesson: 'Promise less.'), isTrue);
 
     // 8. Day 2: full health with nothing written; five promises.

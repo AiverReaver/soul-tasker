@@ -74,8 +74,8 @@ void main() {
     final log = (await h.db.select(h.db.dayLogs).get()).single;
     expect(log.kind, DayKind.bonfire);
     expect(log.lesson, 'Plan earlier.');
-    final picks = await h.db.select(h.db.planPicks).get();
-    expect(picks.single.day, '2026-10-14');
+    final plans = await h.db.select(h.db.dayPlans).get();
+    expect(plans.single.day, '2026-10-14');
     final embers = await h.db.select(h.db.emberEvents).get();
     expect(embers.where((e) => e.kind == EmberKind.bank).single.amount, 1);
     expect(haptics.events, contains('medium'));

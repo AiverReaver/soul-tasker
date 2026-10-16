@@ -83,3 +83,13 @@ enum HealthReason { miss, tried, bonfireRestore, rise }
 
 /// What a signal event records (Stage 6 plan D3, D4, D6).
 enum SignalKind { fell, tapModeChanged, checkIn, checkInDismissed }
+
+/// A flask spent or restored (Stage 7 plan D8).
+enum FlaskKind { spend, restore }
+
+/// Why a flask was spent or restored. [backfill] is the one event the v7
+/// upgrade writes to match the old counter.
+enum FlaskReason { skipDay, lightDay, extension, bonfire, backfill }
+
+/// What an outbox entry sends (Stage 7 plan D14).
+enum SyncOp { upsert, delete }

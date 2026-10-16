@@ -97,7 +97,7 @@ void main() {
     await tester.tap(find.text('Tonight'));
     await settle(tester);
 
-    expect((await h.settings.read()).flasks, 2);
+    expect(await h.flasks(), 2);
     final row = (await commits.load('2026-10-13')).single.commitment;
     expect(row.extensions, 2);
     await tearDownApp(tester, h);

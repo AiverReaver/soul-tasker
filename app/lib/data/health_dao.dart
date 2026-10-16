@@ -95,7 +95,7 @@ class HealthDao {
     yield await todayHealth();
     yield* _db
         .tableUpdates(
-          TableUpdateQuery.onAllTables([_db.healthEvents, _db.settings]),
+          TableUpdateQuery.onAllTables([_db.healthEvents, _db.userSettings]),
         )
         .asyncMap((_) => todayHealth());
   }

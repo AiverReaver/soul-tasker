@@ -14,6 +14,7 @@ import 'plan_pick_dao.dart';
 import 'profile_dao.dart';
 import 'relic_dao.dart';
 import 'ember_dao.dart';
+import 'flask_dao.dart';
 import 'settings_dao.dart';
 import 'signal_dao.dart';
 import 'visit_dao.dart';
@@ -39,6 +40,10 @@ final attemptDaoProvider = Provider(
 
 final settingsDaoProvider = Provider(
   (ref) => SettingsDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final flaskDaoProvider = Provider(
+  (ref) => FlaskDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
 
 final bossListProvider = StreamProvider<List<BossView>>(

@@ -79,7 +79,7 @@ Future<void> showExtendSheet(
   final c = view.commitment;
   final now = ref.read(clockProvider)();
   final hour = await ref.read(databaseProvider).rolloverHour();
-  final flasks = (await ref.read(settingsDaoProvider).read()).flasks;
+  final flasks = await ref.read(flaskDaoProvider).count();
   if (!context.mounted) return;
   final options = [
     for (final p in DeadlinePreset.values)

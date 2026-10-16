@@ -1,9 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/deadlines.dart';
 import 'package:hearthrise/data/commitment_dao.dart';
-import 'package:drift/drift.dart' hide isNull;
 import 'package:hearthrise/data/boss_draft.dart';
-import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
 
 import 'harness.dart';
@@ -24,7 +22,7 @@ void main() {
       .task
       .id;
 
-  Future<int> flasks() async => (await h.settings.read()).flasks;
+  Future<int> flasks() async => await h.flasks();
 
   group('deadlineFor', () {
     test('one hour and three hours from now', () {
@@ -126,8 +124,7 @@ void main() {
 
     test('refused with no flask left, changing nothing', () async {
       await h.seed();
-      await (h.db.update(h.db.settings))
-          .write(const SettingsCompanion(flasks: Value(0)));
+      await h.setFlasks(0);
       final id = (await commits.commit(
         await taskId('Read chapter 4'),
         DeadlinePreset.oneHour,

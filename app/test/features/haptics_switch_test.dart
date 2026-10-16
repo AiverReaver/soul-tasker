@@ -39,7 +39,7 @@ void main() {
     await settle(tester);
 
     // getSingle, not watch().first: a stream never emits under fake async.
-    final stored = await h.db.select(h.db.settings).getSingle();
+    final stored = await h.db.select(h.db.userSettings).getSingle();
     expect(stored.haptics, isFalse);
     expect(tester.widget<SwitchListTile>(tile).value, isFalse);
     await tearDownApp(tester, h);

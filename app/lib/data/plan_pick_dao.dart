@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
@@ -40,22 +42,27 @@ class PlannedTask {
   final bool isStruck;
 }
 
-/// Replaces the picks for [day]. At most [kMaxPicks], in the given order.
-/// Call inside a transaction to make it part of a larger write.
+/// Replaces the plan for [day], saved whole as one row (Stage 7 plan D20).
+/// At most [kMaxPicks], in the given order. Call inside a transaction to make
+/// it part of a larger write.
 Future<void> writePicks(
   AppDatabase db,
   String day,
   List<String> taskIds,
+  DateTime at,
 ) async {
   if (taskIds.length > kMaxPicks) {
     throw ArgumentError('A day holds at most $kMaxPicks picks.');
   }
-  await (db.delete(db.planPicks)..where((p) => p.day.equals(day))).go();
-  for (final (i, id) in taskIds.indexed) {
-    await db
-        .into(db.planPicks)
-        .insert(PlanPicksCompanion.insert(day: day, taskId: id, position: i));
-  }
+  await db
+      .into(db.dayPlans)
+      .insertOnConflictUpdate(
+        DayPlansCompanion.insert(
+          day: day,
+          taskIds: jsonEncode(taskIds),
+          updatedAt: at,
+        ),
+      );
 }
 
 /// Tomorrow's three (Stage 3 plan D11).
@@ -81,22 +88,24 @@ class PlanPickDao {
   ];
 
   Future<void> setPicks(String day, List<String> taskIds) =>
-      _db.transaction(() => writePicks(_db, day, taskIds));
+      _db.transaction(() => writePicks(_db, day, taskIds, _clock()));
 
   Future<List<PlannedTask>> picksFor(String day) async {
-    final rows =
-        await (_db.select(_db.planPicks)
-              ..where((p) => p.day.equals(day))
-              ..orderBy([(p) => OrderingTerm.asc(p.position)]))
-            .get();
-    if (rows.isEmpty) return const [];
+    final plan = await (_db.select(
+      _db.dayPlans,
+    )..where((p) => p.day.equals(day))).getSingleOrNull();
+    final ids = plan == null
+        ? const <String>[]
+        : (jsonDecode(plan.taskIds) as List).cast<String>();
+    if (ids.isEmpty) return const [];
     final byTask = {
       for (final view in await _bosses.loadAll())
         for (final t in view.allTasks) t.task.id: (t, view.boss.title),
     };
+    // Ids of tasks deleted since are skipped.
     return [
-      for (final row in rows)
-        if (byTask[row.taskId] case (final t, final bossTitle))
+      for (final id in ids)
+        if (byTask[id] case (final t, final bossTitle))
           PlannedTask(task: t.task, bossTitle: bossTitle, isStruck: t.isStruck),
     ];
   }
@@ -115,11 +124,11 @@ class PlanPickDao {
     yield* _db
         .tableUpdates(
           TableUpdateQuery.onAllTables([
-            _db.planPicks,
+            _db.dayPlans,
             _db.bosses,
             _db.tasks,
             _db.attempts,
-            _db.settings,
+            _db.userSettings,
           ]),
         )
         .asyncMap((_) => _today());

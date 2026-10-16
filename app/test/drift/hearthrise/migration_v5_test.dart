@@ -119,7 +119,7 @@ void main() {
     );
     final s = await db.select(db.settings).getSingle();
     expect(s.onboarded, isFalse);
-    expect(s.sound, isFalse);
+    expect((await db.select(db.userSettings).getSingle()).sound, isFalse);
     expect(await db.select(db.relics).get(), isEmpty);
     await db.close();
   });

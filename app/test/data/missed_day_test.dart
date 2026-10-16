@@ -44,7 +44,6 @@ void main() {
           .toList();
   Future<int> attemptNumber(String id) async =>
       (await h.reload(id)).boss.attemptNumber;
-  Future<AppSettings> settings() => h.settings.watch().first;
 
   group('pending', () {
     test(
@@ -153,7 +152,7 @@ void main() {
           (l) => l.kind == DayKind.flask,
         );
         expect(flaskRows.map((l) => l.day), ['2026-10-14']);
-        expect((await settings()).flasks, 2);
+        expect(await h.flasks(), 2);
         expect((await falls()).single.day, '2026-10-15');
         expect(await attemptNumber(a.boss.id), 2);
       },
@@ -165,14 +164,14 @@ void main() {
       expect(await days.resolve(flasksToSpend: 2), 0);
       expect(await falls(), isEmpty);
       expect(await attemptNumber(a.boss.id), 1);
-      expect((await settings()).flasks, 1);
+      expect(await h.flasks(), 1);
     });
 
     test('never spends more flasks than it has', () async {
       await h.seed();
       at(18); // four missed days, three flasks
       await days.resolve(flasksToSpend: 9);
-      expect((await settings()).flasks, 0);
+      expect(await h.flasks(), 0);
       expect(await falls(), hasLength(1));
     });
 
@@ -182,7 +181,7 @@ void main() {
         await h.seed();
         at(15);
         await days.resolve();
-        expect((await settings()).lastResolvedDay, '2026-10-14');
+        expect((await h.settings.device()).lastResolvedDay, '2026-10-14');
 
         expect(await days.resolve(), 0);
         expect(await falls(), hasLength(1));
@@ -196,7 +195,7 @@ void main() {
       at(15);
       expect(await days.resolve(), 0);
       expect(await falls(), isEmpty);
-      expect((await settings()).lastResolvedDay, '2026-10-14');
+      expect((await h.settings.device()).lastResolvedDay, '2026-10-14');
     });
 
     test('an exception part-way leaves nothing changed', () async {
@@ -212,9 +211,8 @@ void main() {
       expect(await attemptNumber(a.boss.id), 1);
       expect(await attemptNumber(b.boss.id), 1);
       expect(await h.db.select(h.db.dayLogs).get(), isEmpty);
-      final s = await settings();
-      expect(s.flasks, 3);
-      expect(s.lastResolvedDay, '2026-10-13');
+      expect(await h.flasks(), 3);
+      expect((await h.settings.device()).lastResolvedDay, '2026-10-13');
     });
   });
 }

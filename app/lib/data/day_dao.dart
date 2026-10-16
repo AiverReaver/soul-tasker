@@ -6,6 +6,7 @@ import '../core/missed_days.dart';
 import 'attempt_dao.dart';
 import 'database.dart';
 import 'ember_dao.dart';
+import 'flask_dao.dart';
 import 'health_dao.dart';
 import 'enums.dart';
 import 'plan_pick_dao.dart';
@@ -67,15 +68,17 @@ class PendingDays {
 }
 
 /// The day's ritual state: bonfire rests, flasks and light days. Rows are only
-/// ever inserted; the flask count is the one counter, kept in settings.
+/// ever inserted; flasks are counted from their own ledger (Stage 7 D8).
 class DayDao {
   DayDao(this._db, this._clock, this._attempts)
-    : _embers = EmberDao(_db, _clock);
+    : _embers = EmberDao(_db, _clock),
+      _flaskLedger = FlaskDao(_db, _clock);
 
   final AppDatabase _db;
   final Clock _clock;
   final AttemptDao _attempts;
   final EmberDao _embers;
+  final FlaskDao _flaskLedger;
   late final _health = HealthDao(_db, _clock, _attempts);
 
   Future<String> _today() async =>
@@ -88,12 +91,7 @@ class DayDao {
       l.kind,
   };
 
-  Future<int> _flasks() async =>
-      (await _db.select(_db.settings).getSingle()).flasks;
-
-  Future<void> _setFlasks(int count) => _db
-      .update(_db.settings)
-      .write(SettingsCompanion(flasks: Value(count.clamp(0, kFlaskCap))));
+  Future<int> _flasks() => _flaskLedger.count();
 
   Future<void> _log(String day, DayKind kind, DateTime at, [String? lesson]) =>
       _db
@@ -104,6 +102,7 @@ class DayDao {
               kind: kind,
               lesson: Value(lesson),
               at: at,
+              updatedAt: at,
             ),
           );
 
@@ -118,7 +117,13 @@ class DayDao {
   Stream<DayStatus> watchToday() async* {
     yield await today();
     yield* _db
-        .tableUpdates(TableUpdateQuery.onAllTables([_db.dayLogs, _db.settings]))
+        .tableUpdates(
+          TableUpdateQuery.onAllTables([
+            _db.dayLogs,
+            _db.flaskEvents,
+            _db.userSettings,
+          ]),
+        )
         .asyncMap((_) => today());
   }
 
@@ -138,9 +143,9 @@ class DayDao {
         await _log(day, DayKind.bonfire, now, cleanLesson(lesson));
         await _health.restore(HealthReason.bonfireRestore, day, now);
         await _embers.bank();
-        await _setFlasks(await _flasks() + 1);
+        await _flaskLedger.restore(FlaskReason.bonfire, day, at: now);
         if (pickTaskIds.isNotEmpty) {
-          await writePicks(_db, shiftDay(day, 1), pickTaskIds);
+          await writePicks(_db, shiftDay(day, 1), pickTaskIds, now);
         }
         return true;
       });
@@ -181,7 +186,7 @@ class DayDao {
           TableUpdateQuery.onAllTables([
             _db.attempts,
             _db.emberEvents,
-            _db.settings,
+            _db.userSettings,
           ]),
         )
         .asyncMap((_) => summary());
@@ -193,8 +198,9 @@ class DayDao {
     final day = await _today();
     final flasks = await _flasks();
     if (flasks == 0 || (await _kindsOn(day)).any(_isCover)) return false;
-    await _log(day, DayKind.flask, _clock());
-    await _setFlasks(flasks - 1);
+    final now = _clock();
+    await _log(day, DayKind.flask, now);
+    await _flaskLedger.spend(1, FlaskReason.skipDay, day, at: now);
     return true;
   });
 
@@ -206,7 +212,7 @@ class DayDao {
     return true;
   });
 
-  Future<List<String>> _missed(AppSettings s, String today) async {
+  Future<List<String>> _missed(DeviceSettings s, String today) async {
     final last = s.lastResolvedDay ?? today;
     final logs = await (_db.select(
       _db.dayLogs,
@@ -259,14 +265,13 @@ class DayDao {
   /// bosses that would fall for them. Reads only.
   Future<PendingDays> pending() async {
     final s = await _db.select(_db.settings).getSingle();
-    final today = dayOf(_clock(), rolloverHour: s.rolloverHour);
+    final hour = await _db.rolloverHour();
+    final today = dayOf(_clock(), rolloverHour: hour);
     final missed = await _missed(s, today);
     return PendingDays(
       days: missed,
-      bosses: missed.isEmpty
-          ? const []
-          : await _affected(missed, s.rolloverHour),
-      flasks: s.flasks,
+      bosses: missed.isEmpty ? const [] : await _affected(missed, hour),
+      flasks: await _flasks(),
     );
   }
 
@@ -278,18 +283,28 @@ class DayDao {
   Future<int> resolve({String? lesson, int flasksToSpend = 0}) {
     return _db.transaction(() async {
       final s = await _db.select(_db.settings).getSingle();
+      final hour = await _db.rolloverHour();
       final now = _clock();
-      final today = dayOf(now, rolloverHour: s.rolloverHour);
+      final today = dayOf(now, rolloverHour: hour);
       final missed = await _missed(s, today);
 
-      final spend = flasksToSpend.clamp(0, s.flasks);
-      for (final day in missed.take(spend)) {
+      final spend = flasksToSpend.clamp(0, await _flasks());
+      final covered = missed.take(spend).toList();
+      for (final day in covered) {
         await _log(day, DayKind.flask, now);
+      }
+      if (covered.isNotEmpty) {
+        await _flaskLedger.spend(
+          covered.length,
+          FlaskReason.skipDay,
+          today,
+          at: now,
+        );
       }
       final left = missed.skip(spend).toList();
       var fallen = 0;
       if (left.isNotEmpty) {
-        for (final boss in await _affected(left, s.rolloverHour)) {
+        for (final boss in await _affected(left, hour)) {
           await _attempts.failBoss(
             boss.id,
             FallCause.missedDay,
@@ -304,7 +319,6 @@ class DayDao {
           .update(_db.settings)
           .write(
             SettingsCompanion(
-              flasks: Value(s.flasks - spend.clamp(0, missed.length)),
               lastResolvedDay: Value(
                 (s.lastResolvedDay ?? '').compareTo(yesterday) > 0
                     ? s.lastResolvedDay

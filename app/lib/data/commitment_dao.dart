@@ -7,6 +7,7 @@ import '../core/ids.dart';
 import '../core/missed_days.dart';
 import 'database.dart';
 import 'enums.dart';
+import 'flask_dao.dart';
 
 /// A commitment with what the screens show next to it.
 @immutable
@@ -133,13 +134,11 @@ class CommitmentDao {
         rolloverHour: await _db.rolloverHour(),
       );
       if (!next.isAfter(c.deadline)) return false;
-      final settings = await _db.select(_db.settings).getSingle();
+      final flasks = FlaskDao(_db, _clock);
       final costsFlask = c.extensions >= 1;
-      if (costsFlask && settings.flasks == 0) return false;
+      if (costsFlask && await flasks.count() == 0) return false;
       if (costsFlask) {
-        await _db
-            .update(_db.settings)
-            .write(SettingsCompanion(flasks: Value(settings.flasks - 1)));
+        await flasks.spend(1, FlaskReason.extension, c.day, at: now);
       }
       await (_db.update(_db.commitments)..where((r) => r.id.equals(id))).write(
         CommitmentsCompanion(
@@ -167,7 +166,7 @@ class CommitmentDao {
           TableUpdateQuery.onAllTables([
             _db.commitments,
             _db.tasks,
-            _db.settings,
+            _db.userSettings,
           ]),
         )
         .asyncMap((_) => read());
