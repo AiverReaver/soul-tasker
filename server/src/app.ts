@@ -6,8 +6,9 @@ import type pg from 'pg';
 import type { JWTVerifyGetKey } from 'jose';
 import pkg from '../package.json' with { type: 'json' };
 import { hashToken, newSessionToken, sessionExpiry, verifyGoogleIdToken } from './auth.ts';
+import { deletePage } from './delete_page.ts';
 import { syncRoutes } from './sync.ts';
-import { AuthGoogleRequest, ErrorBody, Health, SCHEMAS, Session, User, ref } from './schemas.ts';
+import { AuthGoogleRequest, DeleteAccountRequest, ErrorBody, Health, SCHEMAS, Session, User, ref } from './schemas.ts';
 import type { Static } from '@fastify/type-provider-typebox';
 import type { SyncHooks } from './sync.ts';
 
@@ -144,6 +145,51 @@ export async function buildApp(opts: AppOptions) {
         [req.userId],
       );
       return rows[0]!;
+    },
+  );
+
+  app.delete(
+    '/v1/account',
+    {
+      preHandler: authenticate,
+      schema: {
+        operationId: 'deleteAccount',
+        tags: ['account'],
+        security: [{ session: [] }],
+        response: { 204: { type: 'null', description: 'Account deleted' }, 401: ref(ErrorBody) },
+      },
+    },
+    async (req, reply) => {
+      // Every table references users with ON DELETE CASCADE: rows,
+      // tombstones and sessions go with the user (D17).
+      await pool.query('DELETE FROM users WHERE id = $1', [req.userId]);
+      return reply.code(204).send(null);
+    },
+  );
+
+  app.get('/account/delete', { schema: { hide: true } }, async (_req, reply) =>
+    reply.type('text/html; charset=utf-8').send(deletePage(opts.googleClientId)),
+  );
+
+  app.post(
+    '/account/delete',
+    { schema: { hide: true, body: ref(DeleteAccountRequest) } },
+    async (req, reply) => {
+      const body = req.body as Static<typeof DeleteAccountRequest>;
+      if (body.confirm !== true) return reply.code(400).send({ error: 'confirm is required' });
+      const at = now();
+      const identity = await verifyGoogleIdToken(body.idToken, {
+        jwks: opts.jwks,
+        audience: opts.googleClientId,
+        now: at,
+      });
+      // A fresh sign-in is the re-authentication: the token must have been
+      // issued in the last 5 minutes (D17).
+      if (!identity || at.getTime() - identity.issuedAt.getTime() > 5 * 60_000) {
+        return reply.code(401).send({ error: 'sign in again' });
+      }
+      const { rowCount } = await pool.query('DELETE FROM users WHERE google_sub = $1', [identity.sub]);
+      return { deleted: (rowCount ?? 0) > 0 };
     },
   );
 

@@ -2,9 +2,11 @@
 README.md
 analysis_options.yaml
 build.yaml
+doc/AccountApi.md
 doc/AuthApi.md
 doc/AuthGoogleRequest.md
 doc/ChangeDto.md
+doc/DeleteAccountRequest.md
 doc/Error.md
 doc/Health.md
 doc/HealthApi.md
@@ -18,6 +20,7 @@ doc/SyncApi.md
 doc/User.md
 lib/hearthrise_api.dart
 lib/src/api.dart
+lib/src/api/account_api.dart
 lib/src/api/auth_api.dart
 lib/src/api/health_api.dart
 lib/src/api/sync_api.dart
@@ -29,6 +32,7 @@ lib/src/auth/oauth.dart
 lib/src/deserialize.dart
 lib/src/model/auth_google_request.dart
 lib/src/model/change_dto.dart
+lib/src/model/delete_account_request.dart
 lib/src/model/error.dart
 lib/src/model/health.dart
 lib/src/model/pull_response.dart

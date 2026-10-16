@@ -9,12 +9,14 @@ export 'package:hearthrise_api/src/auth/bearer_auth.dart';
 export 'package:hearthrise_api/src/auth/oauth.dart';
 
 
+export 'package:hearthrise_api/src/api/account_api.dart';
 export 'package:hearthrise_api/src/api/auth_api.dart';
 export 'package:hearthrise_api/src/api/health_api.dart';
 export 'package:hearthrise_api/src/api/sync_api.dart';
 
 export 'package:hearthrise_api/src/model/auth_google_request.dart';
 export 'package:hearthrise_api/src/model/change_dto.dart';
+export 'package:hearthrise_api/src/model/delete_account_request.dart';
 export 'package:hearthrise_api/src/model/error.dart';
 export 'package:hearthrise_api/src/model/health.dart';
 export 'package:hearthrise_api/src/model/pull_response.dart';

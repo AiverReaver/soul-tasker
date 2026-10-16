@@ -30,6 +30,11 @@ export const AuthGoogleRequest = Type.Object(
   { $id: 'AuthGoogleRequest' },
 );
 
+export const DeleteAccountRequest = Type.Object(
+  { idToken: Type.String({ minLength: 1 }), confirm: Type.Boolean() },
+  { $id: 'DeleteAccountRequest' },
+);
+
 export const Session = Type.Object(
   {
     token: Type.String({ description: 'Opaque bearer token; only its hash is stored.' }),
@@ -104,6 +109,7 @@ export const SCHEMAS: TSchema[] = [
   ErrorBody,
   User,
   AuthGoogleRequest,
+  DeleteAccountRequest,
   Session,
   ChangeDto,
   PushRequest,

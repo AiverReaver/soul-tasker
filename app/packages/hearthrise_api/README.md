@@ -48,14 +48,12 @@ Please follow the [installation procedure](#installation--usage) and then run th
 import 'package:hearthrise_api/hearthrise_api.dart';
 
 
-final api = HearthriseApi().getAuthApi();
-final AuthGoogleRequest authGoogleRequest = ; // AuthGoogleRequest | 
+final api = HearthriseApi().getAccountApi();
 
 try {
-    final response = await api.authGoogle(authGoogleRequest);
-    print(response);
+    api.deleteAccount();
 } catch on DioException (e) {
-    print("Exception when calling AuthApi->authGoogle: $e\n");
+    print("Exception when calling AccountApi->deleteAccount: $e\n");
 }
 
 ```
@@ -66,6 +64,7 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*AccountApi*](doc/AccountApi.md) | [**deleteAccount**](doc/AccountApi.md#deleteaccount) | **DELETE** /v1/account | 
 [*AuthApi*](doc/AuthApi.md) | [**authGoogle**](doc/AuthApi.md#authgoogle) | **POST** /v1/auth/google | 
 [*AuthApi*](doc/AuthApi.md) | [**logout**](doc/AuthApi.md#logout) | **POST** /v1/auth/logout | 
 [*AuthApi*](doc/AuthApi.md) | [**me**](doc/AuthApi.md#me) | **GET** /v1/me | 
@@ -78,6 +77,7 @@ Class | Method | HTTP request | Description
 
  - [AuthGoogleRequest](doc/AuthGoogleRequest.md)
  - [ChangeDto](doc/ChangeDto.md)
+ - [DeleteAccountRequest](doc/DeleteAccountRequest.md)
  - [Error](doc/Error.md)
  - [Health](doc/Health.md)
  - [PullResponse](doc/PullResponse.md)

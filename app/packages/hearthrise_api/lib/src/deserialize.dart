@@ -1,5 +1,6 @@
 import 'package:hearthrise_api/src/model/auth_google_request.dart';
 import 'package:hearthrise_api/src/model/change_dto.dart';
+import 'package:hearthrise_api/src/model/delete_account_request.dart';
 import 'package:hearthrise_api/src/model/error.dart';
 import 'package:hearthrise_api/src/model/health.dart';
 import 'package:hearthrise_api/src/model/pull_response.dart';
@@ -32,6 +33,8 @@ final _regMap = RegExp(r'^Map<String,(.*)>$');
           return AuthGoogleRequest.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'ChangeDto':
           return ChangeDto.fromJson(value as Map<String, dynamic>) as ReturnType;
+        case 'DeleteAccountRequest':
+          return DeleteAccountRequest.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'Error':
           return Error.fromJson(value as Map<String, dynamic>) as ReturnType;
         case 'Health':

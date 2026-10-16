@@ -66,6 +66,22 @@
           }
         }
       },
+      "DeleteAccountRequest": {
+        "type": "object",
+        "required": [
+          "idToken",
+          "confirm"
+        ],
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirm": {
+            "type": "boolean"
+          }
+        }
+      },
       "Session": {
         "type": "object",
         "required": [
@@ -367,6 +383,34 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/account": {
+      "delete": {
+        "operationId": "deleteAccount",
+        "tags": [
+          "account"
+        ],
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Account deleted"
           },
           "401": {
             "description": "Default Response",
