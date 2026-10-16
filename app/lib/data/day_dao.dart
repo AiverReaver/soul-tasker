@@ -38,6 +38,7 @@ class DaySummaryData {
     required this.falls,
     required this.lessons,
     required this.embers,
+    this.dayLesson,
   });
 
   final int strikes;
@@ -45,6 +46,9 @@ class DaySummaryData {
   final int falls;
   final List<String> lessons;
   final EmberTally embers;
+
+  /// The lesson written at today's bonfire rest, if any.
+  final String? dayLesson;
 }
 
 /// Days that ended with no cover, and who falls for them.
@@ -167,7 +171,13 @@ class DayDao {
       _db.attempts,
     )..where((a) => a.day.equals(day))).get();
     int count(Outcome o) => rows.where((a) => a.outcome == o).length;
+    final rested =
+        await (_db.select(_db.dayLogs)..where(
+              (l) => l.day.equals(day) & l.kind.equalsValue(DayKind.bonfire),
+            ))
+            .get();
     return DaySummaryData(
+      dayLesson: rested.map((l) => l.lesson).nonNulls.firstOrNull,
       strikes: count(Outcome.strike),
       tried: count(Outcome.tried),
       falls: count(Outcome.fallen),
@@ -185,6 +195,7 @@ class DayDao {
         .tableUpdates(
           TableUpdateQuery.onAllTables([
             _db.attempts,
+            _db.dayLogs,
             _db.emberEvents,
             _db.userSettings,
           ]),

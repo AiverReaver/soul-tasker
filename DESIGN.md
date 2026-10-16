@@ -20,7 +20,7 @@ Dark only. One accent. Contrast ratios measured against Background (`#0B0A09`).
 Rules:
 - Ember is reserved for things that matter. Never more than one ember element competing on a screen.
 - No red for failure. The fallen screen uses black and ash only (§5.5).
-- No pure white, no pure black text.
+- No pure white, no pure black text. One exception: `kDust` (soft white-gold, `#F4EEDD`) with a soft glow, only for the strike choice popup and the dust of a struck task or defeated boss. It never colors resting UI.
 
 ## Typography
 
@@ -63,6 +63,11 @@ Slow, never bouncy. Exits are faster than entrances.
 Curve: `easeInOut` (or `easeIn` for dims). No springs, no overshoot.
 Hold durations by weight: Light 300 ms, Heavy 600 ms, Boss-tier 1200 ms (§7.4).
 Reduced motion: when the system asks for it, replace fades and drains with instant changes (Stage 1 task).
+
+## Ritual moments
+
+- **Strike or Tried.** A finished hold opens a centered popup: Strike (done) or Tried (not done). Tapping outside cancels and rolls the hold back. Tap mode asks too.
+- **Dust.** A struck task dissolves into white-gold motes (about 1.2 s). A defeated boss name darkens the screen and turns to dust (2.4 s) before the victory screen. Reduced motion skips both.
 
 ## Haptics
 

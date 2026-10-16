@@ -172,6 +172,7 @@ Standing rule for every stage and every plan.
 ## Stage 8: Hardcore mode and Android launch
 
 **Goal:** add the opt-in loss mechanic, then ship.
+**Detailed plan:** `STAGE8_PLAN.md`.
 
 - Bloodstain drop on fall, recovery by doing a small version of the task (§5.8). The table, DAO and sync rule already exist from Stage 7.
 - Softening rules: partial loss, cap, flask protection, lesson refund.

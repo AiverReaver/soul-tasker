@@ -62,6 +62,31 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('typing after Next does not leak into the boss name', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    await _toPage(tester, 3, title: 'Run a 10K');
+    expect(tester.testTextInput.hasAnyClients, isFalse);
+
+    await tester.tap(find.text('Add a phase'));
+    await settle(tester);
+    final added = find.byKey(const ValueKey('phase-3'));
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(of: added, matching: find.byType(EditableText)),
+          )
+          .focusNode
+          .hasFocus,
+      isTrue,
+    );
+    await tester.enterText(added, 'Race day');
+    await tester.pump();
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('phases: two suggestions; rename, add up to three, remove', (
     tester,
   ) async {

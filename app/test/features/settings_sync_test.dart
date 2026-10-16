@@ -24,7 +24,7 @@ void main() {
     server = FakeSyncApi(now: () => DateTime.utc(2026, 10, 16));
   });
 
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(WidgetTester tester, {bool hasServer = true}) async {
     // Tall enough that the whole Settings list is on screen.
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;
@@ -33,6 +33,7 @@ void main() {
       tester,
       h,
       overrides: [
+        hasServerProvider.overrideWithValue(hasServer),
         authGatewayProvider.overrideWithValue(gateway),
         accountApiProvider.overrideWithValue(accounts),
         syncApiFactoryProvider.overrideWithValue((_) => server),
@@ -88,6 +89,38 @@ void main() {
     expect(gateway.token, isNull);
     expect(server.pullCalls, 0);
     expect(server.pushes, isEmpty);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('with no server, sign-in is refused before Google opens', (
+    tester,
+  ) async {
+    await h.seed();
+    await open(tester, hasServer: false);
+    await signIn(tester);
+
+    expect(gateway.googleCalls, 0);
+    expect(
+      find.text('Sign-in is not available in this build.'),
+      findsOneWidget,
+    );
+    expect(find.text('Sign in with Google'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('without a Google client id, Google is never opened', (
+    tester,
+  ) async {
+    await h.seed();
+    gateway.isGoogleConfigured = false;
+    await open(tester);
+    await signIn(tester);
+
+    expect(gateway.googleCalls, 0);
+    expect(
+      find.text('Sign-in is not available in this build.'),
+      findsOneWidget,
+    );
     await tearDownApp(tester, h);
   });
 

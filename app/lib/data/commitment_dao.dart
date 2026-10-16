@@ -129,9 +129,10 @@ class CommitmentDao {
         _db.commitments,
       )..where((c) => c.id.equals(id))).getSingle();
       if (c.outcome != null || !now.isBefore(c.deadline)) return false;
-      final next = deadlineFor(
+      final next = extendedDeadline(
         preset,
         now,
+        current: c.deadline,
         rolloverHour: await _db.rolloverHour(),
       );
       if (!next.isAfter(c.deadline)) return false;

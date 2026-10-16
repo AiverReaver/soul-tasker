@@ -18,6 +18,9 @@ enum SignInOutcome {
 
   /// Google or the server refused; nothing changed.
   failed,
+
+  /// This build has no server or no Google client id; Google never opened.
+  unavailable,
 }
 
 class SignInResult {
@@ -41,7 +44,10 @@ class AccountService {
     required this._runSync,
     required this._currentSession,
     required this._setSession,
+    this._hasServer = _always,
   });
+
+  static bool _always() => true;
 
   final AppDatabase _db;
   final AuthGateway _gateway;
@@ -49,12 +55,16 @@ class AccountService {
   final Future<SyncOutcome> Function() _runSync;
   final AccountSession? Function() _currentSession;
   final void Function(AccountSession?) _setSession;
+  final bool Function() _hasServer;
 
   /// [confirmBackup] is asked with the account's email when this phone last
   /// belonged to another account, or its session ended (D18).
   Future<SignInResult> signIn({
     required Future<bool> Function(String email) confirmBackup,
   }) async {
+    if (!_hasServer() || !_gateway.isGoogleConfigured) {
+      return const SignInResult(SignInOutcome.unavailable);
+    }
     final String? idToken;
     final AccountSession session;
     try {

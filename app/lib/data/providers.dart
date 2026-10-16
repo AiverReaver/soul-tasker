@@ -5,6 +5,7 @@ import '../core/auth_gateway.dart';
 import '../core/clock.dart';
 import '../core/haptics.dart';
 import '../core/sounds.dart';
+import '../server_config.dart';
 import 'attempt_dao.dart';
 import 'boss_dao.dart';
 import 'boss_view.dart';
@@ -247,6 +248,9 @@ final syncApiProvider = Provider<SyncApi?>((ref) {
   return ref.watch(syncApiFactoryProvider)(session.token);
 });
 
+/// Whether this build knows a server; a test overrides it.
+final hasServerProvider = Provider<bool>((ref) => hasServer);
+
 final accountServiceProvider = Provider<AccountService>(
   (ref) => AccountService(
     db: ref.watch(databaseProvider),
@@ -258,6 +262,7 @@ final accountServiceProvider = Provider<AccountService>(
         await ref.read(syncSchedulerProvider)?.start() ?? SyncOutcome.failed,
     currentSession: () => ref.read(sessionProvider),
     setSession: ref.read(sessionProvider.notifier).set,
+    hasServer: () => ref.read(hasServerProvider),
   ),
 );
 

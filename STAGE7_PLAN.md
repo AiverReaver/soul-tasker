@@ -18,7 +18,7 @@ Prerequisites:
 **Goal:** optional cloud backup and multi-device use, with the phone still the source of truth for every write (§9.3). The app keeps working with no account and no network, exactly as in Stage 6.
 
 **Gate:** offline edits on two devices merge without losing embers, health events or relics. All of these are true:
-1. Scripted (step 11, real server, real PostgreSQL, two in-memory app databases): devices A and B sign in to one account and sync; both go offline; A strikes two tasks, banks at the bonfire and defeats a boss (relic); B strikes a different task, misses a deadline, falls on a missed day, and edits the boss title A just defeated; both sync in either order. Afterwards both databases are row-for-row equal on every synced table, and:
+1. Scripted (step 11, real server, real PostgreSQL, two in-memory app databases): devices A and B sign in to one account and sync; both go offline; A strikes two tasks, banks at the bonfire and defeats a boss (relic); B strikes a different task, misses a deadline, falls on a missed day, and edits the boss title A just defeated; both sync in either order. Afterwards both databases are row-for-row equal on every table in the D14 trigger list (per-device `Settings` and `SyncState` are not compared), and:
    - carried and banked embers equal the sum of both devices' ember events;
    - current health equals the result of every health event from both devices;
    - the relic exists once, unchanged except by its own inscription edit;
@@ -27,10 +27,10 @@ Prerequisites:
    - flasks equal the result of every flask event from both devices (D8);
    - both devices dropped a bloodstain on the same boss while offline (through `BloodstainDao`, since no screen drops one until Stage 8): after the merge exactly one is active (the newer), the other is lost (D11);
    - device A recovered a bloodstain while device B dropped a newer one on that boss: the recovery stands, and the newer one is the active one (D19).
-2. Scripted: a record edited on both devices keeps the later `updatedAt`; a record deleted on one device and edited earlier on the other stays deleted; a record edited **after** the delete stays deleted too (D5), and its children are gone on both devices.
+2. Scripted: a record edited on both devices keeps the later `updatedAt`; a record deleted on one device and edited earlier on the other stays deleted; a record edited **after** the delete stays deleted too (D5), and its children are gone on both devices. A stale edit pushed after the delete is acknowledged as a no-op, and both outboxes end empty.
 3. Scripted: a device that signs in with local data to an account that already has data merges both sets; nothing on either side is dropped.
 4. Scripted: no account, no network: the full Stage 1 to 6 gate tests pass unchanged, and no HTTP request is made.
-5. Server tests: an invalid, expired or wrong-audience Google ID token gets 401; one account cannot read or write another's rows; account deletion removes every row of that user.
+5. Server tests: an invalid, expired or wrong-audience Google ID token gets 401; one account cannot read or write another's rows; a push retried after a lost response changes nothing and allocates no new `seq`; a pull never skips a change committed by a concurrent push; account deletion removes every row and session of that user; the web deletion page rejects a missing, old or wrong-audience token.
 6. Every Stage 1 to 6 gate test still passes; `flutter analyze` is clean and the full app suite passes; `npm test` in `server/` passes and `npm run lint` is clean.
 7. Manual checks in step 12 pass on a release build against the hosted server.
 
@@ -41,7 +41,8 @@ Prerequisites:
 | Piece | Where | Stage 7 use |
 |---|---|---|
 | uuid v4 ids on every record | `core/ids.dart` | Good for user-made records. **Not** good for records two devices make for the same reason (D6) |
-| `updatedAt` on `Bosses`, `Phases`, `Tasks`, `Commitments`, `Relics` | `data/tables.dart` | LWW key. Missing on `Settings`, `DayLogs`, `PlanPicks` (step 1) |
+| `updatedAt` on `Bosses`, `Phases`, `Tasks`, `Commitments`, `Relics` | `data/tables.dart` | LWW key. Missing on `Settings` and `DayLogs` (step 1) |
+| `PlanPicks`: a day's plan is saved whole (delete the day, insert the list) | `data/plan_pick_dao.dart` | Becomes one `DayPlans` row per day (D20) |
 | Embers derived from `EmberEvents` (`EmberDao._sum`) | `data/ember_dao.dart` | Already event-derived; sync must only add events, never totals |
 | Health derived from `HealthEvents` | `data/health_dao.dart` | Same |
 | `Settings.flasks` is a **counter** | `data/day_dao.dart`, `data/commitment_dao.dart` | LWW would lose a spend or a restore. Becomes `FlaskEvents` (D8) |
@@ -96,21 +97,22 @@ Prerequisites:
 | D2 | Server stack | **Fastify + TypeScript**, `@sinclair/typebox` route schemas, `@fastify/swagger` emits `openapi.json`. PostgreSQL 16 via `pg` and plain SQL migrations (`node-pg-migrate`). Tests: **Vitest** against a real PostgreSQL (Docker, one schema per test file). Code lives in `server/` at the repo root. | Fastify validates with the same schemas that produce the OpenAPI spec, so the spec cannot drift from the code. Real PostgreSQL catches constraint and transaction bugs an in-memory fake would hide. |
 | D3 | Dart client | `openapi-generator-cli` (`dart-dio`) generates `app/packages/hearthrise_api/` from the committed `server/openapi.json`. A server test fails if the emitted spec differs from the committed one; an app test fails if the generated package is older than the spec (hash in a header comment). | §10.2 "models are not written twice". Both checks keep the three in step without a manual reminder. |
 | D4 | Sign-in and sessions | `google_sign_in` on the phone with the Web client ID as `serverClientId`. `POST /v1/auth/google` verifies the ID token with `google-auth-library` (signature, `aud` = Web client ID, `iss`, `exp`, `email_verified`), finds or creates the user by Google `sub`, and returns an **opaque session token** (32 random bytes; only its SHA-256 is stored), valid 60 days, renewed on use. The phone keeps it in `flutter_secure_storage`. | Google ID tokens last about an hour; re-verifying each call would force silent re-sign-ins. An opaque token can be revoked by deleting one row, and a leaked database holds no usable tokens. |
-| D5 | Change model | **Mutable records** (bosses, phases, tasks, commitments, relics, settings, day logs, plan picks): last-write-wins by the record's `updatedAt`, ties broken by device id. **Events** (attempts, ember, health, flask events): insert-once by id, never updated, never LWW. **Deletes**: a tombstone (`table`, `id`, `deletedAt`). A tombstone beats any edit of that id, earlier or later, and the server deletes the children the app would cascade. | §10.2. Events are facts; there is nothing to overwrite. "Delete wins" is the only rule where a merge cannot bring back something the user threw away. |
-| D6 | Records two devices make for the same reason | System-made records get **deterministic ids** (uuid v5 over a fixed namespace) instead of v4: missed-day attempt = (`bossId`, `day`, `missedDay`); health loss for a missed commitment = (`commitmentId`, `miss`); bonfire restore = (`day`, `bonfireRestore`); rise restore = (attempt id, `rise`); ember earn for a strike = (`taskId`, strike period: the day for daily tasks, the open-from attempt for one-off tasks); flask restore = (`day`, `restore`). Insert-once by id then keeps one. User-made records (a declared fall, a typed lesson) stay v4. | Without this, both devices resolving the same missed day write two falls and two health losses, which the gate forbids. The rule also matches §9.2 "reopened tasks never pay embers twice". Step 2 lists every `newId()` call site and which kind it is. |
+| D5 | Change model | **Mutable records** (bosses, phases, tasks, commitments, relics, settings, day logs, day plans, bloodstains): last-write-wins by (`updatedAt`, `deviceId`), compared as a pair, so equal times break the same way on both sides; every change carries the sender's `deviceId` and every stored row keeps the winner's. **Events** (attempts, ember, health, flask events): insert-once by id, never updated. **Deletes**: a tombstone (`table`, `id`, `deletedAt`, `deviceId`). A tombstone beats any upsert of that id, earlier or later, and applies to events too (attempts are removed by a boss's cascade). An upsert for a tombstoned id, or for a child whose parent is tombstoned, is **acknowledged as a no-op**, so the sender's outbox drains. The server tombstones the children the app would cascade. Tombstones are kept for the life of the account with every payload column nulled (only `id`, `deleted_at`, `device_id`, `seq` remain); account deletion removes them. **Natural-key tables are never deleted**: `DayLogs` rows are only upserted, and plan picks sync as one `DayPlans` row per day (D20). | §10.2. Events are facts; there is nothing to overwrite. "Delete wins" is the only rule where a merge cannot bring back something the user threw away. Acking blocked writes is what lets a stale device converge instead of retrying forever. Scrubbed tombstones are a few bytes each, so keeping them costs nothing and removes the deleted text. Never deleting a natural key avoids the delete-then-re-add case, where a permanent tombstone would block the user from adding it again. |
+| D6 | Records two devices make for the same reason | System-made records get **deterministic ids** (uuid v5 over a fixed namespace) instead of v4: missed-day attempt = (`bossId`, `day`, `missedDay`); health loss for a missed commitment = (`commitmentId`, `miss`); bonfire restore = (`day`, `bonfireRestore`); rise restore = (attempt id, `rise`); ember earn for a strike = (`taskId`, strike period: the day for daily tasks, the open-from attempt for one-off tasks); flask restore = (`day`, `restore`). Insert-once by id then keeps one. User-made records (a declared fall, a typed lesson) stay v4. Two user-made records also get deterministic ids, because their tables have unique keys that two devices would otherwise both fill: a commitment = (`taskId`, `day`) (`Commitments` is unique on that pair) and a relic = (`bossId`) (`Relics` is unique on `bossId`). A commitment row is one task on one day, so (`commitmentId`, `miss`) already names one occurrence. | Without this, both devices resolving the same missed day write two falls and two health losses, which the gate forbids. The rule also matches §9.2 "reopened tasks never pay embers twice". Step 2 lists every `newId()` call site and which kind it is. |
 | D7 | Boss attempt number | Stays a column for reads, but after every pull it is **recomputed** from the attempts: 1 + the number of distinct fallen attempts on that boss (matching `failBoss`). `failBoss` keeps adding 1 locally for speed. A test checks the formula equals the counter on every existing gate scenario. | A counter merged by LWW loses a fall; a count of attempts cannot. Recomputing avoids changing every reader. |
 | D8 | Flasks | New `FlaskEvents` table (`id`, `kind` spend or restore, `amount`, `reason`, `day`, `at`). Flasks left = start (3) + restores − spends, clamped to 0 and the cap **at each step in time order**. v7 migration writes one event that brings the sum to the current value. `Settings.flasks` is dropped. | Same reason as D7, and §9.1 already lists "Flask use" as an entity. Clamping per step keeps the cap rule. |
 | D9 | Settings | One synced `UserSettings` record (tap mode, default reset, haptics, rollover hour, reminder on and time, sound), LWW per record. **Per-device** and never synced: `lastResolvedDay`, `onboarded`, notification schedule. `firstDay` syncs as the **earliest** value seen. | A second phone should not repeat onboarding answers but must run its own missed-day resolution and its own reminders. |
 | D10 | Tester signals (`Visits`, `SignalEvents`) | **Local only**, not synced. | They are closed-test instruments with their own privacy promise (Stage 6 D1). Syncing them would widen the Data safety answer for no product value. |
 | D11 | One active bloodstain per boss | The `Bloodstains` table and `BloodstainDao` are built **in this stage**, with no screen writing them yet (Stage 8 adds the drop on fall). `BloodstainDao.drop()` marks any older active bloodstain on that boss lost in the same transaction (§9.2). After every pull, and on the server after every push, `settleBloodstains(bossId)` keeps the **newest** active one (by `createdAt`, ties by id) and marks the rest lost with `lostAt` = the newest one's `createdAt`. The server also has a partial unique index on (`user_id`, `boss_id`) where `recovered_at` and `lost_at` are null and `deleted_at` is null, so a bug cannot store two. | Two offline devices can each drop one, and the rule must hold after any merge order. Building it with sync means Stage 8 only adds behavior, not schema or sync changes. Settling to a fixed answer (newest wins) makes both merge orders converge. |
 | D12 | Hosting | **Fly.io** (one small machine, region near the testers) with **Neon** or Fly Postgres; TLS only; daily database backups kept 7 days. Final pick in step 12. | Cheap at this size, no lock-in: plain Node and PostgreSQL run anywhere. To confirm with cost at step 12. |
-| D13 | Cursor and clocks | The server gives every stored change a `seq` (bigserial). Pull returns changes with `seq` greater than the device's cursor, oldest first, in pages of 500. LWW compares the **client** `updatedAt` (what the user did last), never the server receive time. A client time more than 24 h in the future is rejected with 422 for that record. | `seq` makes pull exact even when phone clocks disagree; the future-time guard stops one bad clock from winning every conflict forever. |
-| D14 | Change capture | SQLite **triggers** on each synced table write an outbox row (`table`, `rowId`, `op`) on insert, update and delete, skipped while `SyncState.applying` is 1 (during a pull). The sync service reads the outbox, sends the current row (or a tombstone), and clears entries the server acknowledged. | One mechanism covers every DAO, including future ones, and it is in the same transaction as the write (§9.3 "never fails"). A forgotten "mark dirty" call is impossible. |
+| D13 | Cursor and clocks | Each user has a counter `users.last_seq`. A push takes `pg_advisory_xact_lock(user_id)`, and every row it **actually changes** gets the next value of that counter as its `seq`. A replay that changes nothing (same version already stored, an event that exists, a blocked upsert) gets no new `seq`. Pull returns that user's rows with `seq` greater than the device's own cursor (kept in local `SyncState`), oldest first, in pages of 500; the device saves the cursor after applying each page. LWW compares the **client** `updatedAt`, never the server receive time. A client time more than 24 h in the future is rejected with 422 for that record (D14). | A global `bigserial` is allocated before commit, so a slow transaction can commit a lower `seq` after a client has pulled past it, and that change would never be seen. Pushes for one user are serialized, so `seq` order is commit order and paging is safe. Not bumping `seq` on no-ops makes a retried push harmless. |
+| D14 | Change capture and acknowledgement | SQLite **triggers** on each synced table write an outbox row (`table`, `rowId`, `op`, `at`) on insert, update and delete, skipped while `SyncState.applying` is 1 (during a pull). `at` comes from a registered SQLite function `hearthrise_now()` that reads the app clock, so a tombstone keeps the time of the delete after the row is gone, and tests use the fixed clock. A sync run **captures the outbox seqs it sends** and on success deletes exactly those; an edit made while the request is in flight has a higher seq and is sent next run. Several entries for one row collapse to one send. Network errors and 5xx leave everything queued. **422 per record:** a *clock* reject sets that row's `updatedAt` to now and requeues it once; a *malformed* reject is **quarantined**: the entry stays with `rejectedReason` set and is skipped by the sender. Settings shows "N items not backed up" from those entries. An entry is retried when the row is edited again (a fresh entry) or when the app version changes (reasons cleared once). Applying a pulled tombstone deletes that id's outbox entries. | One mechanism covers every DAO, including future ones, in the same transaction as the write (§9.3 "never fails"). Acking captured seqs means an in-flight edit is never erased. Quarantine keeps a bad row from blocking the queue without dropping it silently: it survives restart and has a retry path. |
 | D15 | When to sync | On app start, on `resumed`, and 5 s after the last local write (debounced). Failures back off 30 s, 2 min, 10 min, then wait for the next start or resume. No background job. | Matches how missed days are already resolved (on open). WorkManager adds a platform module for little gain. |
-| D16 | First sign-in with local data | Upload everything local, then pull. Records with the same id merge by D5; different ids both stay. If the account already has bosses, a sheet says "This account has data from another phone. Both will be kept." with one button. | Gate item 3. Never ask the user to pick a side and lose the other. |
-| D17 | Account deletion | Settings, "Delete account": confirm sheet, then `DELETE /v1/account` removes every row of the user and all sessions; the phone keeps its local data and returns to no-account mode. Same action on a small web page (sign in with Google, confirm). | Play requires in-app and web deletion for apps that create accounts. Keeping local data avoids surprise loss. |
-| D18 | Sign out | Stops sync and forgets the session token. Local data stays. | Same reason as D17. |
+| D16 | First sign-in with local data | Signing in stores the session token, then in **one transaction** enqueues every synced row into the outbox (with `applying` set so triggers do not double it). From there it is a normal sync: push, then pull. A crash at any point resumes from the durable outbox; replays are no-ops (D13). Records with the same id merge by D5; different ids both stay. If the account already has bosses, a sheet says "This account has data from another phone. Both will be kept." with one button, shown once. | Gate item 3. Never ask the user to pick a side and lose the other. Reusing the outbox means bootstrap needs no protocol of its own. |
+| D17 | Account deletion | Settings, "Delete account": confirm sheet, then `DELETE /v1/account` removes every row of the user, the tombstones and every session; the phone keeps its local data and returns to no-account mode. Another phone still signed in gets 401 on its next sync, sets `sessionEnded` and stops (D18). **Web page** `/account/delete`: Google Identity Services sign-in button; the ID token is POSTed in the request body with a confirm; the server checks it as in D4 and also requires `iat` within the last 5 minutes. No cookie or server session is used, so there is no ambient credential to forge (no CSRF surface). | Play requires in-app and web deletion for apps that create accounts. Keeping local data avoids surprise loss. A fresh token in the body is both the re-auth and the CSRF guard. |
+| D18 | Sign out, and a session that ended | Sign out forgets the token, **empties the outbox and resets the cursor**. Local data stays. The next sign-in is a first sign-in (D16). It shows a confirm sheet, "Back up this phone's data to <email>?", when the account differs from `SyncState.lastAccountId` or `sessionEnded` is set (for example after the account was deleted elsewhere); cancel signs out again with nothing queued. | Without this, rows queued for one account would be pushed into the next one, and a phone left offline would quietly re-upload data from a deleted account. |
 | D19 | Bloodstain field merge | Bloodstains are **not** plain LWW. Fields merge one by one: `bossId`, `taskId`, `attemptId`, `amount`, `createdAt` never change after insert; `recoveredAt` = the earliest non-null value from either side; `lostAt` = the earliest non-null value, but **cleared if `recoveredAt` is set**. A recovery is never undone by a merge. Then D11 settling runs. | LWW on the whole row could let a later "lost" overwrite a recovery made offline, which would take back something the user earned. Field merge is order-independent, so A-then-B and B-then-A give the same row. |
+| D20 | Plan picks as one row per day | `PlanPicks` is replaced by `DayPlans` (`day` primary key, `taskIds` JSON list in order, `updatedAt`). The plan for a day is already saved whole (`plan_pick_dao.dart` deletes the day's picks and inserts the new list), so one LWW record per day matches how it is written. Readers skip task ids that no longer exist. | A per-pick natural key would need deletes and re-adds of the same id, which tombstones cannot express (D5). |
 
 ---
 
@@ -127,26 +129,27 @@ One migration (`from6To7`). Dump the schema and generate step helpers, as for v6
 | `FlaskEvents` | `id` text, `kind` int (`FlaskKind`), `amount` int, `reason` int (`FlaskReason`), `day` text, `at` datetime | D8 |
 | `Bloodstains` | `id` text, `bossId` text (cascade), `taskId` text nullable (set null), `attemptId` text nullable (set null), `amount` int, `createdAt`, `recoveredAt` nullable, `lostAt` nullable, `updatedAt` datetime | D11, D19. Active = neither recovered nor lost |
 | `UserSettings` | the synced columns from `Settings`, plus `updatedAt` | D9; single row, fixed id |
-| `SyncOutbox` | `seq` int autoincrement, `tbl` text, `rowId` text, `op` int (`SyncOp`) | D14 |
-| `SyncState` | `deviceId` text, `cursor` int, `applying` bool, `accountEmail` text nullable, `lastSyncAt` datetime nullable, `lastError` text nullable | Single row. Session token is in secure storage, not here |
+| `SyncOutbox` | `seq` int autoincrement, `tbl` text, `rowId` text, `op` int (`SyncOp`), `at` datetime, `rejectedReason` text nullable | D14 |
+| `DayPlans` | `day` text primary key, `taskIds` text (JSON list), `updatedAt` datetime | D20; replaces `PlanPicks` |
+| `SyncState` | `deviceId` text, `cursor` int, `applying` bool, `accountEmail` text nullable, `lastAccountId` text nullable, `sessionEnded` bool, `mergeNoticeShown` bool, `lastAppVersion` text nullable, `lastSyncAt` datetime nullable, `lastError` text nullable | Single row. Session token is in secure storage, not here. `cursor` is this installation's own (D13) |
 
 **Changed tables**
 - `Settings`: drops `flasks` and the columns moved to `UserSettings`; keeps the per-device ones.
-- `DayLogs`, `PlanPicks`: add `updatedAt` (backfill with `at` or now).
-- Composite keys (`DayLogs`, `PlanPicks`) get a synced id: `"$day:$kind"` and `"$day:$taskId"`, computed, so the server stores one text id for every table.
+- `DayLogs`: add `updatedAt` (backfill with `at`); synced id `"$day:$kind"`, computed, so the server stores one text id for every table.
+- `PlanPicks`: dropped; its rows are copied into `DayPlans` in `position` order (D20).
 
 **Backfill:** one `FlaskEvents` restore or spend that makes the derived count equal the old `flasks`; `UserSettings` copied from `Settings`; `SyncState` with a new device id and cursor 0; **no outbox rows** (the first sign-in uploads everything, D16).
 
-**Triggers:** insert, update and delete triggers on `Bosses`, `Phases`, `Tasks`, `Attempts`, `Commitments`, `HealthEvents`, `EmberEvents`, `FlaskEvents`, `Relics`, `Bloodstains`, `DayLogs`, `PlanPicks`, `UserSettings`, each `WHEN (SELECT applying FROM sync_state) = 0`.
+**Triggers:** insert, update and delete triggers on `Bosses`, `Phases`, `Tasks`, `Attempts`, `Commitments`, `HealthEvents`, `EmberEvents`, `FlaskEvents`, `Relics`, `Bloodstains`, `DayLogs`, `DayPlans`, `UserSettings`, each `WHEN (SELECT applying FROM sync_state) = 0`.
 
 **`enums.dart`** (append only): `FlaskKind { spend, restore }`, `FlaskReason { skipDay, lightDay, extension, bonfire }`, `SyncOp { upsert, delete }`.
 
 ### Server: PostgreSQL
 
-- `users` (`id` uuid, `google_sub` unique, `email`, `created_at`), `sessions` (`token_hash` bytea pk, `user_id`, `expires_at`).
-- One table per synced app table, same columns in snake_case, plus `user_id`, `updated_at` (client), `seq` bigint (global sequence, set on every write), `deleted_at` nullable (tombstone kept in place). Primary key (`user_id`, `id`).
-- Event tables have no `updated_at`; insert uses `ON CONFLICT DO NOTHING`.
-- `bloodstains` merges by D19, then settles by D11, in the push transaction; partial unique index `one_active_bloodstain` on (`user_id`, `boss_id`) where `recovered_at`, `lost_at` and `deleted_at` are null.
+- `users` (`id` uuid, `google_sub` unique, `email`, `last_seq` bigint, `created_at`), `sessions` (`token_hash` bytea pk, `user_id`, `expires_at`).
+- One table per synced app table, same columns in snake_case, plus `user_id`, `updated_at` (client), `device_id`, `seq` bigint (per user, D13), `deleted_at` nullable (tombstone kept in place, payload nulled, D5). Primary key (`user_id`, `id`); index on (`user_id`, `seq`).
+- Event tables have no `updated_at`; insert uses `ON CONFLICT DO NOTHING`, and an insert for a tombstoned id is a no-op.
+- `bloodstains` merges by D19, then settles by D11, in the push transaction. Order inside the transaction: lock the boss's rows (`FOR UPDATE`), compute the final set, write the losers (lost) **before** the winner, so the index never sees two active rows; partial unique index `one_active_bloodstain` on (`user_id`, `boss_id`) where `recovered_at`, `lost_at` and `deleted_at` are null.
 - Row-level scoping: every query filters on `user_id` from the session; a test proves cross-user access is impossible (gate item 5).
 
 ---
@@ -158,19 +161,19 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 ### Step 1: Schema v7 (app)
 
 **Tests first**
-- `test/drift/hearthrise/migration_v7_test.dart`: a v6 database with bosses, attempts, commitments, health, ember events, relics and `flasks = 1` upgrades with everything intact; derived flasks are still 1; `UserSettings` equals the old settings; `DayLogs` and `PlanPicks` have `updatedAt`; `SyncState` has a device id and cursor 0; the outbox is empty.
+- `test/drift/hearthrise/migration_v7_test.dart`: a v6 database with bosses, attempts, commitments, health, ember events, relics and `flasks = 1` upgrades with everything intact; derived flasks are still 1; `UserSettings` equals the old settings; `DayLogs` have `updatedAt`; each day's `PlanPicks` became one `DayPlans` row with the task ids in `position` order (D20); `SyncState` has a device id and cursor 0; the outbox is empty.
 - `test/data/enums_test.dart` (added): new enums; existing indexes unchanged.
 - `test/data/flask_test.dart`: spend and restore events give the same answers `day_dao_test.dart` expects today; clamping at 0 and at the cap happens per step in time order (D8).
 
-**Code:** tables, enums, schema dump, `from6To7`; `DayDao` and `CommitmentDao` write `FlaskEvents` instead of the counter; readers of `Settings` synced columns move to `UserSettings`.
+**Code:** tables, enums, schema dump, `from6To7`; `DayDao` and `CommitmentDao` write `FlaskEvents` instead of the counter; readers of `Settings` synced columns move to `UserSettings`; `PlanPickDao` reads and writes `DayPlans` and skips missing task ids.
 
-**Done when:** the three files pass, the v1 to v6 migration tests still pass, and `day_dao_test`, `commitment_dao_test`, `profile_dao_test` are green.
+**Done when:** the three files pass, the v1 to v6 migration tests still pass, and `day_dao_test`, `commitment_dao_test`, `profile_dao_test`, `plan_pick_dao_test` are green.
 
 ### Step 2: Deterministic ids for system-made records (app)
 
 **Tests first**
 - `test/core/ids_test.dart`: `systemId(parts)` is a uuid v5, the same for the same parts, different for different parts, and never equal to a v4.
-- `test/data/system_ids_test.dart`: run the missed-day resolution, the bonfire, a rise, a missed commitment and a strike **twice from the same starting data in two databases**; the ids of the attempts, health, ember and flask events they write are equal across both (D6).
+- `test/data/system_ids_test.dart`: run the missed-day resolution, the bonfire, a rise, a missed commitment and a strike **twice from the same starting data in two databases**; the ids of the attempts, health, ember and flask events they write are equal across both (D6); committing the same task on the same day in both databases gives one commitment id, and defeating the same boss in both gives one relic id.
 - `test/data/attempt_number_test.dart`: `recomputeAttemptNumbers()` gives the same value as the `failBoss` counter after every fall path (declared, health death, missed day) and after resets (D7).
 
 **Code:** `systemId` in `core/ids.dart`; each call site listed in D6 uses it; `BossDao.recomputeAttemptNumbers()`.
@@ -198,9 +201,11 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 - editing a title queues an upsert; deleting a boss queues deletes for the boss and every cascaded child;
 - with `applying = 1`, writes queue nothing;
 - `Visits`, `SignalEvents`, `Settings` (per-device) and `SyncState` queue nothing (D9, D10);
-- a write that throws inside a transaction leaves no outbox row.
+- a write that throws inside a transaction leaves no outbox row;
+- a delete's outbox entry has `at` from the fixed clock (through `hearthrise_now()`), and its tombstone can be built after the row is gone;
+- `ack(seqs)` removes only the captured seqs: an edit made between `pending()` and `ack` stays queued (D14).
 
-**Code:** trigger SQL in `database.dart` (created in `from6To7` and `onCreate`); `SyncDao` with `pending()`, `ack(seqs)`, `setApplying()`.
+**Code:** trigger SQL in `database.dart` (created in `from6To7` and `onCreate`); `hearthrise_now()` registered on open; `SyncDao` with `pending()`, `ack(seqs)`, `quarantine(seq, reason)`, `setApplying()`.
 
 **Done when:** the file passes.
 
@@ -219,14 +224,15 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 
 **Tests first** `server/test/sync.test.ts`:
 - push a batch of new rows; pull from cursor 0 returns them with increasing `seq`; pull from the last cursor returns nothing;
-- LWW: an older `updatedAt` for an existing id is acknowledged but not applied; a newer one wins; equal times break on device id;
+- LWW: an older `updatedAt` for an existing id is acknowledged but not applied; a newer one wins; equal times break on the stored `device_id`, with the same winner in both push orders and after a later re-push of the loser;
 - events: the same event id pushed twice (two devices, D6) is stored once; an event push with changed fields is ignored, not applied;
-- tombstone beats an earlier and a later edit; deleting a boss tombstones its phases, tasks, commitments and plan picks; relics keep the row with `boss_id` cleared;
+- tombstone beats an earlier and a later edit; an upsert for a tombstoned id, or for a task under a tombstoned boss, is acknowledged and changes nothing; an event inserted after its tombstone stays deleted; deleting a boss tombstones its phases, tasks, commitments and attempts; relics keep the row with `boss_id` cleared; a tombstone's payload columns are null;
+- `seq`: two pushes for one user started together (the first held open inside its transaction) never let a pull skip a change; a mixed batch pushed twice (response lost) gives no duplicate, no new `seq`, and the same acknowledgements;
 - an `updatedAt` more than 24 h ahead is rejected for that record only (D13);
 - a batch with one bad record applies the others and reports the bad one;
 - user A's pull never contains user B's rows; A pushing an id B owns creates A's own row, not a write to B's;
 - pages of 500 with a `hasMore` flag;
-- bloodstains: two active ones on one boss pushed in either order end with the newer active and the older lost; a pushed recovery is kept when the server row is lost, and a pushed `lostAt` does not undo a stored recovery (D11, D19); the shared fixtures in `server/test/fixtures/bloodstains.json` give the same result as `bloodstain_dao_test.dart`;
+- bloodstains: two active ones on one boss pushed in either order end with the newer active and the older lost, with no unique-index error (losers written before the winner); a pushed recovery is kept when the server row is lost, and a pushed `lostAt` does not undo a stored recovery (D11, D19); the shared fixtures in `server/test/fixtures/bloodstains.json` give the same result as `bloodstain_dao_test.dart`;
 - inserting a second active bloodstain directly in SQL fails on `one_active_bloodstain`.
 
 **Code:** `POST /v1/sync/push`, `GET /v1/sync/pull?since=`; one transaction per batch.
@@ -246,14 +252,16 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 ### Step 8: Sync service (app)
 
 **Tests first** `test/data/sync_service_test.dart` against a `FakeSyncApi` that implements the step 6 rules in Dart, and checked against shared fixtures in `server/test/fixtures/*.json` so the fake cannot drift from the server:
-- push sends outbox rows as current-row upserts or tombstones, then acks only what the server accepted;
+- push sends outbox rows as current-row upserts or tombstones (with `deviceId`), then acks only the captured seqs; an edit made while the push is in flight is sent on the next run;
+- a clock 422 sets the row's `updatedAt` to now and requeues it once; a malformed 422 quarantines only that entry, the rest lands, the entry survives a rebuild of the service, and is retried after the row is edited or the app version changes (D14);
+- a pulled tombstone deletes the local row and that id's outbox entries; a stale local edit pushed before the pull is acked as a no-op and both sides end deleted;
 - pull applies remote rows with `applying = 1` (nothing re-queued), follows `hasMore`, advances the cursor, and runs `recomputeAttemptNumbers()` (D7);
 - pull applies LWW and tombstones locally the same way the server does (both directions converge);
 - a pulled tombstone for a boss removes its children locally;
 - a network error leaves the outbox and cursor unchanged and sets `lastError`; the next run retries;
 - the debounce and back-off schedule (D15) with a fake clock;
 - `firstDay` becomes the earliest of local and remote (D9);
-- a pulled bloodstain is merged field by field (D19), then `settleBloodstains` runs for its boss; a bloodstain changed by settling is queued for the next push.
+- a pulled bloodstain is merged field by field (D19), then `settleBloodstains` runs for its boss; settling runs in the same transaction **after** `applying` is cleared, so a bloodstain it changes fires the trigger and is queued for the next push.
 
 **Code:** `data/sync_service.dart`, `SyncApi` interface over the generated client, provider; `DayResolver` triggers a sync on start and resume after resolving the day.
 
@@ -264,7 +272,7 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 **Tests first**
 - `test/ui/sync_status_row_test.dart`: renders "Back up and sync" (signed out), or the email and "Last synced 2 min ago" / "Waiting for a connection" (signed in) from given values; fires `onSignIn`, `onSignOut`, `onDelete`; 48 dp targets; no overflow at 320 x 568 and 200% text.
 - `test/ui/confirm_sheet_test.dart` (or reuse the existing confirm widget if one fits): delete account copy, destructive button fires once.
-- `test/features/settings_sync_test.dart` with a fake `AuthGateway` and `FakeSyncApi`: signing in stores the token and runs a first sync; with remote data the D16 sheet shows; sign out clears the token and keeps local data; delete account calls the API, clears the token and keeps local data; a failed sign-in shows a quiet line and changes nothing.
+- `test/features/settings_sync_test.dart` with a fake `AuthGateway` and `FakeSyncApi`: signing in stores the token, enqueues every synced row in one transaction and runs a first sync; the service is disposed after the push and before the pull, then rebuilt: the next run pulls and nothing is duplicated or lost; with remote data the D16 sheet shows once; sign out clears the token, empties the outbox, resets the cursor and keeps local data; signing in to a different account, or after a 401 set `sessionEnded`, shows the D18 confirm sheet first and cancel queues nothing; signing back in to the same account shows no sheet; delete account calls the API, clears the token and keeps local data; a failed sign-in shows a quiet line and changes nothing.
 
 **Code:** `ui/sync_status_row.dart`; `features/settings/sync_section.dart` (thin container); `core/auth_gateway.dart` wrapping `google_sign_in` and `flutter_secure_storage`.
 
@@ -274,7 +282,7 @@ Each step: tests first (red), then code (green), then refactor. One commit per s
 
 **Tests first**
 - `test/release_config_test.dart` (changed): the manifest asks for `INTERNET`, `POST_NOTIFICATIONS` and `RECEIVE_BOOT_COMPLETED` and nothing else; `usesCleartextTraffic` is not true; version is `0.7.0+N`.
-- `server/test/delete_page.test.ts`: `GET /account/delete` serves the page; the delete flow with a valid session removes every user row (gate item 5).
+- `server/test/delete_page.test.ts`: `GET /account/delete` serves the page and sets no cookie; `POST` with a fresh valid ID token removes every row, tombstone and session of that user; a missing token, an `iat` older than 5 minutes, a wrong `aud` or a token for another user deletes nothing (gate item 5); after deletion, the old session token gets 401.
 - `test/features/no_account_test.dart`: with no session token, starting the app, striking, falling and opening the bonfire makes no call on the API (gate item 4).
 
 **Code:** manifest; `pubspec.yaml` version; `docs/privacy-policy.md` rewritten (optional account; what syncs: boss, task, phase, attempt, lesson, relic and settings data, email and Google account id; what never leaves the phone: tester signals; where it is stored; deletion in app and on the web; contact); Data safety draft in `docs/data-safety.md` (collected: email, user id, app content; encrypted in transit; deletion available; not shared).

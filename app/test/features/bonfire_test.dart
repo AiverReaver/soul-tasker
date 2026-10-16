@@ -81,6 +81,7 @@ void main() {
     expect(haptics.events, contains('medium'));
 
     expect(find.text('You have rested.'), findsOneWidget);
+    expect(find.text('Plan earlier.'), findsOneWidget); // the day lesson
     expect(find.widgetWithText(EmberButton, 'Rest'), findsNothing);
     expect(find.byType(TextField), findsNothing);
     await tearDownApp(tester, h);

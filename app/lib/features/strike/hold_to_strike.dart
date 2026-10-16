@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/dust_vanish.dart';
+import '../../ui/strike_choice_dialog.dart';
 import '../../ui/strike_sweep_view.dart';
 import '../../ui/task_row_tile.dart';
 import 'strike_sweep.dart';
@@ -18,6 +20,7 @@ class HoldToStrike extends ConsumerStatefulWidget {
     required this.weight,
     required this.isDone,
     required this.onStrike,
+    this.onTried,
     this.tapMode = false,
     this.trailing,
     this.deadline,
@@ -27,6 +30,10 @@ class HoldToStrike extends ConsumerStatefulWidget {
   final Weight weight;
   final bool isDone;
   final VoidCallback onStrike;
+
+  /// When set, a finished hold first asks Strike or Tried; Tried calls this.
+  /// When null, a finished hold strikes at once.
+  final VoidCallback? onTried;
   final bool tapMode;
 
   /// Shown after the weight label, e.g. the task's action menu.
@@ -45,6 +52,9 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
 
   /// The landing sweep (§7.2); its length is set per strike.
   late final AnimationController _sweep = AnimationController(vsync: this);
+
+  /// The task dissolving into dust once struck.
+  late final AnimationController _dust = AnimationController(vsync: this);
 
   late final AnimationController _progress =
       AnimationController(
@@ -72,6 +82,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   void dispose() {
     _progress.dispose();
     _sweep.dispose();
+    _dust.dispose();
     super.dispose();
   }
 
@@ -106,10 +117,35 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
       case Weight.bossTier:
         haptics.doubleHeavy();
     }
+    if (widget.onTried == null) return _strike();
+    _ask();
+  }
+
+  Future<void> _ask() async {
+    final choice = await showDialog<bool>(
+      context: context,
+      builder: (_) => StrikeChoiceDialog(title: widget.title),
+    );
+    if (!mounted) return;
+    switch (choice) {
+      case true:
+        _strike();
+      case false:
+        _progress.value = 0;
+        widget.onTried?.call();
+      case null:
+        _progress.value = 0;
+    }
+  }
+
+  void _strike() {
     final sweepLength = motionOf(context, sweepDuration(widget.weight));
     if (sweepLength > Duration.zero) {
       _sweep
         ..duration = sweepLength
+        ..forward(from: 0);
+      _dust
+        ..duration = sweepLength * 3
         ..forward(from: 0);
     }
     widget.onStrike();
@@ -136,17 +172,33 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   @override
   Widget build(BuildContext context) {
     final content = AnimatedBuilder(
-      animation: Listenable.merge([_progress, _sweep]),
+      animation: Listenable.merge([_progress, _sweep, _dust]),
       builder: (context, _) => TaskRowTile(
         title: widget.title,
         weightLabel: widget.weight.label,
         isDone: widget.isDone,
         progress: _progress.value,
-        sweep: _sweep.isAnimating
-            ? StrikeSweepView(
-                key: kStrikeSweepKey,
-                progress: _sweep.value,
-                isBossTier: widget.weight == Weight.bossTier,
+        sweep: _sweep.isAnimating || _dust.isAnimating
+            ? Stack(
+                children: [
+                  if (_dust.isAnimating)
+                    Positioned.fill(
+                      child: DustVanish(
+                        progress: _dust.value,
+                        seed: widget.title.hashCode,
+                        motes: 24,
+                        child: const SizedBox.shrink(),
+                      ),
+                    ),
+                  if (_sweep.isAnimating)
+                    Positioned.fill(
+                      child: StrikeSweepView(
+                        key: kStrikeSweepKey,
+                        progress: _sweep.value,
+                        isBossTier: widget.weight == Weight.bossTier,
+                      ),
+                    ),
+                ],
               )
             : null,
         trailing: widget.trailing,

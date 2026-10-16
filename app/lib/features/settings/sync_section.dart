@@ -52,6 +52,8 @@ class _SyncSectionState extends ConsumerState<SyncSection> {
     if (!mounted) return;
     if (result.outcome == SignInOutcome.failed) {
       setState(() => _flash = 'Could not sign in. Nothing changed.');
+    } else if (result.outcome == SignInOutcome.unavailable) {
+      setState(() => _flash = 'Sign-in is not available in this build.');
     }
     if (result.showMergeNotice) {
       await showDialog<void>(

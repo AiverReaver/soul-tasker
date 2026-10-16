@@ -83,7 +83,13 @@ Future<void> showExtendSheet(
   if (!context.mounted) return;
   final options = [
     for (final p in DeadlinePreset.values)
-      if (deadlineFor(p, now, rolloverHour: hour).isAfter(c.deadline)) p,
+      if (extendedDeadline(
+        p,
+        now,
+        current: c.deadline,
+        rolloverHour: hour,
+      ).isAfter(c.deadline))
+        p,
   ];
   if (options.isEmpty) return onMessage('It cannot move later today.');
   final preset = await showModalBottomSheet<DeadlinePreset>(

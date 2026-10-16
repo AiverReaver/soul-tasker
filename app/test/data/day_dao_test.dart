@@ -133,6 +133,15 @@ void main() {
       expect(s.embers.carried, 1 + 3 + 2); // Light, Heavy, tried Heavy
     });
 
+    test('carries the day lesson written at the bonfire', () async {
+      await h.seed();
+      expect((await days.summary()).dayLesson, isNull);
+      await days.rest(lesson: 'Plan earlier.');
+      final s = await days.summary();
+      expect(s.dayLesson, 'Plan earlier.');
+      expect(s.lessons, isEmpty);
+    });
+
     test('leaves out other days, and follows the rollover hour', () async {
       final view = await h.seed();
       h.clock.now = DateTime(2026, 10, 14, 1);

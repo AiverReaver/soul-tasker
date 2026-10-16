@@ -158,6 +158,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
                     tried: summary.tried,
                     falls: summary.falls,
                     lessons: summary.lessons,
+                    dayLesson: summary.dayLesson,
                   ),
                   if (checkIn != null && !_isCheckInDone && !isFallen) ...[
                     const SizedBox(height: Space.md),

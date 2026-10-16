@@ -33,6 +33,22 @@ void main() {
       expect(find.text('Start earlier.'), findsOneWidget);
     });
 
+    testWidgets('shows the day lesson, even on an otherwise quiet day', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const DaySummary(
+          strikes: 0,
+          tried: 0,
+          falls: 0,
+          lessons: [],
+          dayLesson: 'Plan earlier.',
+        ),
+      );
+      expect(find.text('Plan earlier.'), findsOneWidget);
+    });
+
     testWidgets('a day with nothing says so quietly', (tester) async {
       await _pump(
         tester,

@@ -9,11 +9,19 @@ class FakeAuthGateway implements AuthGateway {
   /// Make the sheet fail.
   bool fails = false;
 
+  /// Whether Google sign-in can run on this build (an iOS client id).
+  @override
+  bool isGoogleConfigured = true;
+
+  /// How often the Google sheet was opened.
+  int googleCalls = 0;
+
   String? token;
   int googleSignOuts = 0;
 
   @override
   Future<String?> googleIdToken() async {
+    googleCalls++;
     if (fails) throw StateError('google failed');
     return idToken;
   }

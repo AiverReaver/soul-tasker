@@ -122,6 +122,33 @@ void main() {
       expect(row.deadline, DateTime(2026, 10, 13, 23));
     });
 
+    test('presets add to the current deadline, not to now', () async {
+      await h.seed();
+      final id = (await commits.commit(
+        await taskId('Read chapter 4'),
+        DeadlinePreset.oneHour,
+      ))!;
+      final before = (await commits.load('2026-10-13')).single.commitment;
+      h.clock.now = DateTime(2026, 10, 13, 8, 1); // 59 min left
+      expect(await commits.extend(id, DeadlinePreset.oneHour), isTrue);
+      expect(
+        (await commits.load('2026-10-13')).single.commitment.deadline,
+        before.deadline.add(const Duration(hours: 1)),
+      );
+    });
+
+    test('extendedDeadline caps at the end of the ritual day', () {
+      expect(
+        extendedDeadline(
+          DeadlinePreset.threeHours,
+          DateTime(2026, 10, 13, 21),
+          current: DateTime(2026, 10, 14, 3),
+          rolloverHour: 4,
+        ),
+        DateTime(2026, 10, 14, 4),
+      );
+    });
+
     test('refused with no flask left, changing nothing', () async {
       await h.seed();
       await h.setFlasks(0);
@@ -139,6 +166,7 @@ void main() {
 
     test('a deadline not later than the current one is refused', () async {
       await h.seed();
+      h.clock.now = DateTime(2026, 10, 13, 23, 30); // deadline = day end
       final id = (await commits.commit(
         await taskId('Read chapter 4'),
         DeadlinePreset.tonight,
