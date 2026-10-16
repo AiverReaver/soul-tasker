@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' show TableUpdateQuery;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_version.dart';
 import '../core/clock.dart';
 import '../core/haptics.dart';
 import '../core/sounds.dart';
@@ -17,6 +19,9 @@ import 'ember_dao.dart';
 import 'flask_dao.dart';
 import 'settings_dao.dart';
 import 'signal_dao.dart';
+import 'sync_api.dart';
+import 'sync_service.dart';
+import 'sync_sql.dart' show kSyncedTables;
 import 'visit_dao.dart';
 
 /// Overridden in tests with an in-memory database.
@@ -186,3 +191,43 @@ final signalDaoProvider = Provider(
 final checkInDueProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(signalDaoProvider).checkInDue(),
 );
+
+/// The server, or null while signed out: with no account the app makes no
+/// request (Stage 7 plan D1). Sign-in (step 9) overrides this with a client
+/// that sends the session token.
+final syncApiProvider = Provider<SyncApi?>((ref) => null);
+
+final syncServiceProvider = Provider<SyncService?>((ref) {
+  final api = ref.watch(syncApiProvider);
+  if (api == null) return null;
+  return SyncService(
+    db: ref.watch(databaseProvider),
+    api: api,
+    clock: ref.watch(clockProvider),
+    appVersion: kAppVersion,
+  );
+});
+
+/// Decides when to sync (plan D15). Every write to the outbox asks for a
+/// run 5 s later.
+final syncSchedulerProvider = Provider<SyncScheduler?>((ref) {
+  final service = ref.watch(syncServiceProvider);
+  if (service == null) return null;
+  final scheduler = SyncScheduler(run: service.sync);
+  final db = ref.watch(databaseProvider);
+  // The outbox is filled by triggers, which drift does not report, so
+  // listen for writes to the synced tables themselves.
+  final writes = db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([
+          for (final t in db.allTables)
+            if (kSyncedTables.containsKey(t.actualTableName)) t,
+        ]),
+      )
+      .listen((_) => scheduler.localWrite());
+  ref.onDispose(() {
+    writes.cancel();
+    scheduler.dispose();
+  });
+  return scheduler;
+});

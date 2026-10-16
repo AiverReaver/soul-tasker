@@ -44,6 +44,7 @@ dependencies:
   timezone: ^0.11.2
   flutter_timezone: ^5.1.1
   sqlite3: ^3.5.2
+  dio: ^5.7.0
   # Generated from server/openapi.json by tool/gen_api_client.sh.
   hearthrise_api:
     path: packages/hearthrise_api
