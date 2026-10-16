@@ -278,7 +278,8 @@ class SyncService {
       _db.transaction(() async {
         final deviceId = (await _state()).deviceId;
         final bosses = <String>{};
-        var bumpSettings = false;
+        // Rows whose merge result differs from what the server holds.
+        final resend = <(String, String)>{};
         await _outbox.setApplying(true);
         for (final c in changes) {
           if (!kSyncColumns.containsKey(c.table)) continue;
@@ -287,7 +288,7 @@ class SyncService {
           } else if (c.row != null) {
             final result = await _applyUpsert(c, deviceId);
             if (result.bossId != null) bosses.add(result.bossId!);
-            bumpSettings |= result.bumpSettings;
+            if (result.resend case final key?) resend.add(key);
           }
         }
         await BossDao(_db, _clock).recomputeAttemptNumbers();
@@ -296,18 +297,17 @@ class SyncService {
 
         // These are our own merge results: they are written with triggers
         // on, so the next push carries them.
-        if (bumpSettings) {
+        for (final (table, id) in resend) {
           // Later than the row it corrects, or last write wins would drop it.
-          final current = _parse(
-            (await _readRow('user_settings', kUserSettingsId))!['updated_at'],
-          );
+          final current = _parse((await _readRow(table, id))!['updated_at']);
           final now = _clock();
           final bump = now.isAfter(current)
               ? now
               : current.add(const Duration(milliseconds: 1));
-          await _db.customStatement('UPDATE user_settings SET updated_at = ?', [
-            sqlTime(bump),
-          ]);
+          await _db.customStatement(
+            'UPDATE $table SET updated_at = ? WHERE ${_idSql(table)} = ?',
+            [sqlTime(bump), id],
+          );
         }
         final stains = BloodstainDao(_db, _clock);
         for (final bossId in bosses) {
@@ -383,20 +383,67 @@ class SyncService {
     }
     if (local != null && !_remoteWins(c, remoteAt, deviceId, local)) {
       if (table == 'user_settings') return _firstDayOnly(row, local);
+      if (table == 'bosses') await _takeDefeat(row, local);
       return const _Applied();
     }
-    var bump = false;
+    var resend = false;
     if (table == 'user_settings' && local != null) {
       final merged = _earliest(
         local['first_day'] as String?,
         row['first_day'] as String?,
       );
-      bump = merged != row['first_day'];
+      resend = merged != row['first_day'];
       row['first_day'] = merged;
+    }
+    if (table == 'bosses' && local != null) {
+      resend = _keepDefeat(row, local);
     }
     await _write(table, c.id, row, remoteAt);
     await _forgetQueued(table, c.id);
-    return _Applied(bumpSettings: bump);
+    return resend ? _Applied(resend: (table, c.id)) : const _Applied();
+  }
+
+  static final _defeated = BossStatus.defeated.index;
+
+  /// A defeat is final across phones (Stage 5 D2, extended): when [local] is
+  /// defeated, [row] (the remote version about to be written) keeps the
+  /// defeat, with the earlier of the two times. True when that leaves the row
+  /// different from the remote one, so it must be sent again.
+  bool _keepDefeat(Map<String, Object?> row, Map<String, Object?> local) {
+    if (local['status'] != _defeated) return false;
+    final localAt = _parse(local['defeated_at']);
+    final remoteAt = row['status'] == _defeated && row['defeated_at'] != null
+        ? _parse(row['defeated_at'])
+        : null;
+    final earliest = remoteAt != null && remoteAt.isBefore(localAt)
+        ? remoteAt
+        : localAt;
+    final changed =
+        row['status'] != _defeated ||
+        remoteAt == null ||
+        !remoteAt.isAtSameMomentAs(earliest);
+    row['status'] = _defeated;
+    row['defeated_at'] = earliest.toUtc().toIso8601String();
+    return changed;
+  }
+
+  /// The remote copy lost on time, but a defeat in it still counts: take the
+  /// defeat (or its earlier time) and nothing else. The server holds it
+  /// already, so nothing is sent.
+  Future<void> _takeDefeat(
+    Map<String, Object?> remote,
+    Map<String, Object?> local,
+  ) async {
+    if (remote['status'] != _defeated || remote['defeated_at'] == null) return;
+    final remoteAt = _parse(remote['defeated_at']);
+    final localAt = local['status'] == _defeated
+        ? _parse(local['defeated_at'])
+        : null;
+    if (localAt != null && !remoteAt.isBefore(localAt)) return;
+    await _db.customStatement(
+      'UPDATE bosses SET status = ?, defeated_at = ? WHERE id = ?',
+      [_defeated, sqlTime(remoteAt.toLocal()), local['id']],
+    );
   }
 
   bool _remoteWins(
@@ -431,7 +478,7 @@ class SyncService {
     await _db.customStatement('UPDATE user_settings SET first_day = ?', [
       merged,
     ]);
-    return const _Applied(bumpSettings: true);
+    return const _Applied(resend: ('user_settings', kUserSettingsId));
   }
 
   /// Field-by-field merge (D19): the earliest recovery and loss, a recovery
@@ -544,12 +591,15 @@ class _Send {
 }
 
 /// What applying one pulled row asks of the page: a boss whose bloodstains
-/// need settling, or a settings row to re-send.
+/// need settling, or a row to re-send.
 class _Applied {
-  const _Applied({this.bossId, this.bumpSettings = false});
+  const _Applied({this.bossId, this.resend});
 
   final String? bossId;
-  final bool bumpSettings;
+
+  /// A (table, id) whose merged row differs from the server's, so it is sent
+  /// again with a later time.
+  final (String, String)? resend;
 }
 
 /// When to sync (Stage 7 plan D15): on start and resume, 5 s after the last

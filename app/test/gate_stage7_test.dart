@@ -295,6 +295,15 @@ void main() {
             .getSingle();
         expect(misses.data['c'], 1);
 
+        // A's defeat survives B's later edits to the same boss, and B's
+        // title survives A's defeat.
+        for (final p in [a, b]) {
+          final garage = (await p.h.reload(x)).boss;
+          expect(garage.status, BossStatus.defeated, reason: p.name);
+          expect(garage.defeatedAt, isNotNull, reason: p.name);
+          expect(garage.title, "Garage, B's edit", reason: p.name);
+        }
+
         // The relic exists once; only its inscription changed.
         for (final p in [a, b]) {
           final relics = await p.h.db

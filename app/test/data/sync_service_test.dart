@@ -792,6 +792,165 @@ void main() {
     });
   });
 
+  group('a defeat is final across phones', () {
+    const defeatedIndex = 2; // BossStatus.defeated
+
+    test('a newer edit from another phone and our defeat both stand', () async {
+      final bossId = await saveBoss();
+      await h.bosses.setStatus(bossId, BossStatus.defeated);
+      final defeatedAt = await cell(
+        'SELECT defeated_at FROM bosses WHERE id = ?',
+        [bossId],
+      );
+      await asRemote([
+        remote('bosses', bossId, {'title': 'Edited by B'}, updatedAt: _newer),
+      ]);
+      await service.sync();
+
+      expect(
+        await cell('SELECT title FROM bosses WHERE id = ?', [bossId]),
+        'Edited by B',
+      );
+      expect(
+        await cell('SELECT status FROM bosses WHERE id = ?', [bossId]),
+        defeatedIndex,
+      );
+      expect(
+        await cell('SELECT defeated_at FROM bosses WHERE id = ?', [bossId]),
+        defeatedAt,
+      );
+      // The push came first, so the server merged them the same way.
+      expect(fake.rowOf('bosses', bossId)!['status'], defeatedIndex);
+      expect(fake.rowOf('bosses', bossId)!['title'], 'Edited by B');
+      expect(await outbox.pending(), isEmpty);
+    });
+
+    test(
+      'a defeat made while the push is in flight is kept and re-sent',
+      () async {
+        final bossId = await saveBoss();
+        await service.sync();
+        await asRemote([
+          remote('bosses', bossId, {'title': 'Edited by B'}, updatedAt: _newer),
+        ]);
+        await h.bosses.setPinned(bossId, isPinned: true);
+        // The defeat lands after the push was built, before the pull.
+        fake.duringPush = () => h.bosses.setStatus(bossId, BossStatus.defeated);
+        await service.sync();
+
+        expect(
+          await cell('SELECT title FROM bosses WHERE id = ?', [bossId]),
+          'Edited by B',
+        );
+        expect(
+          await cell('SELECT status FROM bosses WHERE id = ?', [bossId]),
+          defeatedIndex,
+        );
+        // The merged row is newer than the remote edit, so it wins there.
+        final updated = DateTime.parse(
+          (await cell('SELECT updated_at FROM bosses WHERE id = ?', [bossId]))!
+              as String,
+        );
+        expect(updated.isAfter(DateTime.parse(_newer)), isTrue);
+        expect(
+          (await outbox.pending())
+              .where((e) => e.tbl == 'bosses')
+              .map((e) => e.rowId),
+          [bossId],
+        );
+
+        await service.sync();
+        expect(fake.rowOf('bosses', bossId)!['status'], defeatedIndex);
+        expect(fake.rowOf('bosses', bossId)!['title'], 'Edited by B');
+        expect(await outbox.pending(), isEmpty);
+      },
+    );
+
+    test(
+      'an older defeat from another phone is taken over our newer edit',
+      () async {
+        final bossId = await saveBoss();
+        await service.sync();
+        await h.bosses.saveBoss(
+          BossDraft(
+            id: bossId,
+            title: 'Edited here',
+            resetOnFail: ResetOnFail.nothing,
+            standalone: const [],
+            phases: const [],
+          ),
+          allowEmpty: true,
+        );
+        // Another phone, older than our edit, defeated it.
+        final other = FakeSyncApi(now: () => DateTime.parse(_serverNow));
+        await other.push('other', [
+          remote('bosses', bossId, {
+            'status': defeatedIndex,
+            'defeated_at': '2026-10-02T00:00:00.000Z',
+          }, updatedAt: _older),
+        ]);
+        await h.db.customStatement('UPDATE sync_state SET cursor = 0');
+        await SyncService(
+          db: h.db,
+          api: other,
+          clock: h.clock.call,
+          appVersion: '0.7.0',
+        ).sync();
+
+        expect(
+          await cell('SELECT status FROM bosses WHERE id = ?', [bossId]),
+          defeatedIndex,
+        );
+        expect(
+          DateTime.parse(
+            (await cell('SELECT defeated_at FROM bosses WHERE id = ?', [
+                  bossId,
+                ]))!
+                as String,
+          ).toUtc(),
+          DateTime.utc(2026, 10, 2),
+        );
+        expect(
+          await cell('SELECT title FROM bosses WHERE id = ?', [bossId]),
+          'Edited here',
+        );
+      },
+    );
+
+    test('two defeats keep the earliest time', () async {
+      final bossId = await saveBoss();
+      await h.bosses.setStatus(bossId, BossStatus.defeated); // 2026-10-13
+      await asRemote([
+        remote('bosses', bossId, {
+          'status': defeatedIndex,
+          'defeated_at': '2026-10-12T08:00:00.000Z',
+        }, updatedAt: _newer),
+      ]);
+      await service.sync();
+      expect(
+        DateTime.parse(
+          (await cell('SELECT defeated_at FROM bosses WHERE id = ?', [bossId]))!
+              as String,
+        ).toUtc(),
+        DateTime.utc(2026, 10, 12, 8),
+      );
+    });
+
+    test('a boss that is not defeated follows last write wins', () async {
+      final bossId = await saveBoss();
+      await service.sync();
+      await asRemote([
+        remote('bosses', bossId, {
+          'title': 'B',
+          'status': 1,
+        }, updatedAt: _newer),
+      ]);
+      await service.sync();
+      expect(await cell('SELECT status FROM bosses WHERE id = ?', [bossId]), 1);
+      expect(await outbox.pending(), isEmpty);
+    });
+  });
+
   group('the shared bloodstain cases', () {
     final fixture = jsonDecode(
       File('../server/test/fixtures/bloodstains.json').readAsStringSync(),

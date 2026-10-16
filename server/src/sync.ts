@@ -127,6 +127,7 @@ class Push {
       }
     }
     if (change.table === 'bloodstains') return this.bloodstain(change, row, dead !== undefined);
+    if (change.table === 'bosses' && dead !== undefined) return this.boss(change, row);
     if (EVENT_TABLES.has(change.table)) {
       if (dead !== undefined) return 'ignored';
       await this.insert(change.table, change.id, row, undefined);
@@ -220,6 +221,50 @@ class Push {
         }
       }
     }
+  }
+
+  /**
+   * A boss merges by last write wins, except that a defeat is final across
+   * phones (Stage 5 D2, extended): if either version is defeated the result
+   * is defeated, with the earliest defeated_at. The other columns follow
+   * last write wins, so a title edited on another phone is kept too.
+   */
+  private async boss(change: Change, row: Record<string, unknown>): Promise<Result['status']> {
+    const DEFEATED = 2;
+    const { rows } = await this.db.query<{
+      status: number;
+      defeated_at: string | null;
+      newer: boolean;
+      earlier: boolean;
+    }>(
+      `SELECT status, to_jsonb(defeated_at) #>> '{}' AS defeated_at,
+         ($3::timestamptz, $4::text) > (updated_at, device_id) AS newer,
+         $5::timestamptz < defeated_at AS earlier
+       FROM bosses WHERE user_id = $1 AND id = $2`,
+      [this.userId, change.id, change.updatedAt, this.deviceId, row.defeated_at ?? null],
+    );
+    const stored = rows[0]!;
+    const storedDefeated = stored.status === DEFEATED;
+    const incomingDefeated = row.status === DEFEATED;
+    if (stored.newer) {
+      if (storedDefeated) {
+        row.status = DEFEATED;
+        if (!(incomingDefeated && stored.earlier)) row.defeated_at = stored.defeated_at;
+      }
+      await this.update('bosses', change.id, row, change.updatedAt);
+      return 'applied';
+    }
+    // Older than what is stored: only a defeat it adds, or an earlier one,
+    // is taken, and nothing else of it.
+    if (incomingDefeated && (!storedDefeated || stored.earlier)) {
+      await this.db.query(
+        `UPDATE bosses SET status = $3, defeated_at = $4::timestamptz, seq = $5
+         WHERE user_id = $1 AND id = $2`,
+        [this.userId, change.id, DEFEATED, row.defeated_at, await this.nextSeq()],
+      );
+      return 'applied';
+    }
+    return 'ignored';
   }
 
   /**

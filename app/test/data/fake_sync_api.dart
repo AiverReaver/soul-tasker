@@ -196,6 +196,9 @@ class FakeSyncApi implements SyncApi {
     if (table == 'bloodstains') {
       return _bloodstain(c.id, row, updatedAt!, deviceId, existing);
     }
+    if (table == 'bosses' && existing != null) {
+      return _boss(row, updatedAt!, deviceId, existing);
+    }
     if (kEventTables.contains(table)) {
       if (existing != null) return false;
       _t(table)[c.id] = _Rec(
@@ -222,6 +225,51 @@ class FakeSyncApi implements SyncApi {
       seq: _next(),
     );
     return true;
+  }
+
+  /// Last write wins, but a defeat is final: either side defeated means
+  /// defeated, with the earliest time (mirrors `Push.boss` on the server).
+  bool _boss(
+    Map<String, Object?> row,
+    DateTime updatedAt,
+    String deviceId,
+    _Rec existing,
+  ) {
+    const defeated = 2;
+    final stored = existing.row!;
+    final storedDefeated = stored['status'] == defeated;
+    final incomingDefeated = row['status'] == defeated;
+    final storedAt = _time(stored['defeated_at']);
+    final incomingAt = _time(row['defeated_at']);
+    final earlier =
+        incomingAt != null && storedAt != null && incomingAt.isBefore(storedAt);
+    final newer = _newer(
+      updatedAt,
+      deviceId,
+      existing.updatedAt!,
+      existing.deviceId,
+    );
+    if (newer) {
+      if (storedDefeated) {
+        row['status'] = defeated;
+        if (!(incomingDefeated && earlier)) {
+          row['defeated_at'] = stored['defeated_at'];
+        }
+      }
+      existing
+        ..row = row
+        ..updatedAt = updatedAt
+        ..deviceId = deviceId
+        ..seq = _next();
+      return true;
+    }
+    if (incomingDefeated && (!storedDefeated || earlier)) {
+      stored['status'] = defeated;
+      stored['defeated_at'] = row['defeated_at'];
+      existing.seq = _next();
+      return true;
+    }
+    return false;
   }
 
   bool _newer(DateTime at, String device, DateTime thenAt, String thenDevice) =>

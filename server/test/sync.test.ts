@@ -331,6 +331,73 @@ describe('validation', () => {
   });
 });
 
+describe('a defeat is final (extends Stage 5 D2 across phones)', () => {
+  const DEFEATED = 2;
+  const defeated = (title: string, at: string, when = at) =>
+    upsert('bosses', 'b1', { title, status: DEFEATED, defeated_at: when }, at);
+  const edited = (title: string, at: string) => upsert('bosses', 'b1', { title, status: 0, defeated_at: null }, at);
+
+  async function boss() {
+    return (await current('bosses', 'b1'))!;
+  }
+  const iso = (v: unknown) => (v == null ? null : new Date(v as string).toISOString());
+
+  test.each([
+    ['the edit is newer', T2, T1],
+    ['the defeat is newer', T1, T2],
+  ])('an edit and a defeat keep both, in either order (%s)', async (_, editAt, defeatAt) => {
+    for (const order of [0, 1]) {
+      await t.db.pool.query('DELETE FROM bosses');
+      const batches = [[edited('Edited by B', editAt)], [defeated('Garage', defeatAt)]];
+      for (const [i, batch] of (order === 0 ? batches : [...batches].reverse()).entries()) {
+        const results = await push(batch, `dev-${i}`);
+        expect(statuses(results)).not.toContain('rejected');
+      }
+      const b = await boss();
+      expect(b.row!.status, `order ${order}`).toBe(DEFEATED);
+      expect(iso(b.row!.defeated_at)).toBe(defeatAt);
+      // The other columns follow last write wins.
+      expect(b.row!.title).toBe(editAt === T2 ? 'Edited by B' : 'Garage');
+    }
+  });
+
+  test('an older defeat still lands on a newer undefeated row, and is announced to pull', async () => {
+    await push([edited('Edited by B', T2)], 'dev-b');
+    const before = (await boss()).seq;
+    const results = await push([defeated('Garage', T1)], 'dev-a');
+    expect(statuses(results)).toEqual(['applied']);
+    const b = await boss();
+    expect(b.seq).toBeGreaterThan(before);
+    expect(b.row!.status).toBe(DEFEATED);
+    expect(b.row!.title).toBe('Edited by B');
+    expect(b.updatedAt && new Date(b.updatedAt).toISOString()).toBe(T2);
+  });
+
+  test('a defeat replayed changes nothing and allocates no seq', async () => {
+    await push([defeated('Garage', T1)]);
+    const before = (await boss()).seq;
+    expect(statuses(await push([defeated('Garage', T1)]))).toEqual(['ignored']);
+    expect((await boss()).seq).toBe(before);
+  });
+
+  test('two defeats keep the earliest defeated_at, in either order', async () => {
+    for (const order of [0, 1]) {
+      await t.db.pool.query('DELETE FROM bosses');
+      const batches = [[defeated('Garage', T1)], [defeated('Garage', T2)]];
+      for (const [i, batch] of (order === 0 ? batches : [...batches].reverse()).entries()) {
+        await push(batch, `dev-${i}`);
+      }
+      expect(iso((await boss()).row!.defeated_at), `order ${order}`).toBe(T1);
+    }
+  });
+
+  test('other statuses still follow last write wins', async () => {
+    await push([upsert('bosses', 'b1', { status: 1 }, T1)]);
+    await push([upsert('bosses', 'b1', { status: 0 }, T2)]);
+    expect((await boss()).row!.status).toBe(0);
+  });
+});
+
 describe('accounts are separate', () => {
   test("A never sees B's rows; A pushing B's id makes A's own row", async () => {
     const other = (await t.signIn({ sub: 'google-sub-2', email: 'b@example.com' })).token;
