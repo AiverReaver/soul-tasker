@@ -156,12 +156,14 @@ Standing rule for every stage and every plan.
 ## Stage 7: Backend and sync
 
 **Goal:** cloud backup and multi-device support.
+**Detailed plan:** `STAGE7_PLAN.md`.
 
 - Node.js API (Fastify or Express) with PostgreSQL mirroring §9 (§10.2).
 - OpenAPI spec, generated Dart client.
 - Google sign-in with server-side ID token verification.
 - Batch sync endpoints; offline-first local writes (§9.3).
 - Conflict rules: last-write-wins by updated time; embers and health derived from events; one active bloodstain per boss.
+- Bloodstain table and its one-active-per-boss rule, local and on the server (moved from Stage 8, `STAGE7_PLAN.md` D11).
 
 **Gate:** offline edits on two devices merge without losing embers, health events, or relics.
 
@@ -171,7 +173,7 @@ Standing rule for every stage and every plan.
 
 **Goal:** add the opt-in loss mechanic, then ship.
 
-- Bloodstain drop on fall, recovery by doing a small version of the task (§5.8).
+- Bloodstain drop on fall, recovery by doing a small version of the task (§5.8). The table, DAO and sync rule already exist from Stage 7.
 - Softening rules: partial loss, cap, flask protection, lesson refund.
 - Newcomer grace week reduces health losses (moved from Stage 4, `STAGE4_PLAN.md` D13).
 - Store listing free of game trademarks (§4).
