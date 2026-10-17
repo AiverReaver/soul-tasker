@@ -9,24 +9,22 @@ import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../core/clock.dart';
 import '../../ui/bonfire_card.dart';
-import '../../ui/hearth_nav_bar.dart';
 import '../../ui/home_header.dart';
 import '../today/today_view.dart';
 import 'boss_card.dart';
 
-enum _Tab { bosses, today }
-
 /// Home (§6.1): the boss list and the Today view.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.showToday = false});
+
+  /// The Today tab; the bottom bar (HearthShell) switches it by route.
+  final bool showToday;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  _Tab _tab = _Tab.bosses;
-
   Widget _header() {
     final now = ref.watch(clockProvider)();
     final profile = ref.watch(profileProvider).value;
@@ -57,7 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             tooltip: 'Profile',
             icon: Icon(Icons.person_outline, color: context.palette.ash),
-            onPressed: () => context.push('/profile'),
+            onPressed: () => context.go('/profile'),
           ),
           IconButton(
             tooltip: 'Settings',
@@ -65,15 +63,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () => context.push('/settings'),
           ),
         ],
-      ),
-      bottomNavigationBar: HearthNavBar(
-        selected: _tab.index,
-        onTap: (i) => switch (i) {
-          0 => setState(() => _tab = _Tab.bosses),
-          1 => setState(() => _tab = _Tab.today),
-          2 => context.push('/bonfire'),
-          _ => context.push('/profile'),
-        },
       ),
       body: SafeArea(
         child: Column(
@@ -83,16 +72,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.sm),
               child: BonfireCard(
                 isRested: ref.watch(dayStatusProvider).value?.isRested ?? false,
-                onTap: () => context.push('/bonfire'),
+                onTap: () => context.go('/bonfire'),
               ),
             ),
             const SizedBox(height: Space.sm),
             Expanded(
               child: switch (bosses) {
                 AsyncData(:final value) =>
-                  _tab == _Tab.bosses
-                      ? _BossList(bosses: value)
-                      : TodayView(bosses: value, tapMode: tapMode),
+                  widget.showToday
+                      ? TodayView(bosses: value, tapMode: tapMode)
+                      : _BossList(bosses: value),
                 AsyncError() => const Center(
                   child: Text('Could not load your bosses.'),
                 ),

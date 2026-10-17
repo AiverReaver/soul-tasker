@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../features/bonfire/bonfire_screen.dart';
 import '../features/boss/boss_screen.dart';
@@ -10,24 +11,40 @@ import '../features/profile/profile_screen.dart';
 import '../features/profile/relic_screen.dart';
 import '../features/ritual/day_resolver.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/shell/hearth_shell.dart';
 import '../features/victory/victory_screen.dart';
+
+// Tabs swap in place: no page transition between them.
+GoRoute _tab(String path, Widget screen) => GoRoute(
+  path: path,
+  pageBuilder: (_, state) =>
+      NoTransitionPage(key: state.pageKey, child: screen),
+);
 
 GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
   initialLocation: initialLocation,
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (_, _) =>
-          const StartGate(child: DayResolver(child: HomeScreen())),
+    ShellRoute(
+      builder: (_, state, child) =>
+          HearthShell(location: state.uri.path, child: child),
+      routes: [
+        _tab('/', const StartGate(child: DayResolver(child: HomeScreen()))),
+        _tab(
+          '/today',
+          const StartGate(
+            child: DayResolver(child: HomeScreen(showToday: true)),
+          ),
+        ),
+        _tab('/bonfire', const BonfireScreen()),
+        _tab('/profile', const ProfileScreen()),
+      ],
     ),
     GoRoute(path: '/welcome', builder: (_, _) => const OnboardingFlow()),
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
-    GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
     GoRoute(
       path: '/relic/:id',
       builder: (_, state) => RelicScreen(relicId: state.pathParameters['id']!),
     ),
-    GoRoute(path: '/bonfire', builder: (_, _) => const BonfireScreen()),
     GoRoute(path: '/boss/new', builder: (_, _) => const BossEditScreen()),
     GoRoute(
       path: '/boss/:id',

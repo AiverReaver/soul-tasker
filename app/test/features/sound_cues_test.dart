@@ -85,7 +85,7 @@ void main() {
     await settle(tester);
     expect(player.calls, ['hum:start']);
 
-    await tester.pageBack();
+    await tester.tap(find.text('Bosses'));
     await settle(tester);
     expect(player.calls, ['hum:start', 'hum:stop']);
     await tearDownApp(tester, h);

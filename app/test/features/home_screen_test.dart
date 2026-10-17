@@ -58,8 +58,8 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the bottom bar switches Bosses and Today, and opens Bonfire '
-      'and Relics', (tester) async {
+  testWidgets('the bottom bar stays on every tab: Bosses, Today, Bonfire and '
+      'Relics', (tester) async {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
@@ -68,6 +68,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Today’s foes'), findsOneWidget);
+    expect(find.byType(HearthNavBar), findsOneWidget);
     await tester.tap(find.text('Bosses'));
     await settle(tester);
     expect(find.text('Today’s foes'), findsNothing);
@@ -75,12 +76,26 @@ void main() {
     await tester.tap(find.text('Relics'));
     await settle(tester);
     expect(find.text('HALL OF RELICS'), findsOneWidget);
-    await tester.pageBack();
-    await settle(tester);
+    expect(find.byType(HearthNavBar), findsOneWidget);
 
     await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(find.text('BONFIRE'), findsOneWidget);
+    expect(find.byType(HearthNavBar), findsOneWidget);
+
+    await tester.tap(find.text('Bosses'));
+    await settle(tester);
+    expect(find.text('Name a new boss'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the bar marks the tab you are on, also when opened by URL', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, location: '/bonfire', tall: true);
+    final bar = tester.widget<HearthNavBar>(find.byType(HearthNavBar));
+    expect(bar.selected, 2);
     await tearDownApp(tester, h);
   });
 

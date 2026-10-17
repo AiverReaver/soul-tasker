@@ -61,6 +61,7 @@ void main() {
       tester,
       h,
       location: '/bonfire',
+      tall: true,
       overrides: [haptics.asOverride],
     );
 
