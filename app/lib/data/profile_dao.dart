@@ -5,6 +5,7 @@ import '../core/clock.dart';
 import '../core/level.dart';
 import 'commitment_dao.dart';
 import 'database.dart';
+import 'flask_dao.dart';
 import 'enums.dart';
 
 /// What the profile shows: lifetime banked embers, the level they give,
@@ -40,12 +41,11 @@ class ProfileDao {
               ..where(_db.emberEvents.kind.equals(EmberKind.bank.index)))
             .map((r) => r.read(_db.emberEvents.amount.sum()) ?? 0)
             .getSingle();
-    final settings = await _db.select(_db.settings).getSingle();
-    final today = dayOf(_clock(), rolloverHour: settings.rolloverHour);
+    final today = dayOf(_clock(), rolloverHour: await _db.rolloverHour());
     return ProfileData(
       banked: banked,
       level: levelFor(banked),
-      flasks: settings.flasks,
+      flasks: await FlaskDao(_db, _clock).count(),
       today: await _commitments.record(today),
       week: await _commitments.week(today),
     );
@@ -58,7 +58,8 @@ class ProfileDao {
         .tableUpdates(
           TableUpdateQuery.onAllTables([
             _db.emberEvents,
-            _db.settings,
+            _db.userSettings,
+            _db.flaskEvents,
             _db.commitments,
             _db.healthEvents,
           ]),

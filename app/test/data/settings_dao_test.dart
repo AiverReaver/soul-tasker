@@ -12,9 +12,9 @@ void main() {
     expect(s.rolloverHour, 4);
     expect(s.reminderEnabled, isFalse);
     expect(s.reminderMinutes, 21 * 60);
-    expect(s.flasks, 3);
+    expect(await h.flasks(), 3);
     // The harness clock starts on 2026-10-13; the install day is never judged.
-    expect(s.lastResolvedDay, '2026-10-13');
+    expect((await h.settings.device()).lastResolvedDay, '2026-10-13');
   });
 
   group('setRolloverHour', () {

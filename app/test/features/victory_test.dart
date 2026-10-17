@@ -23,6 +23,8 @@ Future<String> _oneTaskBoss(Harness h) => h.bosses.saveBoss(
 Future<void> _strikeAndConfirm(WidgetTester tester) async {
   await tester.tap(find.text('Sit the exam'));
   await settle(tester);
+  await tester.tap(find.text('Strike'));
+  await settle(tester);
   await tester.tap(find.text('Defeated'));
   await settle(tester);
 }
@@ -72,6 +74,8 @@ void main() {
     await pumpApp(tester, h, location: '/boss/$id');
 
     await tester.tap(find.text('Sit the exam'));
+    await settle(tester);
+    await tester.tap(find.text('Strike'));
     await settle(tester);
     await tester.tap(find.text('Not yet'));
     await settle(tester);

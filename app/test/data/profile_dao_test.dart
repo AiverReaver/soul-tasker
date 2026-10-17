@@ -1,8 +1,6 @@
-import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/deadlines.dart';
 import 'package:hearthrise/data/commitment_dao.dart';
-import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/day_dao.dart';
 import 'package:hearthrise/data/ember_dao.dart';
 import 'package:hearthrise/data/profile_dao.dart';
@@ -37,9 +35,7 @@ void main() {
   test('spending a flask or resting never lowers it', () async {
     await earn('Read chapter 4');
     await embers.bank();
-    await h.db
-        .update(h.db.settings)
-        .write(const SettingsCompanion(flasks: Value(0)));
+    await h.setFlasks(0);
     final days = DayDao(h.db, h.clock.call, h.attempts);
     await days.rest();
     final p = await profile.read();
@@ -62,9 +58,7 @@ void main() {
       await pumpEventQueue();
       expect(seen.last.banked, 3);
 
-      await h.db
-          .update(h.db.settings)
-          .write(const SettingsCompanion(flasks: Value(2)));
+      await h.setFlasks(2);
       await pumpEventQueue();
       expect(seen.last.flasks, 2);
       expect(seen.last.banked, 3);

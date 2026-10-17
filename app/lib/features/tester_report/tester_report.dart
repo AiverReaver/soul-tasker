@@ -2,7 +2,7 @@ import '../../core/signals.dart';
 import '../../data/enums.dart';
 
 /// Kept equal to `version:` in pubspec.yaml; a test checks it.
-const kAppVersion = '0.6.0+1';
+const kAppVersion = '0.7.0+1';
 
 /// The text a tester pastes into the feedback form (§12, Stage 6 plan D1).
 /// Counts and dates only: never a boss name, task title or lesson.

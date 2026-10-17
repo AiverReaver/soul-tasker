@@ -1,0 +1,3 @@
+tags:
+  # Needs the real server: run it with tool/gate_stage7.sh.
+  sync-gate:

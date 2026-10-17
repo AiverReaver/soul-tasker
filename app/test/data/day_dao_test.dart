@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/day_dao.dart';
@@ -17,7 +19,7 @@ void main() {
   });
   tearDown(() => h.db.close());
 
-  Future<int> flasks() async => (await h.settings.watch().first).flasks;
+  Future<int> flasks() async => await h.flasks();
   Future<List<DayLog>> logs() => h.db.select(h.db.dayLogs).get();
   void nextDay() => h.clock.now = DateTime(
     h.clock.now.year,
@@ -93,9 +95,9 @@ void main() {
       ];
       await days.rest(pickTaskIds: ids);
 
-      final rows = await h.db.select(h.db.planPicks).get();
-      expect(rows.map((r) => r.day).toSet(), {'2026-10-14'});
-      expect(rows.map((r) => r.taskId), ids);
+      final plan = (await h.db.select(h.db.dayPlans).get()).single;
+      expect(plan.day, '2026-10-14');
+      expect(jsonDecode(plan.taskIds), ids);
     });
 
     test('a fourth pick throws and the rest is not written', () async {
@@ -110,7 +112,7 @@ void main() {
       final view = await h.seed();
       h.clock.now = DateTime(2026, 10, 14, 1);
       await days.rest(pickTaskIds: [taskNamed(view, 'Walk').task.id]);
-      final row = (await h.db.select(h.db.planPicks).get()).single;
+      final row = (await h.db.select(h.db.dayPlans).get()).single;
       expect(row.day, '2026-10-14');
     });
   });
@@ -129,6 +131,15 @@ void main() {
       expect(s.falls, 1);
       expect(s.lessons, ['Start earlier.']);
       expect(s.embers.carried, 1 + 3 + 2); // Light, Heavy, tried Heavy
+    });
+
+    test('carries the day lesson written at the bonfire', () async {
+      await h.seed();
+      expect((await days.summary()).dayLesson, isNull);
+      await days.rest(lesson: 'Plan earlier.');
+      final s = await days.summary();
+      expect(s.dayLesson, 'Plan earlier.');
+      expect(s.lessons, isEmpty);
     });
 
     test('leaves out other days, and follows the rollover hour', () async {

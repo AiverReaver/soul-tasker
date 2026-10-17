@@ -6,8 +6,10 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/data/flask_dao.dart';
 import 'package:hearthrise/data/relic_dao.dart';
 import 'package:hearthrise/data/settings_dao.dart';
+import 'package:hearthrise/data/sync_sql.dart';
 
 /// A clock that moves one second per read, so event order is exact.
 class StepClock {
@@ -33,7 +35,14 @@ class Harness {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     final theClock = clock ?? StepClock();
     return Harness._(
-      AppDatabase(executor ?? NativeDatabase.memory(), clock: theClock.call),
+      AppDatabase(
+        executor ??
+            NativeDatabase.memory(
+              // Reads the time without moving the step clock.
+              setup: (raw) => registerSyncFunctions(raw, () => theClock.now),
+            ),
+        clock: theClock.call,
+      ),
       theClock,
     );
   }
@@ -73,6 +82,13 @@ class Harness {
   }
 
   Future<BossView> reload(String id) async => (await bosses.loadBoss(id))!;
+
+  /// Flasks left, counted from the ledger (Stage 7 plan D8).
+  Future<int> flasks() => FlaskDao(db, clock.call).count();
+
+  /// Writes the one event that leaves [n] flasks.
+  Future<void> setFlasks(int n) =>
+      FlaskDao(db, clock.call).adjustTo(n, '2026-10-13');
 }
 
 TaskView taskNamed(BossView view, String title) =>

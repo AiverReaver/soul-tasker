@@ -19,7 +19,7 @@ class StartGate extends ConsumerStatefulWidget {
 class _StartGateState extends ConsumerState<StartGate> {
   late final Future<bool> _isOnboarded = ref
       .read(settingsDaoProvider)
-      .read()
+      .device()
       .then((s) => s.onboarded);
 
   @override

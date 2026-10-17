@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/deadlines.dart';
 import 'package:hearthrise/data/boss_draft.dart';
@@ -34,7 +33,7 @@ void main() {
     for (final e in await h.db.select(h.db.healthEvents).get())
       if (e.reason == reason) e,
   ];
-  Future<int> flasks() async => (await h.settings.read()).flasks;
+  Future<int> flasks() async => await h.flasks();
 
   group('rest', () {
     test('restores health to full with one bonfireRestore event', () async {
@@ -62,8 +61,7 @@ void main() {
       () async {
         final view = await h.seed();
         await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
-        await (h.db.update(h.db.settings))
-            .write(const SettingsCompanion(flasks: Value(1)));
+        await h.setFlasks(1);
         await lose(20);
 
         expect(await days.rise(), isTrue);

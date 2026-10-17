@@ -12,6 +12,7 @@ import '../../ui/confirm_dialog.dart';
 import '../../ui/deadline_chip.dart';
 import '../commit/commit_flow.dart';
 import '../fallen/health_fall.dart';
+import '../strike/boss_vanish.dart';
 import '../strike/hold_to_strike.dart';
 import 'rule_of_three_sheet.dart';
 
@@ -114,6 +115,7 @@ class TaskRow extends ConsumerWidget {
       isDone: view.isStruck,
       tapMode: tapMode,
       onStrike: () => _strike(context, ref),
+      onTried: () => _act(context, ref, _Action.tried),
       deadline: label == null
           ? null
           : DeadlineChip(label: label.text, isSoon: label.isSoon),
@@ -158,7 +160,9 @@ Future<void> confirmDefeat(
     action: 'Defeated',
   );
   if (!ok) return;
+  final name = (await ref.read(bossDaoProvider).loadBoss(bossId))?.boss.title;
   await ref.read(bossDaoProvider).setStatus(bossId, BossStatus.defeated);
+  if (name != null && context.mounted) await showBossVanish(context, name);
   final relicId = await ref.read(relicDaoProvider).idForBoss(bossId);
   if (relicId != null && context.mounted) {
     await context.push('/victory/$relicId');

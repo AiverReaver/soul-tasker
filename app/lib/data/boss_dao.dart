@@ -25,7 +25,7 @@ class BossDao {
         _db.phases,
         _db.tasks,
         _db.attempts,
-        _db.settings,
+        _db.userSettings,
       ]),
     );
   }
@@ -269,6 +269,16 @@ class BossDao {
       (_db.update(_db.bosses)..where((b) => b.id.equals(bossId))).write(values);
 
   /// Deletes the boss with its phases, tasks and attempts.
+  /// Sets each boss's attempt number to 1 + its falls (Stage 7 plan D7), so
+  /// falls merged from another phone all count. Changes only wrong rows.
+  Future<void> recomputeAttemptNumbers() => _db.customStatement(
+    'UPDATE bosses SET attempt_number = 1 + (SELECT COUNT(*) FROM attempts '
+    'WHERE attempts.boss_id = bosses.id AND attempts.outcome = ?) '
+    'WHERE attempt_number != 1 + (SELECT COUNT(*) FROM attempts '
+    'WHERE attempts.boss_id = bosses.id AND attempts.outcome = ?)',
+    [Outcome.fallen.index, Outcome.fallen.index],
+  );
+
   Future<void> deleteBoss(String bossId) =>
       (_db.delete(_db.bosses)..where((b) => b.id.equals(bossId))).go();
 

@@ -62,6 +62,31 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('typing after Next does not leak into the boss name', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    await _toPage(tester, 3, title: 'Run a 10K');
+    expect(tester.testTextInput.hasAnyClients, isFalse);
+
+    await tester.tap(find.text('Add a phase'));
+    await settle(tester);
+    final added = find.byKey(const ValueKey('phase-3'));
+    expect(
+      tester
+          .widget<EditableText>(
+            find.descendant(of: added, matching: find.byType(EditableText)),
+          )
+          .focusNode
+          .hasFocus,
+      isTrue,
+    );
+    await tester.enterText(added, 'Race day');
+    await tester.pump();
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('phases: two suggestions; rename, add up to three, remove', (
     tester,
   ) async {
@@ -146,7 +171,7 @@ void main() {
       expect(reminders.calls, contains('permission'));
       expect(reminders.calls, isNot(contains('schedule:1260')));
       expect((await h.settings.read()).reminderEnabled, isFalse);
-      expect((await h.settings.read()).onboarded, isTrue);
+      expect((await h.settings.device()).onboarded, isTrue);
       expect(find.text('HEARTHRISE'), findsOneWidget);
       await tearDownApp(tester, h);
     },
@@ -200,7 +225,7 @@ void main() {
     expect(walk.title, 'Walk');
     expect(walk.weight, Weight.light);
     expect(walk.recurrence, Recurrence.daily);
-    expect((await h.settings.read()).onboarded, isTrue);
+    expect((await h.settings.device()).onboarded, isTrue);
 
     expect(find.text('The Certification'), findsOneWidget);
     await tester.tap(find.text('Today'));
@@ -217,7 +242,7 @@ void main() {
     await settle(tester);
 
     expect(find.text('No boss stands before you.'), findsOneWidget);
-    expect((await h.settings.read()).onboarded, isTrue);
+    expect((await h.settings.device()).onboarded, isTrue);
     expect(await h.bosses.loadAll(), isEmpty);
     await tearDownApp(tester, h);
 

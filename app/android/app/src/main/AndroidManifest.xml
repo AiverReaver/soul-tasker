@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Backup and sync to the Hearthrise server, only after sign-in. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Daily reminder: inexact alarms, so no exact-alarm permission. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>

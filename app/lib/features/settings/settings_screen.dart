@@ -11,6 +11,7 @@ import '../../ui/setting_choice_row.dart';
 import '../../ui/setting_switch_row.dart';
 import '../../ui/setting_value_row.dart';
 import '../tester_report/copy_tester_report_tile.dart';
+import 'sync_section.dart';
 import '../ritual/reminder_coordinator.dart';
 
 /// Settings: hold or tap, haptics, the evening reminder, when a day ends, and
@@ -122,6 +123,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: Space.md),
                   const CopyTesterReportTile(),
+                  const SizedBox(height: Space.md),
+                  const SyncSection(),
                 ],
               ),
       ),

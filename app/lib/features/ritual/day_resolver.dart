@@ -42,7 +42,7 @@ class _DayResolverState extends ConsumerState<DayResolver>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(reminderCoordinatorProvider).rearm();
       _visit();
-      _check(isTick: false);
+      _check(isTick: false).whenComplete(_syncStart);
     });
     _startTimer();
     // Keeps deadline reminders in step with today's promises (plan D20).
@@ -82,7 +82,7 @@ class _DayResolverState extends ConsumerState<DayResolver>
       case AppLifecycleState.resumed:
         _startTimer();
         _visit();
-        _check(isTick: false);
+        _check(isTick: false).whenComplete(_syncResumed);
       case AppLifecycleState.paused || AppLifecycleState.hidden:
         _timer?.cancel();
       case _:
@@ -100,6 +100,16 @@ class _DayResolverState extends ConsumerState<DayResolver>
             FlutterErrorDetails(exception: e, stack: s, library: 'visits'),
           ),
         );
+  }
+
+  /// Sync starts after the day is judged, so a fall written by the missed-day
+  /// flow goes up with the same run (Stage 7 plan step 8).
+  void _syncStart() {
+    if (mounted) ref.read(syncSchedulerProvider)?.start();
+  }
+
+  void _syncResumed() {
+    if (mounted) ref.read(syncSchedulerProvider)?.resumed();
   }
 
   Future<void> _check({required bool isTick}) async {

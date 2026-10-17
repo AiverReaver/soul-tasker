@@ -7,6 +7,7 @@ import '../core/ids.dart';
 import '../core/missed_days.dart';
 import 'database.dart';
 import 'enums.dart';
+import 'flask_dao.dart';
 
 /// A commitment with what the screens show next to it.
 @immutable
@@ -98,7 +99,8 @@ class CommitmentDao {
       _db.commitments,
     )..where((c) => c.taskId.equals(taskId) & c.day.equals(day))).get();
     if (existing.isNotEmpty) return null;
-    final id = newId();
+    // One commitment per task per day, alike on every phone (D6).
+    final id = systemId([taskId, day]);
     await _db
         .into(_db.commitments)
         .insert(
@@ -127,19 +129,18 @@ class CommitmentDao {
         _db.commitments,
       )..where((c) => c.id.equals(id))).getSingle();
       if (c.outcome != null || !now.isBefore(c.deadline)) return false;
-      final next = deadlineFor(
+      final next = extendedDeadline(
         preset,
         now,
+        current: c.deadline,
         rolloverHour: await _db.rolloverHour(),
       );
       if (!next.isAfter(c.deadline)) return false;
-      final settings = await _db.select(_db.settings).getSingle();
+      final flasks = FlaskDao(_db, _clock);
       final costsFlask = c.extensions >= 1;
-      if (costsFlask && settings.flasks == 0) return false;
+      if (costsFlask && await flasks.count() == 0) return false;
       if (costsFlask) {
-        await _db
-            .update(_db.settings)
-            .write(SettingsCompanion(flasks: Value(settings.flasks - 1)));
+        await flasks.spend(1, FlaskReason.extension, c.day, at: now);
       }
       await (_db.update(_db.commitments)..where((r) => r.id.equals(id))).write(
         CommitmentsCompanion(
@@ -167,7 +168,7 @@ class CommitmentDao {
           TableUpdateQuery.onAllTables([
             _db.commitments,
             _db.tasks,
-            _db.settings,
+            _db.userSettings,
           ]),
         )
         .asyncMap((_) => read());

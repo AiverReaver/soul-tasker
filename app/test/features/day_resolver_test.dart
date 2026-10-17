@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/database.dart';
@@ -18,13 +17,11 @@ void main() {
   });
 
   void jumpTo(int day) => h.clock.now = DateTime(2026, 10, day, 12);
-  Future<void> setFlasks(int n) =>
-      (h.db.update(h.db.settings)).write(SettingsCompanion(flasks: Value(n)));
+  Future<void> setFlasks(int n) => h.setFlasks(n);
   Future<List<Attempt>> falls() async =>
       (await h.db.select(h.db.attempts).get())
           .where((a) => a.outcome == Outcome.fallen)
           .toList();
-  Future<AppSettings> settings() => h.db.select(h.db.settings).getSingle();
 
   testWidgets('shows nothing when no day was missed', (tester) async {
     await pumpApp(tester, h);
@@ -77,7 +74,7 @@ void main() {
 
       expect(find.text('Fallen.'), findsNothing);
       expect(await falls(), isEmpty);
-      expect((await settings()).flasks, 2);
+      expect(await h.flasks(), 2);
       expect((await h.reload(bossId)).boss.attemptNumber, 1);
       await tearDownApp(tester, h);
     });
@@ -92,7 +89,7 @@ void main() {
       await tester.tap(find.text('Skip'));
       await settle(tester);
       expect(await falls(), hasLength(1));
-      expect((await settings()).flasks, 3);
+      expect(await h.flasks(), 3);
       await tearDownApp(tester, h);
     });
 
@@ -110,7 +107,7 @@ void main() {
       await settle(tester);
 
       expect(await falls(), hasLength(1));
-      expect((await settings()).flasks, 0);
+      expect(await h.flasks(), 0);
       final flaskDays = (await h.db.select(h.db.dayLogs).get())
           .where((l) => l.kind == DayKind.flask)
           .map((l) => l.day);
@@ -150,7 +147,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 10));
     expect(await falls(), isEmpty);
-    expect((await settings()).lastResolvedDay, '2026-10-13');
+    expect((await h.settings.device()).lastResolvedDay, '2026-10-13');
 
     await pumpApp(tester, h);
     expect(find.text('Fallen.'), findsOneWidget);
@@ -182,7 +179,7 @@ void main() {
 
     expect(find.text('Fallen.'), findsNothing);
     expect(find.text('Use a flask'), findsNothing);
-    expect((await settings()).lastResolvedDay, '2026-10-14');
+    expect((await h.settings.device()).lastResolvedDay, '2026-10-14');
     await tearDownApp(tester, h);
   });
 }

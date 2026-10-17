@@ -113,6 +113,61 @@ void main() {
     expect([taps, longs], [1, 1]);
   });
 
+  testWidgets('BossCardTile draws its frame; pin mark only when pinned', (
+    tester,
+  ) async {
+    Future<void> pump(bool pinned) => _pump(
+      tester,
+      BossCardTile(
+        title: 'Gwyn',
+        attemptNumber: 1,
+        progressLabel: 'Phase 1 of 2',
+        health: 1,
+        isPinned: pinned,
+        onTap: () {},
+        onLongPress: () {},
+      ),
+    );
+    await pump(true);
+    expect(find.byKey(const Key('boss-card-frame')), findsOneWidget);
+    expect(find.byKey(const Key('pin-mark')), findsOneWidget);
+    await pump(false);
+    expect(find.byKey(const Key('boss-card-frame')), findsOneWidget);
+    expect(find.byKey(const Key('pin-mark')), findsNothing);
+  });
+
+  testWidgets('BossCardTile survives 200% text and keeps a 48dp target', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Scaffold(
+            body: BossCardTile(
+              title: 'A very long boss name that must wrap',
+              attemptNumber: 12,
+              progressLabel: 'Phase 3 of 4',
+              health: 0.5,
+              isPinned: true,
+              healthGroups: const [
+                [true, false],
+              ],
+              onTap: () {},
+              onLongPress: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.byType(BossCardTile)).height,
+      greaterThanOrEqualTo(kMinTarget),
+    );
+  });
+
   testWidgets('BossCardTile hides the bar without groups', (tester) async {
     await _pump(
       tester,
