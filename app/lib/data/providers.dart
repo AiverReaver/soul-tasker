@@ -15,6 +15,8 @@ import 'profile_dao.dart';
 import 'relic_dao.dart';
 import 'ember_dao.dart';
 import 'settings_dao.dart';
+import 'signal_dao.dart';
+import 'visit_dao.dart';
 
 /// Overridden in tests with an in-memory database.
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -36,7 +38,7 @@ final attemptDaoProvider = Provider(
 );
 
 final settingsDaoProvider = Provider(
-  (ref) => SettingsDao(ref.watch(databaseProvider)),
+  (ref) => SettingsDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );
 
 final bossListProvider = StreamProvider<List<BossView>>(
@@ -165,4 +167,17 @@ final soundsProvider = Provider(
     ref.watch(soundPlayerProvider),
     () => ref.read(settingsProvider).value?.sound ?? false,
   ),
+);
+
+final visitDaoProvider = Provider(
+  (ref) => VisitDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+final signalDaoProvider = Provider(
+  (ref) => SignalDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
+);
+
+/// The check-in window due at the bonfire, read once when it opens.
+final checkInDueProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(signalDaoProvider).checkInDue(),
 );

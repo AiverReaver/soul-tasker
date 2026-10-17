@@ -1,0 +1,9 @@
+# Copy to android/key.properties (gitignored) and fill in. Keep the
+# keystore outside the repo and back it up (Stage 6 plan D10).
+# Create one with:
+#   keytool -genkey -v -keystore ~/keys/hearthrise-upload.jks -keyalg RSA \
+#     -keysize 2048 -validity 10000 -alias upload
+storePassword=
+keyPassword=
+keyAlias=upload
+storeFile=/Users/you/keys/hearthrise-upload.jks

@@ -4,27 +4,29 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/clock.dart';
 import '../../data/providers.dart';
-import 'feel_report.dart';
+import '../../core/signals.dart';
+import 'tester_report.dart';
 
-/// Settings row that copies the feel report to the clipboard (§12).
+/// Settings row that copies the tester report to the clipboard (§12).
 /// The confirmation is a quiet line on the row itself.
-class CopyFeelReportTile extends ConsumerStatefulWidget {
-  const CopyFeelReportTile({super.key});
+class CopyTesterReportTile extends ConsumerStatefulWidget {
+  const CopyTesterReportTile({super.key});
 
   @override
-  ConsumerState<CopyFeelReportTile> createState() => _CopyFeelReportTileState();
+  ConsumerState<CopyTesterReportTile> createState() =>
+      _CopyTesterReportTileState();
 }
 
-class _CopyFeelReportTileState extends ConsumerState<CopyFeelReportTile> {
+class _CopyTesterReportTileState extends ConsumerState<CopyTesterReportTile> {
   String? _status;
 
   Future<void> _copy() async {
-    final data = await ref.read(attemptDaoProvider).feelReportData();
-    final report = buildFeelReport(
-      data,
+    final input = await ref.read(signalDaoProvider).input();
+    final today = dayOf(
       ref.read(clockProvider)(),
-      kAppVersion,
+      rolloverHour: input.rolloverHour,
     );
+    final report = buildTesterReport(computeSignals(input, today), kAppVersion);
     try {
       await Clipboard.setData(ClipboardData(text: report));
     } on PlatformException {
@@ -39,7 +41,7 @@ class _CopyFeelReportTileState extends ConsumerState<CopyFeelReportTile> {
     final text = Theme.of(context).textTheme;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text('Copy feel report', style: text.bodyMedium),
+      title: Text('Copy tester report', style: text.bodyMedium),
       subtitle: _status == null ? null : Text(_status!, style: text.bodySmall),
       onTap: _copy,
     );

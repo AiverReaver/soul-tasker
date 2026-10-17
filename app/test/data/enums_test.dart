@@ -43,4 +43,18 @@ void main() {
       'weathered',
     ]);
   });
+
+  test('signal kinds and check-in answers keep their order', () {
+    expect(SignalKind.values.map((k) => k.name), [
+      'fell',
+      'tapModeChanged',
+      'checkIn',
+      'checkInDismissed',
+    ]);
+    expect(CheckInAnswer.values.map((a) => a.name), [
+      'never',
+      'sometimes',
+      'often',
+    ]);
+  });
 }

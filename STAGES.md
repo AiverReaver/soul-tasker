@@ -143,6 +143,7 @@ Standing rule for every stage and every plan.
 ## Stage 6: Closed test on Google Play
 
 **Goal:** validate tone and retention with real users.
+**Detailed plan:** `STAGE6_PLAN.md`.
 
 - Publish to the closed testing track for the required duration and tester count.
 - Track the signals in §12: next-day return after a fall, Tried vs Strike, lesson notes written, hold turned into tap, first-week falls.

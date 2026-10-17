@@ -7,8 +7,8 @@ import 'boss_view.dart';
 import 'database.dart';
 import 'ember_dao.dart';
 import 'enums.dart';
-import 'feel_report_data.dart';
 import 'health_dao.dart';
+import 'signal_dao.dart';
 
 /// What the UI should show after a strike.
 class StrikeResult {
@@ -37,6 +37,7 @@ class AttemptDao {
   final Clock _clock;
   late final _embers = EmberDao(_db, _clock);
   late final _health = HealthDao(_db, _clock, this);
+  late final _signals = SignalDao(_db, _clock);
 
   Future<Task> _task(String taskId) =>
       (_db.select(_db.tasks)..where((t) => t.id.equals(taskId))).getSingle();
@@ -244,6 +245,10 @@ class AttemptDao {
         lesson: lesson,
         onDay: onDay,
       );
+      final fall = await (_db.select(
+        _db.attempts,
+      )..where((a) => a.id.equals(id))).getSingle();
+      await _signals.add(SignalKind.fell, day: fall.day, at: fall.at);
 
       final next = boss.attemptNumber + 1;
       await (_db.update(_db.bosses)..where((b) => b.id.equals(bossId))).write(
@@ -262,28 +267,6 @@ class AttemptDao {
     await (_db.update(_db.attempts)
           ..where((a) => a.id.isIn(attemptIds) & a.lesson.isNull()))
         .write(AttemptsCompanion(lesson: Value(clean)));
-  }
-
-  /// What the feel report counts (plan D13): outcome, weight and lesson
-  /// presence per attempt, never titles or lesson text.
-  Future<FeelReportData> feelReportData() async {
-    final attempts = await _db.select(_db.attempts).get();
-    final bosses = await _db.select(_db.bosses).get();
-    final created = bosses.map((b) => b.createdAt);
-    return FeelReportData(
-      attempts: [
-        for (final a in attempts)
-          FeelAttempt(
-            outcome: a.outcome,
-            weight: a.weight,
-            hasLesson: a.lesson != null,
-          ),
-      ],
-      since: created.isEmpty
-          ? null
-          : created.reduce((a, b) => a.isBefore(b) ? a : b),
-      settings: await _db.select(_db.settings).getSingle(),
-    );
   }
 
   Future<void> _reset(
