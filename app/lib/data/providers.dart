@@ -69,6 +69,15 @@ final settingsProvider = StreamProvider(
 
 /// Reads the setting on every haptic rather than watching it, so one object
 /// stays valid for the life of the app (D10). On while settings load.
+/// This phone's colour theme (device-only, not synced).
+final biomeProvider = StreamProvider(
+  (ref) => ref
+      .watch(settingsDaoProvider)
+      .watchDevice()
+      .map((d) => d.biome)
+      .distinct(),
+);
+
 final hapticsProvider = Provider(
   (ref) => Haptics(() => ref.read(settingsProvider).value?.haptics ?? true),
 );

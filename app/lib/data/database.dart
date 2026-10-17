@@ -5,6 +5,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import '../core/clock.dart';
 import '../core/ids.dart';
+import '../core/palette.dart';
 import 'database.steps.dart';
 import 'day_dao.dart' show kFlaskCap;
 import 'enums.dart';
@@ -53,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   final Clock _clock;
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   /// The hour a day ends. Every `dayOf` call reads this, so what is written
   /// and what is shown agree (plan step 1).
@@ -234,6 +235,9 @@ class AppDatabase extends _$AppDatabase {
           'INSERT INTO sync_state (id, device_id) VALUES (1, ?)',
           variables: [Variable(newId())],
         );
+      },
+      from7To8: (m, schema) async {
+        await m.addColumn(schema.settings, schema.settings.biome);
       },
     ),
     beforeOpen: (details) async {

@@ -2730,7 +2730,17 @@ class $SettingsTable extends Settings
     defaultValue: const Constant(false),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, lastResolvedDay, onboarded];
+  late final GeneratedColumnWithTypeConverter<Biome, int> biome =
+      GeneratedColumn<int>(
+        'biome',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      ).withConverter<Biome>($SettingsTable.$converterbiome);
+  @override
+  List<GeneratedColumn> get $columns => [id, lastResolvedDay, onboarded, biome];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2782,6 +2792,12 @@ class $SettingsTable extends Settings
         DriftSqlType.bool,
         data['${effectivePrefix}onboarded'],
       )!,
+      biome: $SettingsTable.$converterbiome.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}biome'],
+        )!,
+      ),
     );
   }
 
@@ -2789,6 +2805,9 @@ class $SettingsTable extends Settings
   $SettingsTable createAlias(String alias) {
     return $SettingsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<Biome, int, int> $converterbiome =
+      const EnumIndexConverter<Biome>(Biome.values);
 }
 
 class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
@@ -2801,10 +2820,15 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
   /// False until onboarding is finished or skipped. The v5 upgrade sets it
   /// true so existing installs never see it (Stage 5 plan D11).
   final bool onboarded;
+
+  /// The colour theme. Stored as the [Biome] index; never synced (THEME_PLAN
+  /// D3). Add new biomes only at the end.
+  final Biome biome;
   const DeviceSettings({
     required this.id,
     this.lastResolvedDay,
     required this.onboarded,
+    required this.biome,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2814,6 +2838,9 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
       map['last_resolved_day'] = Variable<String>(lastResolvedDay);
     }
     map['onboarded'] = Variable<bool>(onboarded);
+    {
+      map['biome'] = Variable<int>($SettingsTable.$converterbiome.toSql(biome));
+    }
     return map;
   }
 
@@ -2824,6 +2851,7 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
           ? const Value.absent()
           : Value(lastResolvedDay),
       onboarded: Value(onboarded),
+      biome: Value(biome),
     );
   }
 
@@ -2836,6 +2864,9 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
       id: serializer.fromJson<int>(json['id']),
       lastResolvedDay: serializer.fromJson<String?>(json['lastResolvedDay']),
       onboarded: serializer.fromJson<bool>(json['onboarded']),
+      biome: $SettingsTable.$converterbiome.fromJson(
+        serializer.fromJson<int>(json['biome']),
+      ),
     );
   }
   @override
@@ -2845,6 +2876,9 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
       'id': serializer.toJson<int>(id),
       'lastResolvedDay': serializer.toJson<String?>(lastResolvedDay),
       'onboarded': serializer.toJson<bool>(onboarded),
+      'biome': serializer.toJson<int>(
+        $SettingsTable.$converterbiome.toJson(biome),
+      ),
     };
   }
 
@@ -2852,12 +2886,14 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
     int? id,
     Value<String?> lastResolvedDay = const Value.absent(),
     bool? onboarded,
+    Biome? biome,
   }) => DeviceSettings(
     id: id ?? this.id,
     lastResolvedDay: lastResolvedDay.present
         ? lastResolvedDay.value
         : this.lastResolvedDay,
     onboarded: onboarded ?? this.onboarded,
+    biome: biome ?? this.biome,
   );
   DeviceSettings copyWithCompanion(SettingsCompanion data) {
     return DeviceSettings(
@@ -2866,6 +2902,7 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
           ? data.lastResolvedDay.value
           : this.lastResolvedDay,
       onboarded: data.onboarded.present ? data.onboarded.value : this.onboarded,
+      biome: data.biome.present ? data.biome.value : this.biome,
     );
   }
 
@@ -2874,45 +2911,52 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
     return (StringBuffer('DeviceSettings(')
           ..write('id: $id, ')
           ..write('lastResolvedDay: $lastResolvedDay, ')
-          ..write('onboarded: $onboarded')
+          ..write('onboarded: $onboarded, ')
+          ..write('biome: $biome')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, lastResolvedDay, onboarded);
+  int get hashCode => Object.hash(id, lastResolvedDay, onboarded, biome);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DeviceSettings &&
           other.id == this.id &&
           other.lastResolvedDay == this.lastResolvedDay &&
-          other.onboarded == this.onboarded);
+          other.onboarded == this.onboarded &&
+          other.biome == this.biome);
 }
 
 class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
   final Value<int> id;
   final Value<String?> lastResolvedDay;
   final Value<bool> onboarded;
+  final Value<Biome> biome;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.lastResolvedDay = const Value.absent(),
     this.onboarded = const Value.absent(),
+    this.biome = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     this.lastResolvedDay = const Value.absent(),
     this.onboarded = const Value.absent(),
+    this.biome = const Value.absent(),
   });
   static Insertable<DeviceSettings> custom({
     Expression<int>? id,
     Expression<String>? lastResolvedDay,
     Expression<bool>? onboarded,
+    Expression<int>? biome,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (lastResolvedDay != null) 'last_resolved_day': lastResolvedDay,
       if (onboarded != null) 'onboarded': onboarded,
+      if (biome != null) 'biome': biome,
     });
   }
 
@@ -2920,11 +2964,13 @@ class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
     Value<int>? id,
     Value<String?>? lastResolvedDay,
     Value<bool>? onboarded,
+    Value<Biome>? biome,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       lastResolvedDay: lastResolvedDay ?? this.lastResolvedDay,
       onboarded: onboarded ?? this.onboarded,
+      biome: biome ?? this.biome,
     );
   }
 
@@ -2940,6 +2986,11 @@ class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
     if (onboarded.present) {
       map['onboarded'] = Variable<bool>(onboarded.value);
     }
+    if (biome.present) {
+      map['biome'] = Variable<int>(
+        $SettingsTable.$converterbiome.toSql(biome.value),
+      );
+    }
     return map;
   }
 
@@ -2948,7 +2999,8 @@ class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
     return (StringBuffer('SettingsCompanion(')
           ..write('id: $id, ')
           ..write('lastResolvedDay: $lastResolvedDay, ')
-          ..write('onboarded: $onboarded')
+          ..write('onboarded: $onboarded, ')
+          ..write('biome: $biome')
           ..write(')'))
         .toString();
   }
@@ -12427,11 +12479,13 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String?> lastResolvedDay,
   Value<bool> onboarded,
+  Value<Biome> biome,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String?> lastResolvedDay,
   Value<bool> onboarded,
+  Value<Biome> biome,
 });
 
 class $$SettingsTableFilterComposer
@@ -12457,6 +12511,12 @@ class $$SettingsTableFilterComposer
     column: $table.onboarded,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<Biome, Biome, int> get biome =>
+      $composableBuilder(
+        column: $table.biome,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$SettingsTableOrderingComposer
@@ -12482,6 +12542,11 @@ class $$SettingsTableOrderingComposer
     column: $table.onboarded,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get biome => $composableBuilder(
+    column: $table.biome,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -12503,6 +12568,9 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get onboarded =>
       $composableBuilder(column: $table.onboarded, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Biome, int> get biome =>
+      $composableBuilder(column: $table.biome, builder: (column) => column);
 }
 
 class $$SettingsTableTableManager
@@ -12539,20 +12607,24 @@ class $$SettingsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String?> lastResolvedDay = const Value.absent(),
                 Value<bool> onboarded = const Value.absent(),
+                Value<Biome> biome = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 lastResolvedDay: lastResolvedDay,
                 onboarded: onboarded,
+                biome: biome,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> lastResolvedDay = const Value.absent(),
                 Value<bool> onboarded = const Value.absent(),
+                Value<Biome> biome = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 lastResolvedDay: lastResolvedDay,
                 onboarded: onboarded,
+                biome: biome,
               ),
           withReferenceMapper: (p0) => p0
               .map(

@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../core/palette.dart';
 import 'enums.dart';
 
 // Schema for STAGE1_PLAN.md §6. Editable records carry updatedAt for
@@ -106,6 +107,10 @@ class Settings extends Table {
   /// False until onboarding is finished or skipped. The v5 upgrade sets it
   /// true so existing installs never see it (Stage 5 plan D11).
   BoolColumn get onboarded => boolean().withDefault(const Constant(false))();
+
+  /// The colour theme. Stored as the [Biome] index; never synced (THEME_PLAN
+  /// D3). Add new biomes only at the end.
+  IntColumn get biome => intEnum<Biome>().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};

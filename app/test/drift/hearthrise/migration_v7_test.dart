@@ -90,7 +90,7 @@ void main() {
       schema.newConnection(),
       clock: () => DateTime(2026, 10, 16, 12),
     );
-    await verifier.migrateAndValidate(db, 7);
+    await verifier.migrateAndValidate(db, 8);
     return db;
   }
 
