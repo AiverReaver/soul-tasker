@@ -23,7 +23,7 @@ class FlaskChoice extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return AlertDialog(
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       title: Text(
         daysMissed == 1
             ? 'A day passed without rest.'
@@ -37,7 +37,10 @@ class FlaskChoice extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: onLetFall,
-          child: Text('Let it fall', style: TextStyle(color: kTextMuted)),
+          child: Text(
+            'Let it fall',
+            style: TextStyle(color: context.palette.ash),
+          ),
         ),
         EmberButton(label: 'Use a flask', onPressed: onUseFlask),
       ],

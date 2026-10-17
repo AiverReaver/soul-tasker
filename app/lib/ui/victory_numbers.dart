@@ -21,20 +21,33 @@ class VictoryNumbers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.bodyLarge;
-    final lines = [
-      _n(attempts, 'attempt', 'attempts'),
-      _n(days, 'day', 'days'),
-      '${_n(effort, 'ember', 'embers')} of effort',
-    ];
+    final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (final l in lines)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: Space.xs),
-            child: Text(l, textAlign: TextAlign.center, style: style),
-          ),
+        Text(
+          '$attempts',
+          key: const ValueKey('victory-attempts'),
+          style: text.displayMedium?.copyWith(fontSize: 88, height: 1),
+        ),
+        Text(attempts == 1 ? 'attempt' : 'attempts', style: text.labelSmall),
+        const SizedBox(height: Space.md),
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: Space.md,
+          runSpacing: Space.xs,
+          children: [
+            Text(_n(days, 'day', 'days'), style: text.bodyLarge),
+            SizedBox(height: 18, width: 1, child: ColoredBox(color: p.seam)),
+            Text(
+              '${_n(effort, 'ember', 'embers')} of effort',
+              textAlign: TextAlign.center,
+              style: text.bodyLarge,
+            ),
+          ],
+        ),
       ],
     );
   }

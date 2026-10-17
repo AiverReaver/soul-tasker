@@ -15,8 +15,9 @@ class DeadlineChip extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: Space.sm),
     child: Text(
       label,
-      style: Theme.of(context).textTheme.bodySmall
-          ?.copyWith(color: isSoon ? kEmber : kTextMuted),
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: isSoon ? context.palette.silk : context.palette.ash,
+      ),
     ),
   );
 }

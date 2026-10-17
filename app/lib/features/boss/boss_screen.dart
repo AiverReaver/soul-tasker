@@ -2,12 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/roman.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../fallen/fallen_screen.dart';
-import '../../ui/boss_health_bar.dart';
+import '../../ui/shard_meter.dart';
 import '../../ui/flash_line.dart';
 import 'boss_stage.dart';
 import 'rule_of_three_sheet.dart';
@@ -136,6 +137,12 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
       children: [
+        // Always one child here, so the rows below keep their elements when
+        // the label goes away with the last phase.
+        if (_phaseLabel(view) case final label?)
+          Text(label, style: text.labelSmall)
+        else
+          const SizedBox.shrink(),
         BossStage(health: view.health),
         const SizedBox(height: Space.sm),
         Text(view.boss.title, style: text.displaySmall),
@@ -145,7 +152,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         ],
         const SizedBox(height: 20),
         if (view.hasSegments)
-          BossHealthBar(groups: view.healthGroups, health: view.health)
+          ShardMeter(filled: shardsFor(view.health))
         else
           Text('This foe is worn down by habit.', style: text.bodySmall),
         const SizedBox(height: Space.md),
@@ -164,14 +171,25 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           OutlinedButton(
             onPressed: _fall,
             style: OutlinedButton.styleFrom(
-              foregroundColor: kAsh,
-              side: const BorderSide(color: kAshDim),
+              foregroundColor: context.palette.text,
+              side: BorderSide(color: context.palette.dim),
               minimumSize: const Size.fromHeight(kMinTarget),
             ),
             child: const Text('This attempt failed'),
           ),
       ],
     );
+  }
+
+  /// "Phase II of III" while a fight has a phase under way.
+  String? _phaseLabel(BossView view) {
+    final fighting = view.phases
+        .where((p) => p.tasks.any((t) => t.isSegment))
+        .toList();
+    final current = view.currentPhase;
+    if (current == null || !fighting.contains(current)) return null;
+    return 'Phase ${romanNumeral(fighting.indexOf(current) + 1)} '
+        'of ${romanNumeral(fighting.length)}';
   }
 
   Widget _header(BuildContext context, String name, {bool isDone = false}) {

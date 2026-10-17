@@ -55,7 +55,7 @@ void main() {
     testWidgets('skipping the lesson still resolves', (tester) async {
       jumpTo(15);
       await pumpApp(tester, h);
-      await tester.tap(find.text('Skip'));
+      await tester.tap(find.text('Rest first'));
       await settle(tester);
 
       expect((await falls()).single.lesson, isNull);
@@ -86,7 +86,7 @@ void main() {
       await settle(tester);
       expect(find.text('Fallen.'), findsOneWidget);
 
-      await tester.tap(find.text('Skip'));
+      await tester.tap(find.text('Rest first'));
       await settle(tester);
       expect(await falls(), hasLength(1));
       expect(await h.flasks(), 3);
@@ -103,7 +103,7 @@ void main() {
       await tester.tap(find.text('Use a flask'));
       await settle(tester);
       expect(find.text('Fallen.'), findsOneWidget);
-      await tester.tap(find.text('Skip'));
+      await tester.tap(find.text('Rest first'));
       await settle(tester);
 
       expect(await falls(), hasLength(1));
@@ -129,7 +129,7 @@ void main() {
     await settle(tester);
 
     expect(find.text('Fallen.'), findsOneWidget);
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first'));
     await settle(tester);
     expect(await falls(), hasLength(1));
     await tearDownApp(tester, h);
@@ -158,7 +158,7 @@ void main() {
     await setFlasks(0);
     jumpTo(15);
     await pumpApp(tester, h);
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first'));
     await settle(tester);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);

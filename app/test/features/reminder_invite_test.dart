@@ -20,7 +20,7 @@ void main() {
 
   Future<AppSettings> settings() => h.db.select(h.db.userSettings).getSingle();
   Future<void> rest(WidgetTester tester) async {
-    final button = find.widgetWithText(EmberButton, 'Rest');
+    final button = find.widgetWithText(EmberButton, 'Rest at the hearth');
     await tester.scrollUntilVisible(
       button,
       200,

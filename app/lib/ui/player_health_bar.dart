@@ -26,7 +26,7 @@ class PlayerHealthBar extends StatelessWidget {
           for (var i = 0; i < max ~/ 2; i++)
             Padding(
               padding: const EdgeInsets.only(right: Space.xs),
-              child: _pip((health - i * 2).clamp(0, 2)),
+              child: _pip(context, (health - i * 2).clamp(0, 2)),
             ),
         ],
       ),
@@ -34,7 +34,7 @@ class PlayerHealthBar extends StatelessWidget {
   }
 
   /// [halves] is 0, 1 or 2.
-  Widget _pip(int halves) => Container(
+  Widget _pip(BuildContext context, int halves) => Container(
     key: ValueKey(switch (halves) {
       2 => 'health-full',
       1 => 'health-half',
@@ -42,11 +42,11 @@ class PlayerHealthBar extends StatelessWidget {
     }),
     width: _width,
     height: _height,
-    decoration: BoxDecoration(border: Border.all(color: kAshDim)),
+    decoration: BoxDecoration(border: Border.all(color: context.palette.dim)),
     child: FractionallySizedBox(
       alignment: Alignment.centerLeft,
       widthFactor: halves / 2,
-      child: const ColoredBox(color: kBossHealth),
+      child: ColoredBox(color: context.palette.shard),
     ),
   );
 }

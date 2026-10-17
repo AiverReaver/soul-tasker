@@ -171,7 +171,10 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
       padding: const EdgeInsets.fromLTRB(20, Space.md, 20, Space.xl),
       children: [
         if (_error != null)
-          Text(_error!, style: text.bodyMedium?.copyWith(color: kEmber)),
+          Text(
+            _error!,
+            style: text.bodyMedium?.copyWith(color: context.palette.silk),
+          ),
         TextFormField(
           initialValue: draft.title,
           maxLength: 80,
@@ -265,9 +268,9 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           const SizedBox(height: Space.xl),
           TextButton(
             onPressed: _deleteBoss,
-            child: const Text(
+            child: Text(
               'Delete boss',
-              style: TextStyle(color: kTextMuted),
+              style: TextStyle(color: context.palette.ash),
             ),
           ),
         ],
@@ -293,7 +296,7 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
         if (date != null)
           IconButton(
             tooltip: 'Clear target date',
-            icon: const Icon(Icons.close, color: kTextMuted),
+            icon: Icon(Icons.close, color: context.palette.ash),
             onPressed: () => _update((d) => d.copyWith(clearTargetDate: true)),
           ),
       ],
@@ -322,8 +325,8 @@ class _PhaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Material (not a colored box) so the task ListTiles can paint ink.
     return Material(
-      color: kSurface,
-      shape: Border.all(color: kAshDim.withValues(alpha: 0.3)),
+      color: context.palette.shell,
+      shape: Border.all(color: context.palette.dim.withValues(alpha: 0.3)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(Space.sm, 0, Space.sm, Space.sm),
         child: Column(
@@ -333,10 +336,10 @@ class _PhaseCard extends StatelessWidget {
               children: [
                 ReorderableDragStartListener(
                   index: index,
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: kMinTarget,
                     height: kMinTarget,
-                    child: Icon(Icons.drag_handle, color: kTextMuted),
+                    child: Icon(Icons.drag_handle, color: context.palette.ash),
                   ),
                 ),
                 Expanded(
@@ -352,7 +355,7 @@ class _PhaseCard extends StatelessWidget {
                 ),
                 IconButton(
                   tooltip: 'Delete phase',
-                  icon: const Icon(Icons.close, color: kTextMuted),
+                  icon: Icon(Icons.close, color: context.palette.ash),
                   onPressed: onDelete,
                 ),
               ],

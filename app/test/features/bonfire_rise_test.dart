@@ -27,7 +27,7 @@ void main() {
 
     expect(find.text('You have fallen.'), findsOneWidget);
     expect(find.text('Rise'), findsOneWidget);
-    expect(find.text('Rest'), findsNothing);
+    expect(find.text('Rest at the hearth'), findsNothing);
     expect(find.byType(TextField), findsNothing);
     expect(find.text("TOMORROW'S THREE"), findsNothing);
     expect(find.bySemanticsLabel('Fallen. Health 0 of 10'), findsOneWidget);
@@ -42,11 +42,11 @@ void main() {
     );
     expect(find.byType(TextField), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.text('Rest'),
+      find.text('Rest at the hearth'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Rest'), findsOneWidget);
+    expect(find.text('Rest at the hearth'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 

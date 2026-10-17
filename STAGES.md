@@ -29,7 +29,7 @@ Rules for every plan:
 Standing rule for every stage and every plan.
 
 - All reusable visual widgets live in `app/lib/ui/`. Screens in `lib/features/` compose them; they do not build their own buttons, rows, cards, bars, sheets or text styles inline.
-- Every `lib/ui/` widget is a `StatelessWidget`. It takes plain values and callbacks (title, weight, progress, `onPressed`), and never reads Riverpod providers, Drift, the router or `Haptics`. Theme tokens (`core/theme.dart`) are the only shared input.
+- Every `lib/ui/` widget is a `StatelessWidget`. It takes plain values and callbacks (title, weight, progress, `onPressed`), and never reads Riverpod providers, Drift, the router or `Haptics`. The theme (`context.palette`, `Theme.of`) is the only shared input; see `THEME_PLAN.md`.
 - Behavior that needs state (hold timer, animation controller, providers) stays in a thin container in `lib/features/`, which passes the current values down to the stateless widget. Animation is passed in as a value (progress, `Animation<double>`), not owned.
 - Before building a screen, check `lib/ui/` for a widget that fits. Use it. If none fits, create a new one in `lib/ui/` first (with its widget test), then use it. Extend an existing one with a parameter only when the new case is the same widget; otherwise add a new one.
 - Swapping a look means editing one file in `lib/ui/`; no feature file should need to change.

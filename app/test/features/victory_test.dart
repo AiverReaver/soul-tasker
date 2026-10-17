@@ -40,7 +40,7 @@ void main() {
 
     await _strikeAndConfirm(tester);
 
-    expect(find.text('Foe vanquished.'), findsOneWidget);
+    expect(find.text('The Certification falls.'), findsOneWidget);
     expect(find.text('A relic remains.'), findsOneWidget);
     expect(await h.db.select(h.db.relics).get(), hasLength(1));
     await tearDownApp(tester, h);
@@ -60,8 +60,26 @@ void main() {
     await tester.tap(find.text('Defeated'));
     await settle(tester);
 
-    expect(find.text('Foe vanquished.'), findsOneWidget);
+    expect(find.text('The Certification falls.'), findsOneWidget);
     expect(find.text('A relic remains.'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Keep as a relic saves, goes home and opens the relic', (
+    tester,
+  ) async {
+    final h = Harness();
+    final id = await _oneTaskBoss(h);
+    await h.settings.setTapMode(true);
+    await pumpApp(tester, h, location: '/boss/$id');
+
+    await _strikeAndConfirm(tester);
+    await tester.ensureVisible(find.text('Keep as a relic'));
+    await tester.tap(find.text('Keep as a relic'));
+    await settle(tester);
+
+    expect(find.text('Relic of The Certification'), findsWidgets);
+    expect(find.text('The Certification falls.'), findsNothing);
     await tearDownApp(tester, h);
   });
 
@@ -98,7 +116,11 @@ void main() {
 
     await _strikeAndConfirm(tester);
 
-    expect(find.text('3 attempts'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('victory-attempts'))).data,
+      '3',
+    );
+    expect(find.text('attempts'), findsOneWidget);
     expect(find.text('1 day'), findsOneWidget);
     expect(find.text('3 embers of effort'), findsOneWidget);
     final first = find.textContaining('Attempt 1. Started too late.');
@@ -110,7 +132,9 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Done saves the inscription and returns home', (tester) async {
+  testWidgets('Return to the hearth saves the inscription and returns home', (
+    tester,
+  ) async {
     final h = Harness();
     final id = await _oneTaskBoss(h);
     await h.settings.setTapMode(true);
@@ -119,8 +143,8 @@ void main() {
 
     await tester.ensureVisible(find.byType(TextField));
     await tester.enterText(find.byType(TextField), 'Patience.');
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.text('Return to the hearth'));
+    await tester.tap(find.text('Return to the hearth'));
     await settle(tester);
 
     final relic = (await h.db.select(h.db.relics).get()).single;
@@ -186,8 +210,8 @@ void main() {
     await h.settings.setTapMode(true);
     await pumpApp(tester, h, location: '/boss/$id');
     await _strikeAndConfirm(tester);
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.text('Return to the hearth'));
+    await tester.tap(find.text('Return to the hearth'));
     await settle(tester);
 
     expect(find.text('The Certification'), findsNothing);

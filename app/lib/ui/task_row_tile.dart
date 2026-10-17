@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
+import 'diamond_pip.dart';
+import 'needle_frame.dart';
 
 /// A task row: ember fill that grows with [progress], title, weight label and
 /// an optional [sweep] overlay. Pure presentation; hold logic lives in
@@ -55,63 +57,73 @@ class TaskRowTile extends StatelessWidget {
   }
 
   Widget _row(BuildContext context, TextTheme text, bool isReady) {
+    final p = context.palette;
     return AnimatedOpacity(
       opacity: isDone ? 0.35 : 1,
       duration: motionOf(context, kSlowFade),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        constraints: const BoxConstraints(minHeight: kMinTarget),
-        decoration: BoxDecoration(
-          color: kSurface,
-          border: Border.all(
-            color: isReady ? kDust : kAshDim.withValues(alpha: 0.45),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Cut.md),
+            boxShadow: isReady
+                ? [
+                    BoxShadow(
+                      color: p.bone.withValues(alpha: 0.45),
+                      blurRadius: 22,
+                    ),
+                  ]
+                : null,
           ),
-          boxShadow: isReady
-              ? [
-                  BoxShadow(
-                    color: kDust.withValues(alpha: 0.45),
-                    blurRadius: 22,
-                  ),
-                ]
-              : null,
-        ),
-        child: Stack(
-          children: [
-            // Ember fill grows across the row during the hold.
-            Positioned.fill(
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: isDone ? 1 : progress,
-                child: ColoredBox(
-                  color: kEmber.withValues(alpha: isDone ? 0.08 : 0.25),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: trailing == null ? 16 : 0,
-                top: trailing == null ? 14 : 0,
-                bottom: trailing == null ? 14 : 0,
-              ),
-              child: Row(
+          child: NeedleFrame(
+            tier: Cut.md,
+            edge: isReady ? p.bone : null,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: kMinTarget),
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: text.bodyMedium?.copyWith(
-                        decoration: isDone ? TextDecoration.lineThrough : null,
-                        decorationColor: kEmber,
+                  // Silk fill grows across the row during the hold.
+                  Positioned.fill(
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: isDone ? 1 : progress,
+                      child: ColoredBox(
+                        color: p.silk.withValues(alpha: isDone ? 0.08 : 0.25),
                       ),
                     ),
                   ),
-                  ?deadline,
-                  Text(weightLabel, style: text.bodySmall),
-                  ?trailing,
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 16,
+                      right: trailing == null ? 16 : 0,
+                      top: trailing == null ? 14 : 0,
+                      bottom: trailing == null ? 14 : 0,
+                    ),
+                    child: Row(
+                      children: [
+                        DiamondPip(color: isDone ? p.dim : p.silk),
+                        const SizedBox(width: Space.md),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: text.bodyMedium?.copyWith(
+                              decoration: isDone
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              decorationColor: p.silk,
+                            ),
+                          ),
+                        ),
+                        ?deadline,
+                        Text(weightLabel, style: text.bodySmall),
+                        ?trailing,
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

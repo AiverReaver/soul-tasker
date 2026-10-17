@@ -21,7 +21,7 @@ class ChoiceDialog<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return SimpleDialog(
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       title: Text(title, style: text.titleMedium),
       children: [
         for (final e in options.entries)

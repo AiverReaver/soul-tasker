@@ -44,24 +44,24 @@ class PlanBanner extends StatelessWidget {
             child: Row(
               children: [
                 if (item.isDone)
-                  const Icon(
+                  Icon(
                     Icons.check,
                     key: ValueKey('plan-done'),
                     size: _icon,
-                    color: kTextMuted,
+                    color: context.palette.ash,
                   )
                 else
-                  const Icon(
+                  Icon(
                     Icons.circle_outlined,
                     size: _icon,
-                    color: kAshDim,
+                    color: context.palette.dim,
                   ),
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
                     item.title,
                     style: text.bodyMedium?.copyWith(
-                      color: item.isDone ? kTextMuted : null,
+                      color: item.isDone ? context.palette.ash : null,
                     ),
                   ),
                 ),

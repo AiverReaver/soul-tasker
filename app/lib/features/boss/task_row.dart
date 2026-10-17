@@ -121,7 +121,7 @@ class TaskRow extends ConsumerWidget {
           : DeadlineChip(label: label.text, isSoon: label.isSoon),
       trailing: PopupMenuButton<_Action>(
         tooltip: 'Actions for ${task.title}',
-        iconColor: kTextMuted,
+        iconColor: context.palette.ash,
         onSelected: (a) => _act(context, ref, a),
         itemBuilder: (_) => [
           if (canCommit && promise == null && !view.isStruck)

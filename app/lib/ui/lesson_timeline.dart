@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../core/roman.dart';
 import '../core/theme.dart';
 
 /// One lesson in the timeline.
@@ -38,8 +39,16 @@ class LessonTimeline extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(
+                    text: '${romanNumeral(l.attempt)}  ',
+                    style: text.bodyMedium?.copyWith(
+                      color: context.palette.silk,
+                    ),
+                  ),
+                  TextSpan(
                     text: 'Attempt ${l.attempt}. ',
-                    style: text.bodyMedium?.copyWith(color: kTextMuted),
+                    style: text.bodyMedium?.copyWith(
+                      color: context.palette.ash,
+                    ),
                   ),
                   TextSpan(text: l.text),
                   if (l.isMissedDay)

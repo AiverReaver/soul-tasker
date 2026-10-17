@@ -26,8 +26,8 @@ class CheckInCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: kSurface,
-        border: Border.all(color: kAshDim),
+        color: context.palette.shell,
+        border: Border.all(color: context.palette.dim),
         borderRadius: BorderRadius.circular(Space.sm),
       ),
       child: Padding(
@@ -48,7 +48,7 @@ class CheckInCard extends StatelessWidget {
                     onPressed: () => onAnswer(a),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(kMinTarget, kMinTarget),
-                      side: const BorderSide(color: kAshDim),
+                      side: BorderSide(color: context.palette.dim),
                     ),
                     child: Text(_labels[a]!, style: text.bodyMedium),
                   ),
@@ -61,9 +61,9 @@ class CheckInCard extends StatelessWidget {
                 style: TextButton.styleFrom(
                   minimumSize: const Size(kMinTarget, kMinTarget),
                 ),
-                child: const Text(
+                child: Text(
                   'Not now',
-                  style: TextStyle(color: kTextMuted),
+                  style: TextStyle(color: context.palette.ash),
                 ),
               ),
             ),

@@ -18,6 +18,7 @@ void main() {
     await pumpApp(tester, h, location: '/bonfire');
 
     expect(find.text('BONFIRE'), findsOneWidget);
+    expect(find.text('Rest a while.'), findsOneWidget);
     expect(find.text('Struck 1'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.text("TOMORROW'S THREE"), findsOneWidget);
@@ -67,8 +68,10 @@ void main() {
     await tester.ensureVisible(find.text('Walk'));
     await tester.tap(find.text('Walk'));
     await settle(tester);
-    await tester.ensureVisible(find.widgetWithText(EmberButton, 'Rest'));
-    await tester.tap(find.widgetWithText(EmberButton, 'Rest'));
+    await tester.ensureVisible(
+      find.widgetWithText(EmberButton, 'Rest at the hearth'),
+    );
+    await tester.tap(find.widgetWithText(EmberButton, 'Rest at the hearth'));
     await settle(tester);
 
     final log = (await h.db.select(h.db.dayLogs).get()).single;
@@ -82,7 +85,10 @@ void main() {
 
     expect(find.text('You have rested.'), findsOneWidget);
     expect(find.text('Plan earlier.'), findsOneWidget); // the day lesson
-    expect(find.widgetWithText(EmberButton, 'Rest'), findsNothing);
+    expect(
+      find.widgetWithText(EmberButton, 'Rest at the hearth'),
+      findsNothing,
+    );
     expect(find.byType(TextField), findsNothing);
     await tearDownApp(tester, h);
   });
@@ -94,7 +100,10 @@ void main() {
     await pumpApp(tester, h, location: '/bonfire');
 
     expect(find.text('You have rested.'), findsOneWidget);
-    expect(find.widgetWithText(EmberButton, 'Rest'), findsNothing);
+    expect(
+      find.widgetWithText(EmberButton, 'Rest at the hearth'),
+      findsNothing,
+    );
     expect(find.byType(TextField), findsNothing);
     await tearDownApp(tester, h);
   });

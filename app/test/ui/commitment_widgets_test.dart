@@ -55,8 +55,8 @@ void main() {
       );
       Color colorOf(String s) =>
           tester.widget<Text>(find.text(s)).style!.color!;
-      expect(colorOf('in 40 min'), kEmber);
-      expect(colorOf('missed'), kTextMuted);
+      expect(colorOf('in 40 min'), Biome.pharloom.palette.silk);
+      expect(colorOf('missed'), Biome.pharloom.palette.ash);
     });
   });
 

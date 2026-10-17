@@ -49,7 +49,7 @@ void main() {
 
   testWidgets('nothing due: nothing shown', (tester) async {
     await boss('A', 1);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     expect(find.textContaining('While you were away'), findsNothing);
     expect(find.text('Fallen.'), findsNothing);
     await tearDownApp(tester, h);
@@ -61,7 +61,7 @@ void main() {
     final a = await boss('A', 2);
     await promiseAll(await tasksOf(a));
     h.clock.now = DateTime(2026, 10, 14, 12);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     expect(
       find.text('While you were away, two deadlines passed.'),
@@ -90,7 +90,7 @@ void main() {
   ) async {
     final a = await boss('A', 1);
     await promiseAll(await tasksOf(a));
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
     await tester.pump(kDeadlineTick);
@@ -108,7 +108,7 @@ void main() {
     final a = await boss('A', 5);
     await promiseAll(await tasksOf(a));
     h.clock.now = DateTime(2026, 10, 14, 12);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Go on'));
     await settle(tester);
 
@@ -135,7 +135,7 @@ void main() {
     await h.setFlasks(0);
     // The 14th passes with no rest; open on the 15th.
     h.clock.now = DateTime(2026, 10, 15, 12);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Go on'));
     await settle(tester);
 
@@ -158,7 +158,7 @@ void main() {
   ) async {
     final a = await boss('A', 1);
     await promiseAll(await tasksOf(a));
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
@@ -184,7 +184,7 @@ void main() {
     final task = (await tasksOf(a)).single;
     await commits.commit(task, DeadlinePreset.tonight);
     await health.record(-19, HealthReason.miss, '2026-10-14', h.clock());
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
 
@@ -211,7 +211,7 @@ void main() {
     final a = await boss('A', 6);
     final ts = await tasksOf(a);
     await promiseAll(ts.take(5).toList());
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
 
@@ -225,7 +225,7 @@ void main() {
     await settle(tester);
 
     expect(find.text('Fallen.'), findsOneWidget);
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first'));
     await settle(tester);
     // Skipped: not offered again in this run.
     await tester.pump(kDeadlineTick);
@@ -242,7 +242,7 @@ void main() {
     h.clock.now = DateTime(2026, 10, 14, 12);
     // Settled, then the app was killed before the fallen moment.
     await health.resolveDue();
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.text('Fallen.'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Next time.');

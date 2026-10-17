@@ -118,8 +118,12 @@ void main() {
         .where((e) => e.kind == EmberKind.earn && e.bossId == bossId)
         .fold<int>(0, (sum, e) => sum + e.amount);
     expect(earned, 7); // Walk 1 + two Heavy strikes of 3
-    expect(find.text('Foe vanquished.'), findsOneWidget);
-    expect(find.text('3 attempts'), findsOneWidget);
+    expect(find.textContaining(' falls.'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('victory-attempts'))).data,
+      '3',
+    );
+    expect(find.text('attempts'), findsOneWidget);
     expect(find.text('3 days'), findsOneWidget);
     expect(find.text('$earned embers of effort'), findsOneWidget);
     final first = find.textContaining('Attempt 1. Started too late.');
@@ -129,8 +133,8 @@ void main() {
     expect(find.bySemanticsLabel('A worn emblem'), findsOneWidget);
     await tester.ensureVisible(find.byType(TextField));
     await tester.enterText(find.byType(TextField), 'Patience.');
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.text('Return to the hearth'));
+    await tester.tap(find.text('Return to the hearth'));
     await settle(tester);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 10));

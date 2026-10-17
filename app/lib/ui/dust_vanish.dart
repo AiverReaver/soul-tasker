@@ -36,7 +36,7 @@ class DustVanish extends StatelessWidget {
             child: IgnorePointer(
               child: CustomPaint(
                 key: kDustPainterKey,
-                painter: _DustPainter(t, seed, motes),
+                painter: _DustPainter(t, seed, motes, context.palette.bone),
               ),
             ),
           ),
@@ -46,11 +46,12 @@ class DustVanish extends StatelessWidget {
 }
 
 class _DustPainter extends CustomPainter {
-  _DustPainter(this.t, this.seed, this.motes);
+  _DustPainter(this.t, this.seed, this.motes, this.color);
 
   final double t;
   final int seed;
   final int motes;
+  final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -73,17 +74,17 @@ class _DustPainter extends CustomPainter {
         center,
         radius * 3,
         Paint()
-          ..color = kDust.withValues(alpha: 0.18 * fade)
+          ..color = color.withValues(alpha: 0.18 * fade)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
       );
       canvas.drawCircle(
         center,
         radius,
-        Paint()..color = kDust.withValues(alpha: 0.9 * fade),
+        Paint()..color = color.withValues(alpha: 0.9 * fade),
       );
     }
   }
 
   @override
-  bool shouldRepaint(_DustPainter old) => old.t != t;
+  bool shouldRepaint(_DustPainter old) => old.t != t || old.color != color;
 }

@@ -2,30 +2,13 @@ import 'package:material_ui/material_ui.dart';
 
 import '../ui/silk_page_transition.dart';
 
-// Design tokens. Source of truth: /DESIGN.md. Contrast ratios are against kBackground.
+import 'package:flutter/services.dart';
 
-// Color: Pharloom night. Violet-black ground, bone text, one thread of silk
-// crimson (Hearthrise design system). Names predate the restyle: kEmber is
-// the single accent, kAsh the primary text.
-const Color kBackground = Color(0xFF09060C); // void
-const Color kSurface = Color(0xFF130E17);
-const Color kSelected = Color(0xFF221828); // selected segment or chip fill
-const Color kAsh = Color(0xFFE6DDCB); // bone: primary text, 13:1
-const Color kTextMuted = Color(0xFFA79BA6); // bone muted: secondary, 6.6:1
-const Color kAshDim = Color(
-  0xFF5F5463,
-); // borders and decoration only, never text
-const Color kEmber = Color(0xFFE8566D); // thread: the single accent, 5.3:1
-const Color kBossHealth = Color(0xFFE9DFCB); // mask shards (UI component)
+import 'palette.dart';
 
-// Decoration only, never text: carved edges, the backdrop's cold violet
-// tint and the lavender motes drifting up through it.
-const Color kWine = Color(0xFF7A2638);
-const Color kPharloom = Color(0xFF140B1C);
-const Color kMote = Color(0xFFB7A8D6);
+// Design tokens. Source of truth: /DESIGN.md. Colors live in palette.dart.
 
-/// Ink outline for hand-drawn art.
-const Color kInk = Color(0xFF050307);
+export 'palette.dart';
 
 // Spacing: 4 pt grid.
 abstract final class Space {
@@ -35,6 +18,13 @@ abstract final class Space {
   static const double lg = 24;
   static const double xl = 40;
   static const double xxl = 56;
+}
+
+// Shape: one radius, three sizes. Same in every biome, so it stays const.
+abstract final class Cut {
+  static const double lg = 8; // panels, sheets
+  static const double md = 6; // rows, buttons, fields
+  static const double sm = 4; // tags
 }
 
 // Motion: slow, no bounce (§8.1). Exits faster than entrances.
@@ -60,7 +50,7 @@ Duration motionOf(BuildContext context, Duration duration) =>
 const double kMinTarget = 48;
 
 const _display = 'CormorantGaramond';
-const _body = 'Inter';
+const _body = 'HankenGrotesk';
 
 // Variable fonts need the wght axis set explicitly to render the weight.
 TextStyle _font(
@@ -80,16 +70,25 @@ TextStyle _font(
   height: height,
 );
 
-ThemeData buildTheme() {
+ThemeData buildTheme([Biome biome = Biome.pharloom]) {
   const pages = SilkPageTransitions();
+  final p = biome.palette;
+  const clear = Colors.transparent;
+  final base = biome.brightness == Brightness.dark
+      ? const ColorScheme.dark()
+      : const ColorScheme.light();
   return ThemeData(
-    brightness: Brightness.dark,
-    // Clear: the Pharloom backdrop (features/shell) shows through.
-    scaffoldBackgroundColor: const Color(0x00000000),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0x00000000),
-      surfaceTintColor: Color(0x00000000),
+    brightness: biome.brightness,
+    extensions: [p],
+    // Clear: the backdrop (features/shell) shows through.
+    scaffoldBackgroundColor: clear,
+    appBarTheme: AppBarTheme(
+      backgroundColor: clear,
+      surfaceTintColor: clear,
       scrolledUnderElevation: 0,
+      systemOverlayStyle: biome.brightness == Brightness.dark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
     ),
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
@@ -101,33 +100,29 @@ ThemeData buildTheme() {
       },
     ),
     fontFamily: _body,
-    colorScheme: const ColorScheme.dark(
-      primary: kEmber,
-      onPrimary: kBackground,
+    colorScheme: base.copyWith(
+      primary: p.silk,
+      onPrimary: p.onSilk,
       // Selected segments and chips: a quiet raised surface, not a new hue.
-      secondaryContainer: kSelected,
-      onSecondaryContainer: kAsh,
-      outline: kAshDim,
-      outlineVariant: kAshDim,
-      surface: kSurface,
-      onSurface: kAsh,
-      error: kBossHealth,
+      secondaryContainer: p.raised,
+      onSecondaryContainer: p.text,
+      outline: p.seam,
+      outlineVariant: p.seam,
+      surface: p.shell,
+      onSurface: p.text,
+      error: p.shard,
     ),
     textTheme: TextTheme(
       // Display serif: boss names and major moments only.
-      displayMedium: _font(_display, 44, 500, kDust, spacing: 1, height: 1.1),
-      displaySmall: _font(_display, 34, 500, kDust, spacing: 1, height: 1.15),
-      titleMedium: _font(_display, 22, 500, kDust, height: 1.3),
+      displayMedium: _font(_display, 44, 500, p.bone, spacing: 1, height: 1.1),
+      displaySmall: _font(_display, 34, 500, p.bone, spacing: 1, height: 1.15),
+      titleMedium: _font(_display, 22, 500, p.bone, height: 1.3),
       // Body sans: everything else.
-      bodyLarge: _font(_body, 16, 400, kAsh, height: 1.5),
-      bodyMedium: _font(_body, 15, 400, kAsh, height: 1.45),
-      bodySmall: _font(_body, 14, 400, kTextMuted, height: 1.45),
-      labelSmall: _font(_body, 13, 500, kAsh, spacing: 2),
+      bodyLarge: _font(_body, 16, 400, p.text, height: 1.5),
+      bodyMedium: _font(_body, 15, 400, p.text, height: 1.45),
+      bodySmall: _font(_body, 14, 400, p.ash, height: 1.45),
+      // Uppercase is a convention at the call site; it only labels a meter.
+      labelSmall: _font(_body, 12, 600, p.ash, spacing: 1.6),
     ),
   );
 }
-
-/// Porcelain: titles, boss names, glints, lit frame brackets, the silk slash
-/// and the dust of a struck task. The one exception to "no pure white" in
-/// DESIGN.md.
-const Color kDust = Color(0xFFF4EBDD);

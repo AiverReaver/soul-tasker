@@ -62,7 +62,7 @@ class SyncStatusRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: kTextMuted);
+    final muted = text.bodyMedium?.copyWith(color: context.palette.ash);
     final account = email;
     if (account == null) {
       return Column(

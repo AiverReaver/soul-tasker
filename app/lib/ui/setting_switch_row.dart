@@ -21,7 +21,7 @@ class SettingSwitchRow extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(title, style: Theme.of(context).textTheme.bodyMedium),
       value: value,
-      activeThumbColor: kEmber,
+      activeThumbColor: context.palette.silk,
       onChanged: onChanged,
     );
   }

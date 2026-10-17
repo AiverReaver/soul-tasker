@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/ui/boss_card_tile.dart';
-import 'package:hearthrise/ui/boss_health_bar.dart';
+import 'package:hearthrise/ui/shard_meter.dart';
 import 'package:hearthrise/ui/confirm_dialog.dart';
 import 'package:hearthrise/ui/flash_line.dart';
 import 'package:hearthrise/ui/task_row_tile.dart';
@@ -21,23 +21,6 @@ void main() {
   testWidgets('FlashLine shows its message', (tester) async {
     await _pump(tester, const FlashLine('It is done.'));
     expect(find.text('It is done.'), findsOneWidget);
-  });
-
-  testWidgets('BossHealthBar speaks health and draws one segment each', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      const BossHealthBar(
-        groups: [
-          [true, false],
-          [true],
-        ],
-        health: 2 / 3,
-      ),
-    );
-    expect(find.bySemanticsLabel('Boss health 67 percent'), findsOneWidget);
-    expect(find.byType(FractionallySizedBox), findsNWidgets(3));
   });
 
   testWidgets('TaskRowTile shows title, weight, sweep and trailing', (
@@ -87,9 +70,7 @@ void main() {
         progressLabel: 'Phase 1 of 2',
         health: 1,
         isPinned: true,
-        healthGroups: const [
-          [true],
-        ],
+        showHealth: true,
         onTap: () => taps++,
         onLongPress: () => longs++,
       ),
@@ -97,7 +78,7 @@ void main() {
     expect(find.text('Gwyn'), findsOneWidget);
     expect(find.text('Attempt 2 · Phase 1 of 2'), findsOneWidget);
     expect(find.text('Pinned'), findsOneWidget);
-    expect(find.byType(BossHealthBar), findsOneWidget);
+    expect(find.byType(ShardMeter), findsOneWidget);
     await tester.tap(find.text('Gwyn'));
     await tester.longPress(find.text('Gwyn'));
     expect([taps, longs], [1, 1]);
@@ -141,9 +122,7 @@ void main() {
               progressLabel: 'Phase 3 of 4',
               health: 0.5,
               isPinned: true,
-              healthGroups: const [
-                [true, false],
-              ],
+              showHealth: true,
               onTap: () {},
               onLongPress: () {},
             ),
@@ -158,7 +137,7 @@ void main() {
     );
   });
 
-  testWidgets('BossCardTile hides the bar without groups', (tester) async {
+  testWidgets('BossCardTile hides the meter unless asked', (tester) async {
     await _pump(
       tester,
       BossCardTile(
@@ -171,7 +150,7 @@ void main() {
         onLongPress: () {},
       ),
     );
-    expect(find.byType(BossHealthBar), findsNothing);
+    expect(find.byType(ShardMeter), findsNothing);
   });
 
   testWidgets('ConfirmDialog pops true on action, false on Not yet', (

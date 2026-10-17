@@ -5,6 +5,7 @@ import '../../core/clock.dart';
 import '../../core/theme.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/biome_choice_row.dart';
 import '../../ui/choice_dialog.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/setting_choice_row.dart';
@@ -122,6 +123,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const CopyTesterReportTile(),
                   const SizedBox(height: Space.md),
                   const SyncSection(),
+                  const SizedBox(height: Space.md),
+                  BiomeChoiceRow(
+                    selected: ref.watch(biomeProvider).value ?? Biome.pharloom,
+                    onChanged: dao.setBiome,
+                  ),
                 ],
               ),
       ),

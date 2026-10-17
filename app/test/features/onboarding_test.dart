@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/ember_button.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -51,14 +52,17 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _next(tester);
-    final next = find.widgetWithText(TextButton, 'Next');
-    expect(tester.widget<TextButton>(next).onPressed, isNull);
+    final off = find.widgetWithText(TextButton, 'Next');
+    final on = find.widgetWithText(EmberButton, 'Next');
+    expect(tester.widget<TextButton>(off).onPressed, isNull);
+    expect(on, findsNothing);
     await tester.enterText(_title, 'The Garage');
     await tester.pump();
-    expect(tester.widget<TextButton>(next).onPressed, isNotNull);
+    expect(on, findsOneWidget);
     await tester.enterText(_title, '   ');
     await tester.pump();
-    expect(tester.widget<TextButton>(next).onPressed, isNull);
+    expect(on, findsNothing);
+    expect(tester.widget<TextButton>(off).onPressed, isNull);
     await tearDownApp(tester, h);
   });
 

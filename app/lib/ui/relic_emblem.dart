@@ -29,7 +29,7 @@ class RelicEmblem extends StatelessWidget {
       child: CustomPaint(
         key: ValueKey('emblem-${weathering.name}'),
         size: Size.square(size),
-        painter: EmblemPainter(weathering),
+        painter: EmblemPainter(weathering, context.palette),
       ),
     );
   }
@@ -44,9 +44,10 @@ const _marks = {
 };
 
 class EmblemPainter extends CustomPainter {
-  const EmblemPainter(this.weathering);
+  const EmblemPainter(this.weathering, this.palette);
 
   final Weathering weathering;
+  final HearthPalette palette;
 
   /// Nicks drawn for this level, exposed for tests.
   int get markCount => _marks[weathering]!;
@@ -58,7 +59,7 @@ class EmblemPainter extends CustomPainter {
     final stroke = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = size.shortestSide / 28
-      ..color = kAsh;
+      ..color = palette.text;
     canvas.drawCircle(c, r, stroke);
 
     // A diamond inside the ring, with a single ember at its heart.
@@ -69,8 +70,11 @@ class EmblemPainter extends CustomPainter {
       ..lineTo(c.dx, c.dy + d)
       ..lineTo(c.dx - d, c.dy)
       ..close();
-    canvas.drawPath(diamond, stroke..color = kAsh.withValues(alpha: 0.8));
-    canvas.drawCircle(c, r * 0.14, Paint()..color = kEmber);
+    canvas.drawPath(
+      diamond,
+      stroke..color = palette.text.withValues(alpha: 0.8),
+    );
+    canvas.drawCircle(c, r * 0.14, Paint()..color = palette.silk);
 
     // Weathering: dim nicks across the rim and the diamond, evenly spread
     // but skewed so no two levels look like a rotation of each other.
@@ -78,7 +82,7 @@ class EmblemPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = size.shortestSide / 40
-      ..color = kBackground;
+      ..color = palette.void_;
     for (var i = 0; i < markCount; i++) {
       final a = i * 2 * math.pi / markCount + i * 0.35;
       final inner = r * (0.78 + 0.1 * (i % 3));
@@ -91,5 +95,6 @@ class EmblemPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(EmblemPainter old) => old.weathering != weathering;
+  bool shouldRepaint(EmblemPainter old) =>
+      old.weathering != weathering || old.palette != palette;
 }

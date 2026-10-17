@@ -1,11 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'data/providers.dart';
 import 'features/shell/atmosphere.dart';
 
-class HearthriseApp extends StatefulWidget {
+class HearthriseApp extends ConsumerStatefulWidget {
   const HearthriseApp({
     super.key,
     this.initialLocation = '/',
@@ -19,10 +21,10 @@ class HearthriseApp extends StatefulWidget {
   final bool isAmbient;
 
   @override
-  State<HearthriseApp> createState() => _HearthriseAppState();
+  ConsumerState<HearthriseApp> createState() => _HearthriseAppState();
 }
 
-class _HearthriseAppState extends State<HearthriseApp> {
+class _HearthriseAppState extends ConsumerState<HearthriseApp> {
   late final GoRouter _router = buildRouter(widget.initialLocation);
 
   @override
@@ -36,7 +38,8 @@ class _HearthriseAppState extends State<HearthriseApp> {
     return MaterialApp.router(
       title: 'Hearthrise',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
+      theme: buildTheme(ref.watch(biomeProvider).value ?? Biome.pharloom),
+      themeAnimationDuration: Motion.fade,
       routerConfig: _router,
       builder: (context, child) =>
           Atmosphere(isStill: !widget.isAmbient, child: child!),

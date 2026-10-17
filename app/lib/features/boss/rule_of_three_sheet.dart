@@ -19,7 +19,7 @@ Future<void> showRuleOfThree(
 }) async {
   final choice = await showModalBottomSheet<_Choice>(
     context: context,
-    backgroundColor: kSurface,
+    backgroundColor: context.palette.shell,
     builder: (context) => const _RuleOfThreeSheet(),
   );
   if (!context.mounted) return;
@@ -31,7 +31,7 @@ Future<void> showRuleOfThree(
       final titles = await showModalBottomSheet<List<String>>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: kSurface,
+        backgroundColor: context.palette.shell,
         builder: (_) => _SplitSheet(original: task.task.title),
       );
       if (titles != null) {

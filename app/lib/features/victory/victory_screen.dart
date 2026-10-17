@@ -9,6 +9,7 @@ import '../../data/relic_dao.dart';
 import '../../ui/ember_button.dart';
 import '../../ui/inscription_field.dart';
 import '../../ui/lesson_timeline.dart';
+import '../../ui/needle_frame.dart';
 import '../../ui/relic_emblem.dart';
 import '../../ui/victory_numbers.dart';
 
@@ -66,12 +67,14 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
       FadeTransition(opacity: _section(i), child: child);
 
   /// Saves the inscription, if any, and goes home. Done and back both end here.
-  Future<void> _finish() async {
+  Future<void> _finish({bool openRelic = false}) async {
     final text = _inscription.text.trim();
     if (text.isNotEmpty) {
       await ref.read(relicDaoProvider).setInscription(widget.relicId, text);
     }
-    if (mounted) context.go('/');
+    if (!mounted) return;
+    context.go('/');
+    if (openRelic) context.push('/relic/${widget.relicId}');
   }
 
   @override
@@ -101,9 +104,9 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
           _fadeIn(
             0,
             Text(
-              'Foe vanquished.',
+              '${relic.name.replaceFirst('Relic of ', '')} falls.',
               textAlign: TextAlign.center,
-              style: text.displayMedium,
+              style: text.displayMedium?.copyWith(fontSize: 42),
             ),
           ),
           const SizedBox(height: Space.lg),
@@ -149,9 +152,27 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
           const SizedBox(height: Space.xl),
           _fadeIn(4, InscriptionField(controller: _inscription)),
           const SizedBox(height: Space.md),
-          Align(
-            alignment: Alignment.centerRight,
-            child: _fadeIn(4, EmberButton(label: 'Done', onPressed: _finish)),
+          _fadeIn(
+            4,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                EmberButton(label: 'Return to the hearth', onPressed: _finish),
+                const SizedBox(height: Space.sm),
+                NeedleFrame(
+                  tier: Cut.md,
+                  child: InkWell(
+                    onTap: () => _finish(openRelic: true),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: kMinTarget),
+                      child: Center(
+                        child: Text('Keep as a relic', style: text.bodyMedium),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

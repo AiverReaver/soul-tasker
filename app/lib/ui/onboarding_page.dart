@@ -54,9 +54,9 @@ class OnboardingPage extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: onSkip,
-                  child: const Text(
+                  child: Text(
                     'Skip',
-                    style: TextStyle(color: kTextMuted),
+                    style: TextStyle(color: context.palette.ash),
                   ),
                 ),
                 canAdvance

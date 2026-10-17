@@ -62,7 +62,7 @@ class _BossStageState extends State<BossStage>
             child: Transform.rotate(
               angle: recoil * 0.004,
               alignment: Alignment.bottomCenter,
-              child: BossArt(boilFrame: boil, hit: isWhite ? 1 : 0),
+              child: BossArt(boilFrame: boil, hit: isWhite ? 1 : 0, width: 165),
             ),
           );
         },

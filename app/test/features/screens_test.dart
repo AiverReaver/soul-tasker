@@ -10,7 +10,7 @@ import 'pump.dart';
 void main() {
   testWidgets('home shows the empty state', (tester) async {
     final h = Harness();
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.text('No boss stands before you.'), findsOneWidget);
     expect(find.text('Name a new boss'), findsOneWidget);
@@ -22,7 +22,7 @@ void main() {
     final waiting = await h.seed();
     await h.bosses.setStatus(waiting.boss.id, BossStatus.waiting);
     await h.seed();
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('WAITING (1)'), findsOneWidget);
@@ -38,6 +38,15 @@ void main() {
 
     expect(find.byType(PharloomBackdrop), findsOneWidget);
     expect(find.byType(BossStage), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a boss page names its phase in roman numerals', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await pumpApp(tester, h, location: '/boss/${view.boss.id}');
+
+    expect(find.text('Phase I of II'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -110,7 +119,7 @@ void main() {
     await tearDownApp(tester, h);
     final h2 = Harness();
     await h2.seed();
-    await pumpApp(tester, h2);
+    await pumpApp(tester, h2, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Book the room'), findsOneWidget);

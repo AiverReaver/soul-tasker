@@ -31,7 +31,8 @@ void main() {
 
     test('more attempts, more marks; no rank word or red in the labels', () {
       final marks = [
-        for (final w in Weathering.values) EmblemPainter(w).markCount,
+        for (final w in Weathering.values)
+          EmblemPainter(w, Biome.pharloom.palette).markCount,
       ];
       expect(marks, [...marks]..sort());
       expect(marks.toSet(), hasLength(4));
@@ -41,7 +42,7 @@ void main() {
           isNot(anyOf(contains('best'), contains('perfect'), contains('lvl'))),
         );
       }
-      expect(kBossHealth, isNot(kEmber));
+      expect(Biome.pharloom.palette.shard, isNot(Biome.pharloom.palette.silk));
     });
   });
 
@@ -51,7 +52,9 @@ void main() {
         tester,
         const VictoryNumbers(attempts: 3, days: 12, effort: 48),
       );
-      expect(find.text('3 attempts'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget); // the 88 px numeral
+      expect(tester.widget<Text>(find.text('3')).style?.fontSize, 88);
+      expect(find.text('attempts'), findsOneWidget);
       expect(find.text('12 days'), findsOneWidget);
       expect(find.text('48 embers of effort'), findsOneWidget);
     });
@@ -61,7 +64,7 @@ void main() {
         tester,
         const VictoryNumbers(attempts: 1, days: 1, effort: 1),
       );
-      expect(find.text('1 attempt'), findsOneWidget);
+      expect(find.text('attempt'), findsOneWidget);
       expect(find.text('1 day'), findsOneWidget);
       expect(find.text('1 ember of effort'), findsOneWidget);
       expect(find.textContaining('first try'), findsNothing);

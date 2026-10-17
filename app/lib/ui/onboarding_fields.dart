@@ -2,16 +2,17 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
 
-InputDecoration _decoration(String hint) => InputDecoration(
-  hintText: hint,
-  hintStyle: const TextStyle(color: kTextMuted),
-  enabledBorder: const UnderlineInputBorder(
-    borderSide: BorderSide(color: kAshDim),
-  ),
-  focusedBorder: const UnderlineInputBorder(
-    borderSide: BorderSide(color: kEmber),
-  ),
-);
+InputDecoration _decoration(BuildContext context, String hint) =>
+    InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: context.palette.ash),
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: context.palette.dim),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: context.palette.silk),
+      ),
+    );
 
 /// A single labelled line of text. The caller keeps the value.
 class LineField extends StatelessWidget {
@@ -41,8 +42,8 @@ class LineField extends StatelessWidget {
           initialValue: initialValue,
           maxLength: maxLength,
           style: text.bodyLarge,
-          cursorColor: kEmber,
-          decoration: _decoration(hint),
+          cursorColor: context.palette.silk,
+          decoration: _decoration(context, hint),
           onChanged: onChanged,
         ),
       ],
@@ -108,8 +109,11 @@ class NameListEditor extends StatelessWidget {
                   autofocus: item.id == autofocusId,
                   maxLength: 60,
                   style: text.bodyLarge,
-                  cursorColor: kEmber,
-                  decoration: _decoration(hint).copyWith(counterText: ''),
+                  cursorColor: context.palette.silk,
+                  decoration: _decoration(
+                    context,
+                    hint,
+                  ).copyWith(counterText: ''),
                   onChanged: (t) => onChanged(item.id, t),
                 ),
               ),
@@ -119,7 +123,7 @@ class NameListEditor extends StatelessWidget {
                   minWidth: kMinTarget,
                   minHeight: kMinTarget,
                 ),
-                icon: const Icon(Icons.close, color: kTextMuted),
+                icon: Icon(Icons.close, color: context.palette.ash),
                 onPressed: () => onRemove(item.id),
               ),
             ],

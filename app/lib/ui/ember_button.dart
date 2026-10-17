@@ -1,26 +1,43 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
+import 'needle_frame.dart';
 
-/// The one ember-coloured action on a ritual screen ("Rest", "Rise").
+/// The one silk-coloured action on a screen ("Rest", "Rise", "Enter the
+/// fight"): solid silk, onSilk text, 52 px tall.
 class EmberButton extends StatelessWidget {
   const EmberButton({super.key, required this.label, required this.onPressed});
 
   final String label;
   final VoidCallback onPressed;
 
-  static const _fontSize = 16.0;
+  static const height = 52.0;
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        minimumSize: const Size(kMinTarget, kMinTarget),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(color: kEmber, fontSize: _fontSize),
+    final p = context.palette;
+    return NeedleFrame(
+      tier: Cut.md,
+      edge: p.silk,
+      fill: p.silk,
+      child: InkWell(
+        onTap: onPressed,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: height),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Space.lg),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: p.onSilk,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

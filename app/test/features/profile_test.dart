@@ -98,7 +98,11 @@ void main() {
     await tester.tap(find.text('Relic of The Certification'));
     await settle(tester);
 
-    expect(find.text('3 attempts'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('victory-attempts'))).data,
+      '3',
+    );
+    expect(find.text('attempts'), findsOneWidget);
     expect(find.text('3 attempts. Every one of them counted.'), findsOneWidget);
     expect(find.textContaining('Attempt 1. Lesson 1.'), findsOneWidget);
     expect(find.textContaining('Attempt 2. Lesson 2.'), findsOneWidget);

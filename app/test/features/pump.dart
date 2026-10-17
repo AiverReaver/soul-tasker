@@ -24,7 +24,17 @@ Future<void> pumpApp(
   /// Existing installs skip onboarding; pass false to see it, or null to
   /// leave what is stored (Stage 5 D11).
   bool? onboarded = true,
+
+  /// A phone-sized, tall surface for Home, whose header and Today list need
+  /// more room than the default 800 x 600 landscape stub.
+  bool tall = false,
 }) async {
+  if (tall) {
+    tester.view
+      ..physicalSize = const Size(900, 1800)
+      ..devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+  }
   if (onboarded != null) await h.settings.setOnboarded(onboarded);
   await tester.pumpWidget(
     ProviderScope(

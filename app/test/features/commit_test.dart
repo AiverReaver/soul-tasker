@@ -17,7 +17,7 @@ void main() {
   });
 
   Future<void> openToday(WidgetTester tester) async {
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
   }

@@ -2,11 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/level.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../core/clock.dart';
 import '../../ui/bonfire_card.dart';
+import '../../ui/hearth_nav_bar.dart';
+import '../../ui/home_header.dart';
 import '../today/today_view.dart';
 import 'boss_card.dart';
 
@@ -23,6 +27,23 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   _Tab _tab = _Tab.bosses;
 
+  Widget _header() {
+    final now = ref.watch(clockProvider)();
+    final profile = ref.watch(profileProvider).value;
+    final level = profile?.level;
+    // Bars fill with the share of this level's embers already earned.
+    final bars = level == null
+        ? 0
+        : (5 * (1 - level.toNext / (level.level * kLevelStep))).round();
+    return HomeHeader(
+      dateLine: formatDayLabel(dayOf(now)),
+      greeting: greetingFor(now.hour),
+      embers: profile?.banked ?? 0,
+      level: level?.level ?? 1,
+      levelBars: bars.clamp(0, 5),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -35,36 +56,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         actions: [
           IconButton(
             tooltip: 'Profile',
-            icon: const Icon(Icons.person_outline, color: kTextMuted),
+            icon: Icon(Icons.person_outline, color: context.palette.ash),
             onPressed: () => context.push('/profile'),
           ),
           IconButton(
             tooltip: 'Settings',
-            icon: const Icon(Icons.tune, color: kTextMuted),
+            icon: Icon(Icons.tune, color: context.palette.ash),
             onPressed: () => context.push('/settings'),
           ),
         ],
       ),
+      bottomNavigationBar: HearthNavBar(
+        selected: _tab.index,
+        onTap: (i) => switch (i) {
+          0 => setState(() => _tab = _Tab.bosses),
+          1 => setState(() => _tab = _Tab.today),
+          2 => context.push('/bonfire'),
+          _ => context.push('/profile'),
+        },
+      ),
       body: SafeArea(
         child: Column(
           children: [
+            _header(),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.sm),
               child: BonfireCard(
                 isRested: ref.watch(dayStatusProvider).value?.isRested ?? false,
                 onTap: () => context.push('/bonfire'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SegmentedButton<_Tab>(
-                segments: const [
-                  ButtonSegment(value: _Tab.bosses, label: Text('Bosses')),
-                  ButtonSegment(value: _Tab.today, label: Text('Today')),
-                ],
-                selected: {_tab},
-                showSelectedIcon: false,
-                onSelectionChanged: (s) => setState(() => _tab = s.single),
               ),
             ),
             const SizedBox(height: Space.sm),

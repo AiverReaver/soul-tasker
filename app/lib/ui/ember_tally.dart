@@ -16,8 +16,14 @@ class EmberTally extends StatelessWidget {
     return Wrap(
       spacing: Space.lg,
       children: [
-        Text('Carried $carried', style: style?.copyWith(color: kEmber)),
-        Text('Banked $banked', style: style?.copyWith(color: kTextMuted)),
+        Text(
+          'Carried $carried',
+          style: style?.copyWith(color: context.palette.silk),
+        ),
+        Text(
+          'Banked $banked',
+          style: style?.copyWith(color: context.palette.ash),
+        ),
       ],
     );
   }

@@ -18,7 +18,7 @@ class ReminderInvite extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return AlertDialog(
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       title: Text('A quiet nudge each evening?', style: text.titleMedium),
       content: Text(
         'One gentle reminder to come back to the bonfire.',
@@ -27,7 +27,7 @@ class ReminderInvite extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: onDecline,
-          child: const Text('Not now', style: TextStyle(color: kTextMuted)),
+          child: Text('Not now', style: TextStyle(color: context.palette.ash)),
         ),
         EmberButton(label: 'Yes, remind me', onPressed: onAccept),
       ],

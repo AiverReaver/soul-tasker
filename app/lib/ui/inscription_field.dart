@@ -24,15 +24,15 @@ class InscriptionField extends StatelessWidget {
           controller: controller,
           maxLength: kInscriptionMax,
           style: text.bodyMedium,
-          cursorColor: kEmber,
-          decoration: const InputDecoration(
+          cursorColor: context.palette.silk,
+          decoration: InputDecoration(
             hintText: 'One line, if you like.',
-            hintStyle: TextStyle(color: kTextMuted),
+            hintStyle: TextStyle(color: context.palette.ash),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: kAshDim),
+              borderSide: BorderSide(color: context.palette.dim),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: kEmber),
+              borderSide: BorderSide(color: context.palette.silk),
             ),
           ),
         ),

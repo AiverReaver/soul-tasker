@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:hearthrise/ui/bonfire_card.dart';
 import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/ui/boss_card_tile.dart';
-import 'package:hearthrise/ui/carved_frame.dart';
 import 'package:hearthrise/ui/silk_page_transition.dart';
 import 'package:hearthrise/ui/ink_path.dart';
 import 'package:hearthrise/ui/pharloom_backdrop.dart';
@@ -73,13 +73,20 @@ void main() {
     });
 
     test('repaints when the line boils or a hit lands, not otherwise', () {
-      const a = BossArtPainter(boilFrame: 0, hit: 0);
+      final p = Biome.pharloom.palette;
+      final a = BossArtPainter(boilFrame: 0, hit: 0, palette: p);
       expect(
-        a.shouldRepaint(const BossArtPainter(boilFrame: 0, hit: 0)),
+        a.shouldRepaint(BossArtPainter(boilFrame: 0, hit: 0, palette: p)),
         false,
       );
-      expect(a.shouldRepaint(const BossArtPainter(boilFrame: 1, hit: 0)), true);
-      expect(a.shouldRepaint(const BossArtPainter(boilFrame: 0, hit: 1)), true);
+      expect(
+        a.shouldRepaint(BossArtPainter(boilFrame: 1, hit: 0, palette: p)),
+        true,
+      );
+      expect(
+        a.shouldRepaint(BossArtPainter(boilFrame: 0, hit: 1, palette: p)),
+        true,
+      );
     });
   });
 
@@ -118,61 +125,41 @@ void main() {
     });
   });
 
-  testWidgets('CarvedFrame wraps its child; a lit frame glows', (tester) async {
-    BoxDecoration deco() =>
-        tester
-                .widget<DecoratedBox>(
-                  find
-                      .descendant(
-                        of: find.byType(CarvedFrame),
-                        matching: find.byType(DecoratedBox),
-                      )
-                      .first,
-                )
-                .decoration
-            as BoxDecoration;
+  group('needle cards', () {
+    Color? edge(WidgetTester tester) =>
+        tester.widget<NeedleFrame>(find.byType(NeedleFrame)).edge;
+    final p = Biome.pharloom.palette;
 
-    await _pump(tester, const CarvedFrame(child: Text('Inside')));
-    expect(find.text('Inside'), findsOneWidget);
-    expect(deco().boxShadow, isNull);
+    testWidgets(
+      'a pinned boss card has a deep edge and shows the boss portrait',
+      (tester) async {
+        Future<void> pump(bool pinned) => _pump(
+          tester,
+          BossCardTile(
+            title: 'Gwyn',
+            attemptNumber: 1,
+            progressLabel: 'Phase 1 of 2',
+            health: 1,
+            isPinned: pinned,
+            onTap: () {},
+            onLongPress: () {},
+          ),
+        );
+        await pump(true);
+        expect(edge(tester), p.deep);
+        expect(find.byType(BossArt), findsOneWidget);
+        await pump(false);
+        expect(edge(tester), isNull);
+      },
+    );
 
-    await _pump(tester, const CarvedFrame(isLit: true, child: Text('Inside')));
-    expect(deco().boxShadow, isNotEmpty);
-  });
-
-  group('carved cards', () {
-    bool lit(WidgetTester tester) =>
-        tester.widget<CarvedFrame>(find.byType(CarvedFrame)).isLit;
-
-    testWidgets('a pinned boss card is lit and shows the boss portrait', (
-      tester,
-    ) async {
-      Future<void> pump(bool pinned) => _pump(
-        tester,
-        BossCardTile(
-          title: 'Gwyn',
-          attemptNumber: 1,
-          progressLabel: 'Phase 1 of 2',
-          health: 1,
-          isPinned: pinned,
-          onTap: () {},
-          onLongPress: () {},
-        ),
-      );
-      await pump(true);
-      expect(lit(tester), isTrue);
-      expect(find.byType(BossArt), findsOneWidget);
-      await pump(false);
-      expect(lit(tester), isFalse);
-    });
-
-    testWidgets('the bonfire card is lit until you have rested', (
+    testWidgets('the bonfire card has a silk edge until you have rested', (
       tester,
     ) async {
       await _pump(tester, BonfireCard(isRested: false, onTap: () {}));
-      expect(lit(tester), isTrue);
+      expect(edge(tester), p.silk);
       await _pump(tester, BonfireCard(isRested: true, onTap: () {}));
-      expect(lit(tester), isFalse);
+      expect(edge(tester), isNull);
     });
   });
 
@@ -221,17 +208,8 @@ void main() {
   testWidgets('a task row glows porcelain once the charge is ready', (
     tester,
   ) async {
-    Color edge(double progress) {
-      final box = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byType(TaskRowTile),
-              matching: find.byType(Container),
-            )
-            .first,
-      );
-      return ((box.decoration! as BoxDecoration).border! as Border).top.color;
-    }
+    Color? edge(double progress) =>
+        tester.widget<NeedleFrame>(find.byType(NeedleFrame)).edge;
 
     await _pump(
       tester,
@@ -242,7 +220,7 @@ void main() {
         progress: 0.5,
       ),
     );
-    expect(edge(0.5), isNot(kDust));
+    expect(edge(0.5), isNot(Biome.pharloom.palette.bone));
 
     await _pump(
       tester,
@@ -253,6 +231,6 @@ void main() {
         progress: 0.9,
       ),
     );
-    expect(edge(0.9), kDust);
+    expect(edge(0.9), Biome.pharloom.palette.bone);
   });
 }

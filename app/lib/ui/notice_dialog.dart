@@ -11,7 +11,7 @@ class NoticeDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: kSurface,
+    backgroundColor: context.palette.shell,
     content: Text(message, style: Theme.of(context).textTheme.bodyLarge),
     actions: [TextButton(onPressed: onClose, child: const Text('OK'))],
   );

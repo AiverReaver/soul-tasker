@@ -44,7 +44,7 @@ class AwaySummary extends StatelessWidget {
         ? 'While you were away, a deadline passed.'
         : 'While you were away, ${countWord(rows.length)} deadlines passed.';
     return AlertDialog(
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       title: Text(heading, style: text.titleMedium),
       content: SingleChildScrollView(
         child: Column(

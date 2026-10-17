@@ -25,13 +25,13 @@ class PickRow extends StatelessWidget {
     return CheckboxListTile(
       contentPadding: EdgeInsets.zero,
       controlAffinity: ListTileControlAffinity.leading,
-      activeColor: kEmber,
+      activeColor: context.palette.silk,
       value: isSelected,
       onChanged: isEnabled ? (v) => onChanged(v ?? false) : null,
       title: Text(title, style: text.bodyMedium),
       subtitle: Text(
         bossTitle,
-        style: text.bodyMedium?.copyWith(color: kTextMuted),
+        style: text.bodyMedium?.copyWith(color: context.palette.ash),
       ),
     );
   }

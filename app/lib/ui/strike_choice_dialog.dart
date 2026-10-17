@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
+import 'needle_frame.dart';
 
 /// The moment a hold is complete: the player commits to the fight or admits
 /// the attempt fell short. Pops true for Strike, false for Tried; tapping
@@ -13,30 +14,31 @@ class StrikeChoiceDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Dialog(
-      backgroundColor: kSurface,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: kDust.withValues(alpha: 0.35)),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(color: kDust.withValues(alpha: 0.12), blurRadius: 40),
-          ],
-        ),
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: NeedleFrame(
+        tier: Cut.lg,
+        edge: p.bone.withValues(alpha: 0.5),
         child: Padding(
           padding: const EdgeInsets.all(Space.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, textAlign: TextAlign.center, style: text.titleMedium),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: text.titleMedium?.copyWith(fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: Space.sm),
+              Text('How did the strike land?', style: text.labelSmall),
               const SizedBox(height: Space.lg),
               Row(
                 children: [
                   Expanded(
                     child: _Choice(
                       label: 'Tried',
-                      color: kTextMuted,
                       onTap: () => Navigator.pop(context, false),
                     ),
                   ),
@@ -44,7 +46,7 @@ class StrikeChoiceDialog extends StatelessWidget {
                   Expanded(
                     child: _Choice(
                       label: 'Strike',
-                      color: kDust,
+                      isSolid: true,
                       onTap: () => Navigator.pop(context, true),
                     ),
                   ),
@@ -61,25 +63,37 @@ class StrikeChoiceDialog extends StatelessWidget {
 class _Choice extends StatelessWidget {
   const _Choice({
     required this.label,
-    required this.color,
     required this.onTap,
+    this.isSolid = false,
   });
 
   final String label;
-  final Color color;
   final VoidCallback onTap;
+  final bool isSolid;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(kMinTarget),
-        foregroundColor: color,
-        side: BorderSide(color: color.withValues(alpha: 0.6)),
-        shape: const RoundedRectangleBorder(),
+    final p = context.palette;
+    return NeedleFrame(
+      key: ValueKey('choice-$label'),
+      tier: Cut.md,
+      edge: isSolid ? p.silk : null,
+      fill: isSolid ? p.silk : null,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: kMinTarget),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSolid ? p.onSilk : p.text,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
       ),
-      child: Text(label),
     );
   }
 }

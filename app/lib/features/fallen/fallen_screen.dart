@@ -5,6 +5,8 @@ import '../../core/haptics.dart';
 import '../../core/sounds.dart';
 import '../../core/theme.dart';
 import '../../ui/accuracy_line.dart';
+import '../../ui/ember_button.dart';
+import '../../ui/needle_frame.dart';
 
 /// What the fallen screen says about the day's promises (§5.12).
 @immutable
@@ -106,7 +108,7 @@ class _FallenScreenState extends State<FallenScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: Colors.black.withValues(alpha: 0.94),
+      backgroundColor: context.palette.voidfall,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -117,7 +119,10 @@ class _FallenScreenState extends State<FallenScreen> {
               Text(
                 'Fallen.',
                 textAlign: TextAlign.center,
-                style: text.displayMedium,
+                style: text.displayMedium?.copyWith(
+                  fontSize: 60,
+                  letterSpacing: 6,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -129,42 +134,36 @@ class _FallenScreenState extends State<FallenScreen> {
               const SizedBox(height: 56),
               Text('What did this teach you?', style: text.titleMedium),
               const SizedBox(height: 12),
-              TextField(
-                controller: _lesson,
-                maxLength: 120,
-                style: text.bodyMedium,
-                cursorColor: kEmber,
-                decoration: const InputDecoration(
-                  hintText: 'One line.',
-                  hintStyle: TextStyle(color: kTextMuted),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: kAshDim),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: kEmber),
+              NeedleFrame(
+                tier: Cut.md,
+                edge: context.palette.deep,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Space.md),
+                  child: TextField(
+                    controller: _lesson,
+                    maxLength: 120,
+                    style: text.bodyMedium,
+                    cursorColor: context.palette.silk,
+                    decoration: InputDecoration(
+                      hintText: 'One line.',
+                      hintStyle: TextStyle(color: context.palette.ash),
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Skip',
-                      style: TextStyle(color: kTextMuted),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.pop(context, _lesson.text.trim()),
-                    child: const Text(
-                      'Rise',
-                      style: TextStyle(color: kEmber, fontSize: 16),
-                    ),
-                  ),
-                ],
+              EmberButton(
+                label: 'Rise',
+                onPressed: () => Navigator.pop(context, _lesson.text.trim()),
+              ),
+              const SizedBox(height: Space.sm),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Rest first',
+                  style: TextStyle(color: context.palette.ash),
+                ),
               ),
             ],
           ),

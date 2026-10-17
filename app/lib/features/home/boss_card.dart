@@ -7,6 +7,7 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/boss_card_tile.dart';
+import '../../ui/pinned_boss_panel.dart';
 import '../shell/atmosphere.dart';
 
 /// One boss on the home list (§6.1). Long-press for pin and status.
@@ -31,7 +32,7 @@ class BossCard extends ConsumerWidget {
     final dao = ref.read(bossDaoProvider);
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       builder: (sheet) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -71,15 +72,23 @@ class BossCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final boss = view.boss;
+    if (boss.isPinned && boss.status == BossStatus.active) {
+      return PinnedBossPanel(
+        title: boss.title,
+        subtitle: 'Attempt ${boss.attemptNumber} · $_progress',
+        health: view.health,
+        boilFrame: Atmosphere.boilFrameOf(context),
+        onEnter: () => context.push('/boss/${boss.id}'),
+        onLongPress: () => _actions(context, ref),
+      );
+    }
     return BossCardTile(
       title: boss.title,
       attemptNumber: boss.attemptNumber,
       progressLabel: _progress,
       health: view.health,
       isPinned: boss.isPinned,
-      healthGroups: boss.status == BossStatus.active && view.hasSegments
-          ? view.healthGroups
-          : null,
+      showHealth: boss.status == BossStatus.active && view.hasSegments,
       boilFrame: Atmosphere.boilFrameOf(context),
       onTap: () => context.push('/boss/${boss.id}'),
       onLongPress: () => _actions(context, ref),

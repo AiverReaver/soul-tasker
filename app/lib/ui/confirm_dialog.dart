@@ -16,12 +16,12 @@ class ConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       content: Text(question, style: Theme.of(context).textTheme.bodyLarge),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Not yet', style: TextStyle(color: kTextMuted)),
+          child: Text('Not yet', style: TextStyle(color: context.palette.ash)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),

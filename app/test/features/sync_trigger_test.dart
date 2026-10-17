@@ -48,7 +48,7 @@ void main() {
     expect(find.text('Fallen.'), findsOneWidget);
     expect(api.pullCalls, 0, reason: 'the fall is still being answered');
 
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first'));
     await settle(tester);
     expect(api.pullCalls, 1);
     // The fall it wrote is sent by that same run or the next one.

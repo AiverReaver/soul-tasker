@@ -25,7 +25,7 @@ Future<TaskEditResult?> showTaskEditSheet(
   return showModalBottomSheet<TaskEditResult>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: kSurface,
+    backgroundColor: context.palette.shell,
     builder: (_) => _TaskEditSheet(
       task: task,
       phaseId: phaseId,
@@ -122,7 +122,7 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
             DropdownButtonFormField<String>(
               initialValue: _phase,
               style: text.bodyLarge,
-              dropdownColor: kSurface,
+              dropdownColor: context.palette.shell,
               decoration: const InputDecoration(labelText: 'Phase'),
               items: [
                 for (final p in widget.phases)
@@ -146,9 +146,9 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
                       context,
                       TaskEditResult.delete(widget.task),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Delete',
-                      style: TextStyle(color: kTextMuted),
+                      style: TextStyle(color: context.palette.ash),
                     ),
                   ),
                 const Spacer(),

@@ -8,6 +8,7 @@ import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/plan_banner.dart';
+import '../../ui/thread_divider.dart';
 import '../../ui/player_health_bar.dart';
 import '../../core/commitment_resolver.dart';
 import '../boss/task_row.dart';
@@ -52,11 +53,15 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final tally = ref.watch(emberTallyProvider).value;
     final health = ref.watch(healthProvider).value;
     final picks = ref.watch(todayPicksProvider).value ?? const [];
+    final struck = ref.watch(daySummaryProvider).value?.strikes ?? 0;
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id) (b, todayTasks(b)),
     ].where((g) => g.$2.isNotEmpty).toList();
 
+    final open = [
+      for (final (_, tasks) in groups) ...tasks.where((t) => !t.isStruck),
+    ].length;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
       children: [
@@ -95,11 +100,23 @@ class _TodayViewState extends ConsumerState<TodayView> {
             ),
           ),
         FlashLine(_flash),
-        if (groups.isEmpty)
+        Text('Today’s foes', style: text.titleMedium),
+        if (open + struck > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
+            child: Text(
+              '$struck of ${open + struck} struck · hold to strike',
+              style: text.bodySmall,
+            ),
+          ),
+        const ThreadDivider(),
+        if (open == 0)
           Padding(
             padding: const EdgeInsets.only(top: Space.xl),
             child: Text(
-              'Nothing stands in your way today.',
+              struck > 0
+                  ? 'All foes struck. Rest at the bonfire'
+                  : 'Nothing stands in your way today.',
               textAlign: TextAlign.center,
               style: text.bodyLarge,
             ),

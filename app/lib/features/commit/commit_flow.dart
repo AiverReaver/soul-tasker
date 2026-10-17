@@ -34,7 +34,7 @@ Future<void> showCommitSheet(
   var everyDay = false;
   final preset = await showModalBottomSheet<DeadlinePreset>(
     context: context,
-    backgroundColor: kSurface,
+    backgroundColor: context.palette.shell,
     builder: (sheet) => StatefulBuilder(
       builder: (sheet, setState) => SafeArea(
         child: CommitSheet(
@@ -94,7 +94,7 @@ Future<void> showExtendSheet(
   if (options.isEmpty) return onMessage('It cannot move later today.');
   final preset = await showModalBottomSheet<DeadlinePreset>(
     context: context,
-    backgroundColor: kSurface,
+    backgroundColor: context.palette.shell,
     builder: (sheet) => SafeArea(
       child: ExtendSheet(
         options: options,

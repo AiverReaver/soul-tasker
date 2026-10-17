@@ -150,6 +150,10 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
                     FlashLine(_flash),
                     const SizedBox(height: Space.md),
                   ],
+                  if (!isRested && !isFallen) ...[
+                    Text('Rest a while.', style: text.displayMedium),
+                    const SizedBox(height: Space.md),
+                  ],
                   DaySummary(
                     strikes: summary.strikes,
                     tried: summary.tried,
@@ -230,15 +234,15 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
         controller: _lesson,
         maxLength: 120,
         style: text.bodyMedium,
-        cursorColor: kEmber,
-        decoration: const InputDecoration(
+        cursorColor: context.palette.silk,
+        decoration: InputDecoration(
           hintText: 'One line, if you like.',
-          hintStyle: TextStyle(color: kTextMuted),
+          hintStyle: TextStyle(color: context.palette.ash),
           enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: kAshDim),
+            borderSide: BorderSide(color: context.palette.dim),
           ),
           focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: kEmber),
+            borderSide: BorderSide(color: context.palette.silk),
           ),
         ),
       ),
@@ -255,7 +259,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
       const SizedBox(height: Space.md),
       Align(
         alignment: Alignment.centerRight,
-        child: EmberButton(label: 'Rest', onPressed: _rest),
+        child: EmberButton(label: 'Rest at the hearth', onPressed: _rest),
       ),
     ];
   }
