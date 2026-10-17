@@ -1,7 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../core/theme.dart';
-
 /// A short list of options in a dialog; tapping one reports it.
 class ChoiceDialog<T> extends StatelessWidget {
   const ChoiceDialog({
@@ -21,7 +19,6 @@ class ChoiceDialog<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return SimpleDialog(
-      backgroundColor: context.palette.shell,
       title: Text(title, style: text.titleMedium),
       children: [
         for (final e in options.entries)

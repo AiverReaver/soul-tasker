@@ -23,7 +23,6 @@ class FlaskChoice extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return AlertDialog(
-      backgroundColor: context.palette.shell,
       title: Text(
         daysMissed == 1
             ? 'A day passed without rest.'

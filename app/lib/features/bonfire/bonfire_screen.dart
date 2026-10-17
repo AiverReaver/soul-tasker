@@ -15,6 +15,7 @@ import '../../ui/ember_button.dart';
 import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/flask_pips.dart';
+import '../../ui/onboarding_fields.dart';
 import '../../ui/pick_row.dart';
 import '../../ui/player_health_bar.dart';
 import '../../ui/reminder_invite.dart';
@@ -235,15 +236,9 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
         maxLength: 120,
         style: text.bodyMedium,
         cursorColor: context.palette.silk,
-        decoration: InputDecoration(
-          hintText: 'One line, if you like.',
-          hintStyle: TextStyle(color: context.palette.ash),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: context.palette.dim),
-          ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: context.palette.silk),
-          ),
+        decoration: inscriptionDecoration(
+          context.palette,
+          'One line, if you like.',
         ),
       ),
       const SizedBox(height: Space.lg),

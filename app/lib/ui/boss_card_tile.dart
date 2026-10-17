@@ -100,7 +100,7 @@ class BossCardTile extends StatelessWidget {
             ],
           ),
         ),
-      Text(title, style: text.displaySmall?.copyWith(fontSize: 28)),
+      Text(title, style: text.headlineMedium),
       const SizedBox(height: Space.xs),
       Text('Attempt $attemptNumber · $progressLabel', style: text.bodySmall),
     ],

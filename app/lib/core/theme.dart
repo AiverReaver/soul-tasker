@@ -100,6 +100,7 @@ ThemeData buildTheme([Biome biome = Biome.pharloom]) {
       },
     ),
     fontFamily: _body,
+    dialogTheme: DialogThemeData(backgroundColor: p.shell),
     colorScheme: base.copyWith(
       primary: p.silk,
       onPrimary: p.onSilk,
@@ -116,6 +117,15 @@ ThemeData buildTheme([Biome biome = Biome.pharloom]) {
       // Display serif: boss names and major moments only.
       displayMedium: _font(_display, 44, 500, p.bone, spacing: 1, height: 1.1),
       displaySmall: _font(_display, 34, 500, p.bone, spacing: 1, height: 1.15),
+      // Boss title on cards and the pinned panel.
+      headlineMedium: _font(
+        _display,
+        28,
+        500,
+        p.bone,
+        spacing: 1,
+        height: 1.15,
+      ),
       titleMedium: _font(_display, 22, 500, p.bone, height: 1.3),
       // Body sans: everything else.
       bodyLarge: _font(_body, 16, 400, p.text, height: 1.5),

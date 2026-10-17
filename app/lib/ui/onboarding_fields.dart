@@ -2,15 +2,14 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
 
-InputDecoration _decoration(BuildContext context, String hint) =>
+/// The underlined one-line input used by onboarding and the bonfire.
+InputDecoration inscriptionDecoration(HearthPalette p, String hint) =>
     InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: context.palette.ash),
-      enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: context.palette.dim),
-      ),
+      hintStyle: TextStyle(color: p.ash),
+      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: p.dim)),
       focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: context.palette.silk),
+        borderSide: BorderSide(color: p.silk),
       ),
     );
 
@@ -43,7 +42,7 @@ class LineField extends StatelessWidget {
           maxLength: maxLength,
           style: text.bodyLarge,
           cursorColor: context.palette.silk,
-          decoration: _decoration(context, hint),
+          decoration: inscriptionDecoration(context.palette, hint),
           onChanged: onChanged,
         ),
       ],
@@ -110,8 +109,8 @@ class NameListEditor extends StatelessWidget {
                   maxLength: 60,
                   style: text.bodyLarge,
                   cursorColor: context.palette.silk,
-                  decoration: _decoration(
-                    context,
+                  decoration: inscriptionDecoration(
+                    context.palette,
                     hint,
                   ).copyWith(counterText: ''),
                   onChanged: (t) => onChanged(item.id, t),

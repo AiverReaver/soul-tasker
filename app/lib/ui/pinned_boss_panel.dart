@@ -62,10 +62,7 @@ class PinnedBossPanel extends StatelessWidget {
                           children: [
                             Text('Pinned', style: text.labelSmall),
                             const SizedBox(height: Space.xs),
-                            Text(
-                              title,
-                              style: text.displaySmall?.copyWith(fontSize: 28),
-                            ),
+                            Text(title, style: text.headlineMedium),
                             const SizedBox(height: Space.xs),
                             Text(subtitle, style: text.bodySmall),
                           ],
