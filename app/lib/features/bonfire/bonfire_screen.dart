@@ -138,10 +138,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     final checkIn = ref.watch(checkInDueProvider).value;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kBackground,
-        title: Text('BONFIRE', style: text.labelSmall),
-      ),
+      appBar: AppBar(title: Text('BONFIRE', style: text.labelSmall)),
       body: SafeArea(
         child: status == null || summary == null
             ? const SizedBox.shrink()

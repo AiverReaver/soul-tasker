@@ -173,36 +173,45 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   Widget build(BuildContext context) {
     final content = AnimatedBuilder(
       animation: Listenable.merge([_progress, _sweep, _dust]),
-      builder: (context, _) => TaskRowTile(
-        title: widget.title,
-        weightLabel: widget.weight.label,
-        isDone: widget.isDone,
-        progress: _progress.value,
-        sweep: _sweep.isAnimating || _dust.isAnimating
-            ? Stack(
-                children: [
-                  if (_dust.isAnimating)
-                    Positioned.fill(
-                      child: DustVanish(
-                        progress: _dust.value,
-                        seed: widget.title.hashCode,
-                        motes: 24,
-                        child: const SizedBox.shrink(),
+      // The shatter throws the row; a light strike throws it less.
+      builder: (context, _) => Transform.translate(
+        key: kStrikeShakeKey,
+        offset: _sweep.isAnimating
+            ? strikeShake(_sweep.value) *
+                  (widget.weight == Weight.light ? 0.6 : 1)
+            : Offset.zero,
+        child: TaskRowTile(
+          title: widget.title,
+          weightLabel: widget.weight.label,
+          isDone: widget.isDone,
+          progress: _progress.value,
+          sweep: _sweep.isAnimating || _dust.isAnimating
+              ? Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    if (_dust.isAnimating)
+                      Positioned.fill(
+                        child: DustVanish(
+                          progress: _dust.value,
+                          seed: widget.title.hashCode,
+                          motes: 24,
+                          child: const SizedBox.shrink(),
+                        ),
                       ),
-                    ),
-                  if (_sweep.isAnimating)
-                    Positioned.fill(
-                      child: StrikeSweepView(
-                        key: kStrikeSweepKey,
-                        progress: _sweep.value,
-                        isBossTier: widget.weight == Weight.bossTier,
+                    if (_sweep.isAnimating)
+                      Positioned.fill(
+                        child: StrikeSweepView(
+                          key: kStrikeSweepKey,
+                          progress: _sweep.value,
+                          isBossTier: widget.weight == Weight.bossTier,
+                        ),
                       ),
-                    ),
-                ],
-              )
-            : null,
-        trailing: widget.trailing,
-        deadline: widget.deadline,
+                  ],
+                )
+              : null,
+          trailing: widget.trailing,
+          deadline: widget.deadline,
+        ),
       ),
     );
 

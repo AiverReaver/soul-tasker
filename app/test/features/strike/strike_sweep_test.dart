@@ -74,6 +74,25 @@ void main() {
     expect(sweep, findsNothing);
   });
 
+  testWidgets('a landed strike shakes the row, then lets it rest', (
+    tester,
+  ) async {
+    Offset shake() {
+      final t = tester.widget<Transform>(find.byKey(kStrikeShakeKey)).transform;
+      return Offset(t.getTranslation().x, t.getTranslation().y);
+    }
+
+    await tester.pumpWidget(_host(Weight.heavy));
+    await _strikeByHold(tester, Weight.heavy);
+    expect(shake(), Offset.zero, reason: 'the cut is drawn before the shake');
+
+    await tester.pump(sweepDuration(Weight.heavy) * 0.42);
+    expect(shake(), isNot(Offset.zero));
+
+    await tester.pump(sweepDuration(Weight.heavy));
+    expect(shake(), Offset.zero);
+  });
+
   testWidgets('Boss-tier sweeps longer than Heavy', (tester) async {
     expect(
       sweepDuration(Weight.bossTier),

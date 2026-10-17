@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/features/boss/boss_stage.dart';
+import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -24,6 +26,18 @@ void main() {
 
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('WAITING (1)'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('screens sit on the Pharloom night; a boss stands on its page', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    await pumpApp(tester, h, location: '/boss/${view.boss.id}');
+
+    expect(find.byType(PharloomBackdrop), findsOneWidget);
+    expect(find.byType(BossStage), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
