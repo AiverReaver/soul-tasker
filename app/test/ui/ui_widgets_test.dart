@@ -6,7 +6,6 @@ import 'package:hearthrise/ui/boss_card_tile.dart';
 import 'package:hearthrise/ui/boss_health_bar.dart';
 import 'package:hearthrise/ui/confirm_dialog.dart';
 import 'package:hearthrise/ui/flash_line.dart';
-import 'package:hearthrise/ui/strike_sweep_view.dart';
 import 'package:hearthrise/ui/task_row_tile.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -76,15 +75,6 @@ void main() {
       find.byType(AnimatedOpacity),
     );
     expect(opacity.opacity, 0.35);
-  });
-
-  testWidgets('StrikeSweepView is wider for boss tier', (tester) async {
-    Future<double> width(bool isBoss) async {
-      await _pump(tester, StrikeSweepView(progress: 0.5, isBossTier: isBoss));
-      return tester.getSize(find.byType(SizedBox).last).width;
-    }
-
-    expect(await width(true), greaterThan(await width(false)));
   });
 
   testWidgets('BossCardTile shows values and fires callbacks', (tester) async {

@@ -7,6 +7,7 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/boss_card_tile.dart';
+import '../shell/atmosphere.dart';
 
 /// One boss on the home list (§6.1). Long-press for pin and status.
 class BossCard extends ConsumerWidget {
@@ -79,6 +80,7 @@ class BossCard extends ConsumerWidget {
       healthGroups: boss.status == BossStatus.active && view.hasSegments
           ? view.healthGroups
           : null,
+      boilFrame: Atmosphere.boilFrameOf(context),
       onTap: () => context.push('/boss/${boss.id}'),
       onLongPress: () => _actions(context, ref),
     );

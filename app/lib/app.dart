@@ -3,12 +3,20 @@ import 'package:material_ui/material_ui.dart';
 
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'features/shell/atmosphere.dart';
 
 class HearthriseApp extends StatefulWidget {
-  const HearthriseApp({super.key, this.initialLocation = '/'});
+  const HearthriseApp({
+    super.key,
+    this.initialLocation = '/',
+    this.isAmbient = true,
+  });
 
   /// Tests can start on a given route; the app starts on home.
   final String initialLocation;
+
+  /// False holds the backdrop and ink still (tests), so frames settle.
+  final bool isAmbient;
 
   @override
   State<HearthriseApp> createState() => _HearthriseAppState();
@@ -30,6 +38,8 @@ class _HearthriseAppState extends State<HearthriseApp> {
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       routerConfig: _router,
+      builder: (context, child) =>
+          Atmosphere(isStill: !widget.isAmbient, child: child!),
     );
   }
 }

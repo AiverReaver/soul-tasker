@@ -51,7 +51,7 @@ class _RelicScreenState extends ConsumerState<RelicScreen> {
       _inscription.text = view.relic.inscription ?? '';
     }
     return Scaffold(
-      appBar: AppBar(backgroundColor: kBackground),
+      appBar: AppBar(),
       body: SafeArea(
         child: view == null ? const SizedBox.shrink() : _body(context, view),
       ),

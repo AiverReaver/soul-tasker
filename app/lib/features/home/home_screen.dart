@@ -31,7 +31,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kBackground,
         title: Text('HEARTHRISE', style: text.labelSmall),
         actions: [
           IconButton(

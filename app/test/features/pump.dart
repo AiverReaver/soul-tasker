@@ -34,7 +34,8 @@ Future<void> pumpApp(
         (reminders ?? FakeReminders()).asOverride, // never the real plugin
         ...overrides,
       ],
-      child: HearthriseApp(initialLocation: location),
+      // Still: a looping backdrop would never let pumpAndSettle finish.
+      child: HearthriseApp(initialLocation: location, isAmbient: false),
     ),
   );
   await settle(tester);

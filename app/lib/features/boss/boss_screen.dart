@@ -9,6 +9,7 @@ import '../../data/providers.dart';
 import '../fallen/fallen_screen.dart';
 import '../../ui/boss_health_bar.dart';
 import '../../ui/flash_line.dart';
+import 'boss_stage.dart';
 import 'rule_of_three_sheet.dart';
 import 'task_row.dart';
 
@@ -82,10 +83,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     final boss = ref.watch(bossDetailProvider(widget.bossId));
     final tapMode = ref.watch(settingsProvider).value?.tapMode ?? false;
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kBackground,
-        actions: [if (boss.value case final view?) _menu(view)],
-      ),
+      appBar: AppBar(actions: [if (boss.value case final view?) _menu(view)]),
       body: SafeArea(
         child: switch (boss) {
           AsyncData(value: final view?) => _body(context, view, tapMode),
@@ -138,6 +136,8 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
       children: [
+        BossStage(health: view.health),
+        const SizedBox(height: Space.sm),
         Text(view.boss.title, style: text.displaySmall),
         if (view.boss.defeatMeaning case final meaning?) ...[
           const SizedBox(height: Space.xs),

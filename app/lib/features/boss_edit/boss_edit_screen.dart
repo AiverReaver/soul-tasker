@@ -149,7 +149,6 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     final draft = _draft;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kBackground,
         title: Text(widget.bossId == null ? 'A new boss' : 'Edit boss'),
         actions: [
           TextButton(

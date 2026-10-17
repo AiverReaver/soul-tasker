@@ -31,9 +31,30 @@ class TaskRowTile extends StatelessWidget {
   /// The commitment's chip, when the task is promised today.
   final Widget? deadline;
 
+  /// Past this much of the hold the charge is full: the row glints white.
+  static const readyAt = 0.85;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final isReady = !isDone && progress >= readyAt;
+    // The slash sits outside the done-row fade so the cut lands at full
+    // strength, and its flecks may fly past the row's edge.
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        _row(context, text, isReady),
+        if (sweep case final sweep?)
+          Positioned.fill(
+            top: 4,
+            bottom: 4,
+            child: IgnorePointer(child: sweep),
+          ),
+      ],
+    );
+  }
+
+  Widget _row(BuildContext context, TextTheme text, bool isReady) {
     return AnimatedOpacity(
       opacity: isDone ? 0.35 : 1,
       duration: motionOf(context, kSlowFade),
@@ -42,7 +63,17 @@ class TaskRowTile extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: kMinTarget),
         decoration: BoxDecoration(
           color: kSurface,
-          border: Border.all(color: kAshDim.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: isReady ? kDust : kAshDim.withValues(alpha: 0.45),
+          ),
+          boxShadow: isReady
+              ? [
+                  BoxShadow(
+                    color: kDust.withValues(alpha: 0.45),
+                    blurRadius: 22,
+                  ),
+                ]
+              : null,
         ),
         child: Stack(
           children: [
@@ -56,8 +87,6 @@ class TaskRowTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (sweep case final sweep?)
-              Positioned.fill(child: IgnorePointer(child: sweep)),
             Padding(
               padding: EdgeInsets.only(
                 left: 16,
@@ -72,6 +101,7 @@ class TaskRowTile extends StatelessWidget {
                       title,
                       style: text.bodyMedium?.copyWith(
                         decoration: isDone ? TextDecoration.lineThrough : null,
+                        decorationColor: kEmber,
                       ),
                     ),
                   ),

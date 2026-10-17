@@ -5,22 +5,34 @@ Principles come from the design document (§3, §8): restraint, weight, calm, at
 
 ## Color
 
-Dark only. One accent. Contrast ratios measured against Background (`#0B0A09`).
+Dark only. One accent. Theme: Pharloom night (Silksong-inspired, original art). Contrast ratios measured against Background (`#09060C`); `test/core/silksong_palette_test.dart` checks them.
 
 | Token | Hex | Contrast | Use |
 |---|---|---|---|
-| `kBackground` | `#0B0A09` | — | Screen background |
-| `kSurface` | `#161412` | — | Task rows, cards |
-| `kAsh` | `#B8B2A7` | 9.4:1 | Primary text |
-| `kTextMuted` | `#8F897F` | 5.7:1 | Secondary text, labels, hints |
-| `kAshDim` | `#5E5A54` | 2.9:1 | Borders and decoration only. **Never text.** |
-| `kEmber` | `#D9A441` | 8.8:1 | The single accent: strike fill, confirmations, victory, bonfire |
-| `kBossHealth` | `#B0412F` | 3.4:1 | Boss health segments (meets 3:1 for UI components) |
+| `kBackground` | `#09060C` | — | Void: screen ground, violet-black, never pure black |
+| `kSurface` | `#130E17` | — | Task rows, cards |
+| `kSelected` | `#221828` | — | Selected segment, chip, pressed row |
+| `kAsh` | `#E6DDCB` | 13:1 | Bone: primary text |
+| `kTextMuted` | `#A79BA6` | 6.6:1 | Secondary text, labels, hints |
+| `kAshDim` | `#5F5463` | — | Borders and decoration only. **Never text.** |
+| `kEmber` | `#E8566D` | 5.3:1 | Silk crimson, the single accent: strike fill, primary action, focus, lit frames |
+| `kBossHealth` | `#E9DFCB` | 3:1+ | Mask-ivory boss health shards (UI component) |
+| `kDust` | `#F4EBDD` | — | Porcelain: display type, glints, frame brackets, the silk slash |
+| `kWine`, `kPharloom`, `kMote`, `kInk` | | — | Carved edges, backdrop tint, drifting motes, ink outlines. Decoration only. |
 
 Rules:
-- Ember is reserved for things that matter. Never more than one ember element competing on a screen.
-- No red for failure. The fallen screen uses black and ash only (§5.5).
-- No pure white, no pure black text. One exception: `kDust` (soft white-gold, `#F4EEDD`) with a soft glow, only for the strike choice popup and the dust of a struck task or defeated boss. It never colors resting UI.
+- Crimson is reserved for things that matter. Never more than one crimson element competing on a screen.
+- No red for failure. The fallen screen uses void and bone only (§5.5).
+- Porcelain is for display type and ritual moments. It never fills resting surfaces.
+
+## Silksong restyle
+
+- **Backdrop.** `PharloomBackdrop` (driven by `features/shell/atmosphere.dart`, 42 s loop) sits behind every screen: void, a cold violet tint from above, a vignette, lavender motes drifting up. Scaffolds and app bars are clear. Reduced motion holds it still.
+- **Hand-drawn ink.** Art is kept as SVG path strings (`ui/ink_path.dart`). Three jittered redraws, stepped every 140 ms by the atmosphere, make the outlines boil like cel animation. `BossArt` is the original boss figure: porcelain mask and horns, ragged cloak, quill lance.
+- **The strike** (`ui/strike_sweep_view.dart`, 700 ms, boss tier 1100 ms). Hold: the row fills crimson and glints porcelain from 85%. Landed: a crescent cut in two drawn frames with a crimson thread; a hit-stop where the row burns white under an inked impact star; then a shatter where the row shakes on ones and porcelain flecks and silk threads fly. On the boss page the boss burns white on the hit-stop and recoils in five held steps (`features/boss/boss_stage.dart`).
+- **Frames.** `CarvedFrame`: square, wine edge, inner hairline, porcelain corner brackets; `isLit` adds a low crimson halo (pinned boss, unrested bonfire).
+- **Transitions.** `SilkPageTransitions`: cross-fade with a 2% rise.
+- Inspired by Hollow Knight: Silksong's feel (white strike trails, hit-stop, few held frames, ink outlines), never its art, characters or fonts.
 
 ## Typography
 

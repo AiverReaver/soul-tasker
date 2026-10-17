@@ -22,10 +22,7 @@ class ProfileScreen extends ConsumerWidget {
     final profile = ref.watch(profileProvider).value;
     final relics = ref.watch(relicListProvider).value ?? const [];
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kBackground,
-        title: Text('PROFILE', style: text.labelSmall),
-      ),
+      appBar: AppBar(title: Text('PROFILE', style: text.labelSmall)),
       body: SafeArea(
         child: profile == null
             ? const SizedBox.shrink()

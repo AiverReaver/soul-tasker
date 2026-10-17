@@ -78,10 +78,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final s = ref.watch(settingsProvider).value;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kBackground,
-        title: Text('SETTINGS', style: text.labelSmall),
-      ),
+      appBar: AppBar(title: Text('SETTINGS', style: text.labelSmall)),
       body: SafeArea(
         child: s == null
             ? const SizedBox.shrink()
