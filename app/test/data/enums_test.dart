@@ -57,4 +57,16 @@ void main() {
       'often',
     ]);
   });
+
+  test('flask and sync enums keep their order (Stage 7)', () {
+    expect(FlaskKind.values.map((k) => k.name), ['spend', 'restore']);
+    expect(FlaskReason.values.map((r) => r.name), [
+      'skipDay',
+      'lightDay',
+      'extension',
+      'bonfire',
+      'backfill',
+    ]);
+    expect(SyncOp.values.map((o) => o.name), ['upsert', 'delete']);
+  });
 }

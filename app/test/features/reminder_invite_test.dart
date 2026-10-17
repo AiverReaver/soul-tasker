@@ -18,7 +18,7 @@ void main() {
     await h.seed();
   });
 
-  Future<AppSettings> settings() => h.db.select(h.db.settings).getSingle();
+  Future<AppSettings> settings() => h.db.select(h.db.userSettings).getSingle();
   Future<void> rest(WidgetTester tester) async {
     final button = find.widgetWithText(EmberButton, 'Rest');
     await tester.scrollUntilVisible(

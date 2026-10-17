@@ -73,6 +73,7 @@ class NameListEditor extends StatelessWidget {
     required this.onChanged,
     required this.onRemove,
     required this.onAdd,
+    this.autofocusId,
   });
 
   final List<NameListItem> items;
@@ -88,6 +89,9 @@ class NameListEditor extends StatelessWidget {
   final ValueChanged<int> onRemove;
   final VoidCallback onAdd;
 
+  /// The row (by id) that takes focus when it appears, e.g. one just added.
+  final int? autofocusId;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -101,6 +105,7 @@ class NameListEditor extends StatelessWidget {
                 child: TextFormField(
                   key: ValueKey('$keyPrefix-${item.id}'),
                   initialValue: item.text,
+                  autofocus: item.id == autofocusId,
                   maxLength: 60,
                   style: text.bodyLarge,
                   cursorColor: kEmber,

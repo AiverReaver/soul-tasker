@@ -16,7 +16,7 @@ void main() {
   });
   tearDown(() => h.db.close());
 
-  Future<AppSettings> settings() => h.db.select(h.db.settings).getSingle();
+  Future<AppSettings> settings() => h.db.select(h.db.userSettings).getSingle();
 
   group('enable', () {
     test('asks for permission, then schedules at the stored time', () async {

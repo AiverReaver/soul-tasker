@@ -15,6 +15,7 @@ NameListEditor _editor(
   void Function(int, String)? onChanged,
   ValueChanged<int>? onRemove,
   VoidCallback? onAdd,
+  int? autofocusId,
 }) => NameListEditor(
   items: items,
   keyPrefix: 'row',
@@ -25,6 +26,7 @@ NameListEditor _editor(
   onChanged: onChanged ?? (_, _) {},
   onRemove: onRemove ?? (_) {},
   onAdd: onAdd ?? () {},
+  autofocusId: autofocusId,
 );
 
 void main() {
@@ -69,5 +71,25 @@ void main() {
       ]),
     );
     expect(find.text('Add a row'), findsNothing);
+  });
+
+  testWidgets('NameListEditor focuses the row named by autofocusId', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _editor(const [
+        NameListItem(id: 0, text: 'a'),
+        NameListItem(id: 1, text: ''),
+      ], autofocusId: 1),
+    );
+    await tester.pump();
+    final focused = tester.widget<EditableText>(
+      find.descendant(
+        of: find.byKey(const ValueKey('row-1')),
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(focused.focusNode.hasFocus, isTrue);
   });
 }

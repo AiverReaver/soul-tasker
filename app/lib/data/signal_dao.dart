@@ -48,7 +48,7 @@ class SignalDao {
   /// What the tester report counts. Reads outcomes, weights and whether a
   /// lesson exists, never the lesson or any title.
   Future<SignalInput> input() async {
-    final settings = await _db.select(_db.settings).getSingle();
+    final settings = await _db.select(_db.userSettings).getSingle();
     final visits = await (_db.select(
       _db.visits,
     )..orderBy([(v) => OrderingTerm(expression: v.day)])).get();

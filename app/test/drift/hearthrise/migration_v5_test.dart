@@ -6,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/database.dart';
+import 'package:hearthrise/data/flask_dao.dart';
 
 import 'generated/schema.dart';
 import 'generated/schema_v4.dart' as v4;
@@ -75,7 +76,9 @@ void main() {
         schema.newConnection(),
         clock: () => DateTime(2026, 10, 13, 12),
       );
-      await verifier.migrateAndValidate(db, 5);
+      // Through to the current version, as a real upgrade runs: the relic
+      // backfill reads rows with the current classes.
+      await verifier.migrateAndValidate(db, db.schemaVersion);
 
       expect(await db.customSelect('SELECT * FROM bosses').get(), hasLength(2));
       expect(
@@ -86,11 +89,9 @@ void main() {
         await db.customSelect('SELECT * FROM ember_events').get(),
         hasLength(4),
       );
-      final s =
-          (await db.customSelect('SELECT * FROM settings').getSingle()).data;
-      expect(s['sound'], 0);
-      expect(s['onboarded'], 1);
-      expect(s['flasks'], 3);
+      expect((await db.select(db.userSettings).getSingle()).sound, isFalse);
+      expect((await db.select(db.settings).getSingle()).onboarded, isTrue);
+      expect(await FlaskDao(db).count(), 3);
 
       final relics = await db.select(db.relics).get();
       expect(relics, hasLength(1));
@@ -119,7 +120,7 @@ void main() {
     );
     final s = await db.select(db.settings).getSingle();
     expect(s.onboarded, isFalse);
-    expect(s.sound, isFalse);
+    expect((await db.select(db.userSettings).getSingle()).sound, isFalse);
     expect(await db.select(db.relics).get(), isEmpty);
     await db.close();
   });

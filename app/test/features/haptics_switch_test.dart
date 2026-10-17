@@ -39,7 +39,7 @@ void main() {
     await settle(tester);
 
     // getSingle, not watch().first: a stream never emits under fake async.
-    final stored = await h.db.select(h.db.settings).getSingle();
+    final stored = await h.db.select(h.db.userSettings).getSingle();
     expect(stored.haptics, isFalse);
     expect(tester.widget<SwitchListTile>(tile).value, isFalse);
     await tearDownApp(tester, h);
@@ -71,6 +71,8 @@ void main() {
 
     await tester.tap(find.text('Read chapter 4'));
     await settle(tester);
+    await tester.tap(find.text('Strike'));
+    await settle(tester);
 
     expect(sent, isEmpty);
     expect(await h.db.select(h.db.attempts).get(), hasLength(1));
@@ -99,6 +101,8 @@ void main() {
     final sentBeforeFlip = sent.length;
     await tester.pump(Weight.bossTier.holdDuration);
     await gesture.up();
+    await settle(tester);
+    await tester.tap(find.text('Strike'));
     await settle(tester);
 
     expect(sent, hasLength(sentBeforeFlip));

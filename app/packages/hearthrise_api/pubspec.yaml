@@ -1,0 +1,16 @@
+name: hearthrise_api
+version: 0.7.0
+description: Generated client for the Hearthrise API.
+
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  dio: '^5.7.0'
+  json_annotation: '^4.9.0'
+
+dev_dependencies:
+  build_runner: any
+  json_serializable: '^6.9.3'
+  test: '^1.16.0'

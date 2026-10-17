@@ -25,8 +25,9 @@ class RelicDao {
   final Clock _clock;
 
   /// Builds the relic for a defeated boss from its rows, or returns the one
-  /// it already has. Call inside the defeat transaction.
-  Future<String> createFor(String bossId) async {
+  /// it already has. Call inside the defeat transaction. [rolloverHour] is
+  /// passed only by upgrades that run before `user_settings` exists.
+  Future<String> createFor(String bossId, {int? rolloverHour}) async {
     final existing = await (_db.select(
       _db.relics,
     )..where((r) => r.bossId.equals(bossId))).getSingleOrNull();
@@ -35,7 +36,7 @@ class RelicDao {
     final boss = await (_db.select(
       _db.bosses,
     )..where((b) => b.id.equals(bossId))).getSingle();
-    final hour = await _db.rolloverHour();
+    final hour = rolloverHour ?? await _db.rolloverHour();
     final defeatedAt = boss.defeatedAt ?? _clock();
     final defeatedDay = dayOf(defeatedAt, rolloverHour: hour);
 
@@ -70,7 +71,8 @@ class RelicDao {
             ),
       ],
     );
-    final id = newId();
+    // One relic per boss, alike on every phone (D6).
+    final id = systemId([bossId]);
     await _db
         .into(_db.relics)
         .insert(
@@ -92,12 +94,12 @@ class RelicDao {
   }
 
   /// A relic for every defeated boss that lacks one: the v5 upgrade.
-  Future<void> backfill() => _db.transaction(() async {
+  Future<void> backfill({int? rolloverHour}) => _db.transaction(() async {
     final defeated = await (_db.select(
       _db.bosses,
     )..where((b) => b.status.equals(BossStatus.defeated.index))).get();
     for (final boss in defeated) {
-      await createFor(boss.id);
+      await createFor(boss.id, rolloverHour: rolloverHour);
     }
   });
 

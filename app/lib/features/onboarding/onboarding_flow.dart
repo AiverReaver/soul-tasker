@@ -39,6 +39,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   bool _wantsReminder = false;
   int _reminderMinutes = 21 * 60;
   bool _isBusy = false;
+  int? _addedId;
 
   bool get _hasTitle => _title.trim().isNotEmpty;
 
@@ -48,10 +49,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     super.dispose();
   }
 
-  void _next() => _pages.nextPage(
-    duration: motionOf(context, Motion.fade),
-    curve: Motion.ease,
-  );
+  // Autofocus is ignored while something else holds focus.
+  void _release() => FocusManager.instance.primaryFocus?.unfocus();
+
+  // A field on the page we leave would keep the keyboard offscreen.
+  void _next() {
+    _release();
+    _pages.nextPage(
+      duration: motionOf(context, Motion.fade),
+      curve: Motion.ease,
+    );
+  }
 
   Future<void> _finish({required bool save}) async {
     if (_isBusy) return;
@@ -179,12 +187,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                     if (p.id != id) p,
                 ],
               ),
-              onAdd: () => setState(
-                () => _phases = [
-                  ..._phases,
-                  NameListItem(id: _nextId++, text: ''),
-                ],
-              ),
+              autofocusId: _addedId,
+              onAdd: () => setState(() {
+                _release();
+                _addedId = _nextId++;
+                _phases = [..._phases, NameListItem(id: _addedId!, text: '')];
+              }),
             ),
           ),
           page(
@@ -203,12 +211,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                     if (d.id != id) d,
                 ],
               ),
-              onAdd: () => setState(
-                () => _dailies = [
-                  ..._dailies,
-                  NameListItem(id: _nextId++, text: ''),
-                ],
-              ),
+              autofocusId: _addedId,
+              onAdd: () => setState(() {
+                _release();
+                _addedId = _nextId++;
+                _dailies = [..._dailies, NameListItem(id: _addedId!, text: '')];
+              }),
             ),
           ),
           page(

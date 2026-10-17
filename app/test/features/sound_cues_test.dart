@@ -41,6 +41,8 @@ void main() {
 
       await tester.tap(find.text('Sit the exam'));
       await settle(tester);
+      await tester.tap(find.text('Strike'));
+      await settle(tester);
       await tester.tap(find.text('Defeated'));
       await settle(tester);
 

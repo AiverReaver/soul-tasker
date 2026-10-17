@@ -41,6 +41,29 @@ DateTime deadlineFor(
   return wanted.isAfter(end) ? end : wanted;
 }
 
+/// The deadline moving a commitment due at [current] to [preset] gives at
+/// [now] (§5.12): the hour presets add to [current], so "In 1 hour" always
+/// pushes it back an hour; "Tonight" stays absolute. Never past the end of
+/// the ritual day.
+DateTime extendedDeadline(
+  DeadlinePreset preset,
+  DateTime now, {
+  required DateTime current,
+  required int rolloverHour,
+}) {
+  final end = dayEnd(now, rolloverHour: rolloverHour);
+  final wanted = switch (preset) {
+    DeadlinePreset.oneHour => current.add(const Duration(hours: 1)),
+    DeadlinePreset.threeHours => current.add(const Duration(hours: 3)),
+    DeadlinePreset.tonight => deadlineFor(
+      preset,
+      now,
+      rolloverHour: rolloverHour,
+    ),
+  };
+  return wanted.isAfter(end) ? end : wanted;
+}
+
 /// What a commitment's chip says, and whether it is due within the hour.
 typedef DeadlineLabel = ({String text, bool isSoon});
 

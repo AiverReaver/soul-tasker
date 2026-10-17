@@ -30,8 +30,7 @@ void main() {
     String idOf(BossView view, String title) => taskNamed(view, title).task.id;
     void at(int day, [int hour = 12]) =>
         h.clock.now = DateTime(2026, 10, 12 + day, hour);
-    Future<int> flasks() async =>
-        (await h.db.select(h.db.settings).getSingle()).flasks;
+    Future<int> flasks() => h.flasks();
     Future<String?> lastResolved() async =>
         (await h.db.select(h.db.settings).getSingle()).lastResolvedDay;
     Future<int> banks() async => (await h.db.select(h.db.emberEvents).get())

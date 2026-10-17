@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/deadlines.dart';
 import 'package:hearthrise/data/boss_draft.dart';
@@ -133,8 +132,7 @@ void main() {
     await boss('B', 1);
     h.clock.now = DateTime(2026, 10, 14, 8);
     await promiseAll(await tasksOf(a));
-    await (h.db.update(h.db.settings))
-        .write(const SettingsCompanion(flasks: Value(0)));
+    await h.setFlasks(0);
     // The 14th passes with no rest; open on the 15th.
     h.clock.now = DateTime(2026, 10, 15, 12);
     await pumpApp(tester, h);

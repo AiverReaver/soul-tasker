@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/data/sync_sql.dart';
 
 import 'data/harness.dart';
 import 'features/pump.dart';
@@ -15,14 +16,14 @@ void main() {
     final file = File('${dir.path}/hearthrise.sqlite');
 
     // First run: create, strike, fail with a lesson.
-    final first = Harness(NativeDatabase(file));
+    final first = Harness(NativeDatabase(file, setup: registerSyncFunctions));
     final view = await first.seed();
     await first.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
     await first.attempts.fall(view.boss.id, 'Rushed the second phase.');
     await first.db.close();
 
     // Second run: a new database on the same file, then the boss screen.
-    final second = Harness(NativeDatabase(file));
+    final second = Harness(NativeDatabase(file, setup: registerSyncFunctions));
     await pumpApp(tester, second, location: '/boss/${view.boss.id}');
 
     expect(

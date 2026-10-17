@@ -15,7 +15,7 @@ void main() {
     reminders = FakeReminders();
   });
 
-  Future<AppSettings> settings() => h.db.select(h.db.settings).getSingle();
+  Future<AppSettings> settings() => h.db.select(h.db.userSettings).getSingle();
   Future<void> open(WidgetTester tester) async {
     await pumpApp(tester, h, reminders: reminders);
     reminders.calls.clear(); // the start-up rearm is not under test here

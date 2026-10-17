@@ -97,3 +97,8 @@ ThemeData buildTheme() {
     ),
   );
 }
+
+/// Soft white-gold for the dust and glow of ritual moments only: the strike
+/// choice and a vanishing boss or task. The one exception to "no pure white"
+/// in DESIGN.md.
+const Color kDust = Color(0xFFF4EEDD);

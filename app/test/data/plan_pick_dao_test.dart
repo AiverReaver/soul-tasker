@@ -75,6 +75,16 @@ void main() {
       await h.bosses.deleteBoss(a.boss.id);
       expect(await picks.picksFor(day), isEmpty);
     });
+
+    test('a deleted task is skipped; the plan row stays (D20)', () async {
+      final a = await h.seed();
+      final walk = taskNamed(a, 'Walk').task.id;
+      final book = taskNamed(a, 'Book the room').task.id;
+      await picks.setPicks(day, [walk, book]);
+      await h.bosses.deleteTask(walk);
+      expect((await picks.picksFor(day)).map((p) => p.task.id), [book]);
+      expect(await h.db.select(h.db.dayPlans).get(), hasLength(1));
+    });
   });
 
   test('picksFor reports whether each task is struck', () async {

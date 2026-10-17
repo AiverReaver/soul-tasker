@@ -115,7 +115,7 @@ void main() {
       NativeDatabase.memory(),
       clock: () => DateTime(2026, 10, 13, 3),
     );
-    final s = await db.select(db.settings).getSingle();
+    final s = await db.select(db.userSettings).getSingle();
     expect(s.firstDay, '2026-10-12');
     await db.close();
   });

@@ -1,0 +1,15 @@
+# Local PostgreSQL for development and tests (Stage 7 plan D2).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: hearthrise
+      POSTGRES_PASSWORD: hearthrise
+      POSTGRES_DB: hearthrise
+    ports:
+      - "54329:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hearthrise"]
+      interval: 2s
+      timeout: 3s
+      retries: 20

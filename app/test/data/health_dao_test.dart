@@ -281,6 +281,22 @@ void main() {
     },
   );
 
+  test('a fall starts with updatedAt = at; a lesson moves it on', () async {
+    final a = await boss('A', [Weight.heavy]);
+    final id = await h.attempts.failBoss(a, FallCause.healthDeath, null);
+    final fall = (await deathsOf(a)).single;
+    expect(fall.updatedAt, fall.at);
+    h.clock.now = DateTime(2026, 10, 13, 20);
+    await h.attempts.addLesson([id], 'Promise less.');
+    final after = (await deathsOf(a)).single;
+    expect(after.updatedAt.isAfter(fall.updatedAt), isTrue);
+    expect(after.at, fall.at);
+    // A second lesson is refused and leaves updatedAt alone.
+    h.clock.now = DateTime(2026, 10, 13, 21);
+    await h.attempts.addLesson([id], 'Something else.');
+    expect((await deathsOf(a)).single.updatedAt, after.updatedAt);
+  });
+
   test('watchHealth follows events and the rollover hour', () async {
     final seen = <int>[];
     final sub = health.watchHealth().listen(seen.add);
