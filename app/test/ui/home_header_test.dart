@@ -41,6 +41,36 @@ void main() {
     },
   );
 
+  testWidgets('an eyebrow, a quiet date, and the level to the right', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Scaffold(
+          body: HomeHeader(
+            dateLine: 'Sat, 17 Oct',
+            greeting: 'Evening.',
+            embers: 42,
+            level: 4,
+            levelBars: 3,
+            percentToNext: 30,
+            onProfile: () {},
+            onSettings: () {},
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Hearthrise'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Sat, 17 Oct')).style?.fontSize, 14);
+    final greeting = tester.getRect(find.text('Evening.'));
+    final badge = tester.getRect(
+      find.bySemanticsLabel('Level 4, 30 percent to level 5'),
+    );
+    expect(badge.left, greaterThan(greeting.right));
+    expect(badge.center.dy, closeTo(greeting.center.dy, 40));
+  });
+
   test('greetingFor picks the part of the day', () {
     expect(greetingFor(8), 'Morning.');
     expect(greetingFor(14), 'Afternoon.');

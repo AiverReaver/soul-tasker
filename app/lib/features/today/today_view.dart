@@ -6,7 +6,7 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
-import '../../ui/glass_pill_button.dart';
+import '../../ui/foes_header.dart';
 import '../../ui/glass_tab_bar.dart';
 import '../../ui/filter_chips.dart';
 import '../../ui/flash_line.dart';
@@ -122,30 +122,25 @@ class _TodayViewState extends ConsumerState<TodayView> {
             onChanged: (id) => setState(() => _filter = id),
           ),
         FlashLine(_flash),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
-          child: Row(
-            children: [
-              Expanded(child: Text('Today’s foes', style: text.titleMedium)),
-              if (isHome)
-                GlassPillButton(label: 'New foe', onTap: widget.onNewFoe),
-            ],
-          ),
-        ),
-        if (open + struck > 0)
+        if (isHome)
           Padding(
-            padding: EdgeInsets.only(
-              left: isHome ? 20 : 0,
-              top: Space.xs,
-              bottom: Space.sm,
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xs),
+            child: FoesHeader(
+              countLabel: '$struck of ${open + struck} struck',
+              onNewFoe: widget.onNewFoe!,
             ),
-            child: Text(
-              isHome
-                  ? '$struck of ${open + struck} struck'
-                  : '$struck of ${open + struck} struck · hold to strike',
-              style: text.bodySmall,
+          )
+        else ...[
+          Text('Today’s foes', style: text.titleMedium),
+          if (open + struck > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
+              child: Text(
+                '$struck of ${open + struck} struck · hold to strike',
+                style: text.bodySmall,
+              ),
             ),
-          ),
+        ],
         Padding(
           padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
           child: const ThreadDivider(),

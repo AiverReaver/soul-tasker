@@ -41,7 +41,6 @@ void main() {
     final pinnedY = tester.getTopLeft(
       find.byKey(const Key('pinned-boss-panel')),
     );
-    expect(find.text('Pinned'), findsOneWidget);
     expect(
       tester.getTopLeft(find.text('The Habit')).dy,
       greaterThan(pinnedY.dy),

@@ -4,6 +4,7 @@ import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:hearthrise/ui/pinned_boss_panel.dart';
 import 'package:hearthrise/ui/shard_meter.dart';
+import 'package:hearthrise/ui/stroke_icon.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
@@ -39,6 +40,32 @@ void main() {
     expect(enters, 1);
     await tester.longPress(find.text('The Certification'));
     expect(longs, 1);
+  });
+
+  testWidgets('no "Pinned" label, and the button carries the strike icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Scaffold(
+          body: PinnedBossPanel(
+            title: 'The Certification',
+            subtitle: 'Attempt 2',
+            health: 0.5,
+            onEnter: () {},
+            onLongPress: () {},
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Pinned'), findsNothing);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is StrokeIcon && w.path == StrokeIcons.strike,
+      ),
+      findsOneWidget,
+    );
   });
 
   test('shards lit round health to twelfths', () {

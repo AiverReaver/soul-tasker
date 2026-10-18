@@ -5,6 +5,7 @@ import 'boss_art.dart';
 import 'ember_button.dart';
 import 'needle_frame.dart';
 import 'shard_meter.dart';
+import 'stroke_icon.dart';
 
 /// The pinned boss on Home: a featured panel with a deep edge, a small
 /// portrait, the shard meter and a way into the fight.
@@ -60,8 +61,6 @@ class PinnedBossPanel extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Pinned', style: text.labelSmall),
-                            const SizedBox(height: Space.xs),
                             Text(title, style: text.headlineMedium),
                             const SizedBox(height: Space.xs),
                             Text(subtitle, style: text.bodySmall),
@@ -87,7 +86,11 @@ class PinnedBossPanel extends StatelessWidget {
                 const SizedBox(height: Space.xs),
                 ShardMeter(filled: shardsFor(health)),
                 const SizedBox(height: Space.md),
-                EmberButton(label: 'Enter the fight', onPressed: onEnter),
+                EmberButton(
+                  label: 'Enter the fight',
+                  icon: StrokeIcons.strike,
+                  onPressed: onEnter,
+                ),
               ],
             ),
           ),

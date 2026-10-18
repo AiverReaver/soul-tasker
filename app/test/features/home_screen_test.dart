@@ -36,7 +36,7 @@ void main() {
     expect(find.bySemanticsLabel('Settings'), findsOneWidget);
     expect(find.text('Today’s foes'), findsOneWidget);
     expect(find.text('0 of 4 struck'), findsOneWidget);
-    expect(find.text('New foe'), findsOneWidget);
+    expect(find.byKey(const ValueKey('new-foe')), findsOneWidget);
     expect(find.byType(HoldButton), findsWidgets);
 
     await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);

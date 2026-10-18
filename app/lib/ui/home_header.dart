@@ -41,6 +41,7 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final p = context.palette;
     return Padding(
       key: const ValueKey('home-header'),
       padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.md),
@@ -49,18 +50,8 @@ class HomeHeader extends StatelessWidget {
         spacing: Space.sm,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(dateLine, style: text.labelSmall),
-                    const SizedBox(height: Space.xs),
-                    Text(greeting, style: text.displaySmall),
-                  ],
-                ),
-              ),
+              Expanded(child: Text('Hearthrise', style: text.labelSmall)),
               GlassCircleButton(
                 icon: StrokeIcons.profile,
                 semanticLabel: 'Your profile',
@@ -74,11 +65,33 @@ class HomeHeader extends StatelessWidget {
               ),
             ],
           ),
-          LevelBadge(
-            level: level,
-            embers: embers,
-            percentToNext: percentToNext,
-            bars: levelBars,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: Space.xs,
+                  children: [
+                    Text(
+                      dateLine,
+                      style: text.bodyMedium!.copyWith(
+                        color: p.ash,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(greeting, style: text.displaySmall),
+                  ],
+                ),
+              ),
+              LevelBadge(
+                level: level,
+                embers: embers,
+                percentToNext: percentToNext,
+                bars: levelBars,
+                isTrailing: true,
+              ),
+            ],
           ),
         ],
       ),

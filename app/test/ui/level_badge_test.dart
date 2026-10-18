@@ -50,4 +50,21 @@ void main() {
     expect(large, greaterThan(small));
     expect(find.byKey(const ValueKey('level-bar-on')), findsNWidgets(3));
   });
+
+  testWidgets('the rotated diamond keeps its corners inside the badge', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: const Scaffold(
+          body: LevelBadge(level: 7, embers: 42, percentToNext: 56, bars: 3),
+        ),
+      ),
+    );
+    final slot = tester.getSize(
+      find.ancestor(of: find.text('7'), matching: find.byType(Stack)).first,
+    );
+    expect(slot.width, greaterThanOrEqualTo(26 * 1.4142));
+  });
 }

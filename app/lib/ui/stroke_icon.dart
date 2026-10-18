@@ -11,6 +11,8 @@ abstract final class StrokeIcons {
   static const check = 'M5 12.5 10 17.5 19 7';
   static const profile = 'M12 4 15 8 12 12 9 8zM5 20 8 15.5h8L19 20';
   static const settings = 'M4 8h16M4 16h16M9 6l2 2-2 2-2-2zM15 14l2 2-2 2-2-2z';
+  static const plus = 'M12 5v14M5 12h14';
+  static const flame = 'M12 2l5 8-2.6-.6L18 15l-6 7-6-7 3.6-5.6L7 10z';
   static const strike = 'M4 20 16 8M18.5 3 21 5.5 18.5 8 16 5.5z';
 }
 

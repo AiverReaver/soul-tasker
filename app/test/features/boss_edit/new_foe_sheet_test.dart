@@ -18,7 +18,7 @@ void main() {
 
   Future<void> open(WidgetTester tester) async {
     await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('New foe'));
+    await tester.tap(find.byKey(const ValueKey('new-foe')));
     await settle(tester);
   }
 
