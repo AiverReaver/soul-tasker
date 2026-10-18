@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
 import 'ember_button.dart';
+import 'step_marks.dart';
 
 /// One page of onboarding: a line, a body slot, "Next" or "Begin", "Skip".
 class OnboardingPage extends StatelessWidget {
@@ -11,6 +12,8 @@ class OnboardingPage extends StatelessWidget {
     required this.body,
     required this.onNext,
     required this.onSkip,
+    required this.step,
+    this.total = 5,
     this.isLast = false,
     this.canAdvance = true,
   });
@@ -19,6 +22,8 @@ class OnboardingPage extends StatelessWidget {
   final Widget body;
   final VoidCallback onNext;
   final VoidCallback onSkip;
+  final int step;
+  final int total;
 
   /// The last page says "Begin" instead of "Next".
   final bool isLast;
@@ -39,6 +44,16 @@ class OnboardingPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: Space.lg),
+                  Wrap(
+                    spacing: Space.sm + 4,
+                    runSpacing: Space.xs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      StepMarks(step: step, total: total),
+                      Text('Step $step of $total', style: text.labelSmall),
+                    ],
+                  ),
+                  const SizedBox(height: Space.md),
                   Text(line, style: text.displaySmall),
                   const SizedBox(height: Space.lg),
                   body,

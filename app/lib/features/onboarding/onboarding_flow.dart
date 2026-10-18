@@ -61,6 +61,16 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     );
   }
 
+  /// Skip leaves the setup for the last page, where a boss is still optional.
+  void _skipToEnd() {
+    _release();
+    _pages.animateToPage(
+      4,
+      duration: motionOf(context, Motion.fade),
+      curve: Motion.ease,
+    );
+  }
+
   Future<void> _finish({required bool save}) async {
     if (_isBusy) return;
     setState(() => _isBusy = true);
@@ -121,18 +131,20 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    var step = 0;
     Widget page({
       required String line,
       required Widget body,
       bool isLast = false,
       bool canAdvance = true,
     }) => OnboardingPage(
+      step: ++step,
       line: line,
       body: body,
       isLast: isLast,
       canAdvance: canAdvance,
       onNext: isLast ? () => _finish(save: true) : _next,
-      onSkip: () => _finish(save: false),
+      onSkip: isLast ? () => _finish(save: false) : _skipToEnd,
     );
 
     return Scaffold(

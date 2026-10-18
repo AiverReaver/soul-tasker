@@ -193,6 +193,7 @@ void main() {
       await _pump(
         tester,
         OnboardingPage(
+          step: 1,
           line: 'Failing is fine.',
           body: const Text('body'),
           onNext: () => next++,
@@ -211,6 +212,7 @@ void main() {
       await _pump(
         tester,
         OnboardingPage(
+          step: 1,
           line: 'x',
           body: const SizedBox(),
           isLast: true,
@@ -224,6 +226,7 @@ void main() {
       await _pump(
         tester,
         OnboardingPage(
+          step: 1,
           line: 'x',
           body: const SizedBox(),
           isLast: true,

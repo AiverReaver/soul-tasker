@@ -239,13 +239,38 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Skip on any page lands on the empty Home, once', (tester) async {
+  testWidgets('every page says which step it is, with diamonds', (
+    tester,
+  ) async {
+    var h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    for (var n = 1; n <= 5; n++) {
+      await _toPage(tester, n);
+      expect(find.text('Step $n of 5'), findsOneWidget);
+      expect(find.byKey(const ValueKey('step-on')), findsNWidgets(n));
+      expect(find.byKey(const ValueKey('step-off')), findsNWidgets(5 - n));
+      await tearDownApp(tester, h);
+      h = Harness();
+      await pumpApp(tester, h, onboarded: false);
+    }
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Skip jumps to page 5; Skip there lands on the empty Home', (
+    tester,
+  ) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _next(tester);
     await tester.tap(find.text('Skip'));
     await settle(tester);
 
+    expect(find.text('One last thing.'), findsOneWidget);
+    expect(find.text('Step 5 of 5'), findsOneWidget);
+    expect((await h.settings.device()).onboarded, isFalse);
+
+    await tester.tap(find.text('Skip'));
+    await settle(tester);
     expect(find.text('Nothing stands in your way today.'), findsOneWidget);
     expect((await h.settings.device()).onboarded, isTrue);
     expect(await h.bosses.loadAll(), isEmpty);
