@@ -60,6 +60,18 @@ Rules:
 4 pt grid: `Space.xs 4`, `sm 8`, `md 16`, `lg 24`, `xl 40`, `xxl 56`.
 Screen side padding 20. Generous vertical space: the screen should feel sparse.
 
+## Glass
+
+Plan: `V41_PLAN.md`. Glass is chrome; needle-cut is content.
+
+- **Glass goes on:** the tab bar, circle buttons (back, profile, settings, ⋯), pills (Cancel, Close, New foe), the switch, the hold button, sheets, alerts and action rows.
+- **Needle-cut stays on:** cards, task rows, fields, segments (mood, strength, reset), chips, panels and the plan banner. Glass never holds long text blocks or lists of rows.
+- **Anatomy** (`GlassSurface`, bottom to top): drop shadow, clip to the shape, backdrop blur with saturation 1.7, fill, child, then `GlassPainter` (key line, inner shadow, inner ring, sheen, rim light, glint).
+- **Tokens** per biome in `HearthPalette`: `glassFill`, `glassFillHi`, `glassLight`, `glassKey`. `glassKey` equals `ink` today but is its own field. The fixed whites in the sheen (14%), inner ring (16%) and faint rim (22%) are shape, not palette, and sit in `palette.dart`.
+- **Tilt:** the light follows `GlassTilt` (theme-like, ambient). Idle drift is the fallback; the accelerometer steers it, with a deadzone, smoothing and a learned neutral pose. It repaints only the painter, never rebuilds. "Motion effects" in Settings turns the drift and the sensor off. Reduced motion holds it still.
+- **Fallbacks:** high contrast swaps to a flat `shell` fill with no blur or sheen (the key line stays). `blur: 0` skips the filter where glass sits on a known solid fill, such as the hold button on a row.
+- **Press overshoot:** glass presses scale to 1.04 over 350 ms with `easeOutBack`. This is the one exception to "no springs, no overshoot" below, and it applies to glass only.
+
 ## Motion
 
 Slow, never bouncy. Exits are faster than entrances.
@@ -71,13 +83,13 @@ Slow, never bouncy. Exits are faster than entrances.
 | `Motion.drain` | 900 ms | Boss health segment drain |
 | `Motion.dim` | 1400 ms | Fallen screen dim-in |
 
-Curve: `easeInOut` (or `easeIn` for dims). No springs, no overshoot.
+Curve: `easeInOut` (or `easeIn` for dims). No springs, no overshoot, except the glass press (see Glass).
 Hold durations by weight: Light 300 ms, Heavy 600 ms, Boss-tier 1200 ms (§7.4).
 Reduced motion: when the system asks for it, replace fades and drains with instant changes (Stage 1 task).
 
 ## Ritual moments
 
-- **Strike or Tried.** A finished hold opens a centered popup: Strike (done) or Tried (not done). Tapping outside cancels and rolls the hold back. Tap mode asks too.
+- **Strike.** A finished hold plays the strike animation first (row, then boss), then a glass sheet asks "How did the strike land?": "Clean strike" (done) or "A real try" (not done). Nothing is written until a choice is made; leaving the sheet writes nothing and the row returns to open. Tap mode runs the same order.
 - **Dust.** A struck task dissolves into white-gold motes (about 1.2 s). A defeated boss name darkens the screen and turns to dust (2.4 s) before the victory screen. Reduced motion skips both.
 
 ## Haptics

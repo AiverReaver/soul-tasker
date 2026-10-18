@@ -2,6 +2,7 @@
 
 Source: the "Hearthrise Silksong v3" design canvas (https://claude.ai/artifact/JKvd8CanBzrhueJkPsV7Jj). It has six screens (Home, Boss, Struck, Bonfire, Fallen, Victory), one shape system and five biome palettes. Visual rules are in `DESIGN.md`, which step 9 updates.
 Method: TDD (see `STAGES.md`, Development method). Every step lists its tests first, then the code. UI follows `STAGES.md`, "UI components".
+Follow-up: the glass layer and v4.1 screens are in `V41_PLAN.md`.
 Status: done except the manual checks (step 3, step 6, step 8 on-device in all five biomes, 100% and 200% text, status bar icons on Choral and Moss). Not built from the design: see the notes under step 8.
 
 ---
