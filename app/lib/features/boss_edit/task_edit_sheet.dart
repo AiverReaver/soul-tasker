@@ -3,6 +3,11 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/boss_draft.dart';
 import '../../data/enums.dart';
+import '../../ui/glass_action_row.dart';
+import '../../ui/glass_sheet.dart';
+import '../../ui/needle_text_field.dart';
+import '../../ui/setting_switch_row.dart';
+import '../../ui/strength_segments.dart';
 
 /// What the task sheet returns. [phaseId] null = "Beyond the phases".
 class TaskEditResult {
@@ -22,11 +27,9 @@ Future<TaskEditResult?> showTaskEditSheet(
   required List<PhaseDraft> phases,
   required bool isNew,
 }) {
-  return showModalBottomSheet<TaskEditResult>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: context.palette.shell,
-    builder: (_) => _TaskEditSheet(
+  return showGlassSheet<TaskEditResult>(
+    context,
+    (_) => _TaskEditSheet(
       task: task,
       phaseId: phaseId,
       phases: phases,
@@ -76,42 +79,39 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        Space.lg,
-        20,
-        MediaQuery.viewInsetsOf(context).bottom + Space.md,
-      ),
-      child: SingleChildScrollView(
+    return GlassSheet(
+      title: widget.isNew ? 'A new foe' : 'Edit foe',
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: Space.md,
           children: [
-            Text(
-              widget.isNew ? 'A new foe' : 'Edit foe',
-              style: text.titleMedium,
-            ),
-            TextField(
+            NeedleTextField(
               controller: _title,
+              caption: 'Name the foe',
+              hint: 'What will you do?',
               autofocus: widget.isNew,
-              maxLength: 80,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(hintText: 'What will you do?'),
             ),
-            SegmentedButton<Weight>(
-              segments: [
+            StrengthSegments(
+              options: [
                 for (final w in Weight.values)
-                  ButtonSegment(value: w, label: Text(w.label)),
+                  StrengthOption(
+                    label: w.label,
+                    pips: w.index + 1,
+                    note: '+${w.embers} embers',
+                  ),
               ],
-              selected: {_task.weight},
-              showSelectedIcon: false,
-              onSelectionChanged: (s) =>
-                  setState(() => _task = _task.copyWith(weight: s.single)),
+              selected: _task.weight.index,
+              onChanged: (i) => setState(
+                () => _task = _task.copyWith(weight: Weight.values[i]),
+              ),
             ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text('Every day', style: text.bodyMedium),
+            SettingSwitchRow(
+              title: 'Every day',
               value: _task.recurrence == Recurrence.daily,
               onChanged: (v) => setState(
                 () => _task = _task.copyWith(
@@ -137,27 +137,14 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
               ],
               onChanged: (v) => setState(() => _phase = v ?? _beyond),
             ),
-            const SizedBox(height: Space.md),
-            Row(
-              children: [
-                if (!widget.isNew)
-                  TextButton(
-                    onPressed: () => Navigator.pop(
-                      context,
-                      TaskEditResult.delete(widget.task),
-                    ),
-                    child: Text(
-                      'Delete',
-                      style: TextStyle(color: context.palette.ash),
-                    ),
-                  ),
-                const Spacer(),
-                FilledButton(
-                  onPressed: _title.text.trim().isEmpty ? null : _save,
-                  child: const Text('Done'),
-                ),
-              ],
-            ),
+            if (_title.text.trim().isNotEmpty)
+              GlassActionRow(label: 'Done', onTap: _save),
+            if (!widget.isNew)
+              GlassActionRow(
+                label: 'Delete',
+                onTap: () =>
+                    Navigator.pop(context, TaskEditResult.delete(widget.task)),
+              ),
           ],
         ),
       ),

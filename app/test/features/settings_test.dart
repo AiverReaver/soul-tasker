@@ -3,6 +3,8 @@ import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/glass_circle_button.dart';
 import 'package:hearthrise/ui/glass_switch.dart';
+import 'package:hearthrise/ui/glass_alert.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -137,7 +139,13 @@ void main() {
     await tester.tap(find.text('Day starts at'));
     await settle(tester);
 
-    expect(find.byType(SimpleDialogOption), findsNWidgets(7));
+    expect(
+      find.descendant(
+        of: find.byType(GlassAlert),
+        matching: find.byType(NeedleFrame),
+      ),
+      findsNWidgets(7),
+    );
     expect(find.text('12:00 AM'), findsOneWidget);
     expect(find.text('6:00 AM'), findsOneWidget);
     expect(find.text('7:00 AM'), findsNothing);

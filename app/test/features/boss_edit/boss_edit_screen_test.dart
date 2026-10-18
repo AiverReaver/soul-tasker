@@ -55,7 +55,7 @@ void main() {
 
     await tester.tap(find.text('Add a foe').first);
     await settle(tester);
-    expect(find.text('Done'), findsOneWidget); // the task sheet
+    expect(find.text('A new foe'), findsOneWidget); // the task sheet
     await tearDownApp(tester, h);
   });
 
@@ -69,7 +69,7 @@ void main() {
     );
     await tester.tap(find.text('Read chapter 4'));
     await settle(tester);
-    expect(find.text('Done'), findsOneWidget);
+    expect(find.text('Edit foe'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 

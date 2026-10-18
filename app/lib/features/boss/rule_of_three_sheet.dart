@@ -5,6 +5,9 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/providers.dart';
+import '../../ui/glass_action_row.dart';
+import '../../ui/glass_sheet.dart';
+import '../../ui/needle_text_field.dart';
 
 enum _Choice { change, split, rest, keepGoing }
 
@@ -17,10 +20,9 @@ Future<void> showRuleOfThree(
   TaskView? task,
   required ValueChanged<String> onMessage,
 }) async {
-  final choice = await showModalBottomSheet<_Choice>(
-    context: context,
-    backgroundColor: context.palette.shell,
-    builder: (context) => const _RuleOfThreeSheet(),
+  final choice = await showGlassSheet<_Choice>(
+    context,
+    (_) => const _RuleOfThreeSheet(),
   );
   if (!context.mounted) return;
 
@@ -28,11 +30,9 @@ Future<void> showRuleOfThree(
     case _Choice.change:
       context.push('/boss/$bossId/edit');
     case _Choice.split when task != null:
-      final titles = await showModalBottomSheet<List<String>>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: context.palette.shell,
-        builder: (_) => _SplitSheet(original: task.task.title),
+      final titles = await showGlassSheet<List<String>>(
+        context,
+        (_) => _SplitSheet(original: task.task.title),
       );
       if (titles != null) {
         await ref.read(bossDaoProvider).splitTask(task.task.id, titles);
@@ -51,33 +51,30 @@ class _RuleOfThreeSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    Widget option(_Choice choice, String label) => ListTile(
-      minTileHeight: kMinTarget,
-      title: Text(label, style: text.bodyMedium),
-      onTap: () => Navigator.pop(context, choice),
-    );
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, Space.lg, 8, Space.md),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Space.md),
-              child: Text(
-                'Same path, same result. What will you change?',
-                style: text.titleMedium,
-              ),
-            ),
-            const SizedBox(height: Space.md),
-            option(_Choice.change, 'Change the approach'),
-            option(_Choice.split, 'Split into smaller foes'),
-            option(_Choice.rest, 'Rest first'),
-            option(_Choice.keepGoing, 'Keep going'),
-          ],
-        ),
+    return GlassSheet(
+      title: 'Same path, same result. What will you change?',
+      closeLabel: 'Close',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 10,
+        children: [
+          GlassActionRow(
+            label: 'Change the approach',
+            onTap: () => Navigator.pop(context, _Choice.change),
+          ),
+          GlassActionRow(
+            label: 'Split into smaller foes',
+            onTap: () => Navigator.pop(context, _Choice.split),
+          ),
+          GlassActionRow(
+            label: 'Rest first',
+            onTap: () => Navigator.pop(context, _Choice.rest),
+          ),
+          GlassActionRow(
+            label: 'Keep going',
+            onTap: () => Navigator.pop(context, _Choice.keepGoing),
+          ),
+        ],
       ),
     );
   }
@@ -113,27 +110,20 @@ class _SplitSheetState extends State<_SplitSheet> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        Space.lg,
-        20,
-        MediaQuery.viewInsetsOf(context).bottom + Space.md,
-      ),
+  Widget build(BuildContext context) => GlassSheet(
+    title: 'Split "${widget.original}"',
+    child: Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: Space.sm,
         children: [
-          Text('Split "${widget.original}"', style: text.titleMedium),
           for (final (i, field) in _fields.indexed)
-            TextField(
+            NeedleTextField(
               controller: field,
+              caption: 'Smaller foe ${i + 1}',
               autofocus: i == 0,
-              maxLength: 80,
               onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(hintText: 'Smaller foe ${i + 1}'),
             ),
           if (_fields.length < _max)
             TextButton(
@@ -141,14 +131,13 @@ class _SplitSheetState extends State<_SplitSheet> {
                   setState(() => _fields.add(TextEditingController())),
               child: const Text('Add another'),
             ),
-          FilledButton(
-            onPressed: _titles.length >= _min
-                ? () => Navigator.pop(context, _titles)
-                : null,
-            child: const Text('Split'),
-          ),
+          if (_titles.length >= _min)
+            GlassActionRow(
+              label: 'Split',
+              onTap: () => Navigator.pop(context, _titles),
+            ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }

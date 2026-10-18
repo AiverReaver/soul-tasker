@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/check_in.dart';
 import '../core/theme.dart';
+import 'needle_frame.dart';
 
 /// "Has Hearthrise left you feeling worse?" (Stage 6 plan D6). Neutral
 /// choices and a way out; no score, nothing follows an answer.
@@ -24,12 +25,8 @@ class CheckInCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.palette.shell,
-        border: Border.all(color: context.palette.dim),
-        borderRadius: BorderRadius.circular(Space.sm),
-      ),
+    return NeedleFrame(
+      tier: Cut.md,
       child: Padding(
         padding: const EdgeInsets.all(Space.md),
         child: Column(

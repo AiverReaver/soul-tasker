@@ -305,7 +305,7 @@ void main() {
 
     await tester.tap(find.text('Delete account'));
     await settle(tester);
-    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.tap(find.text('Delete'));
     await settle(tester);
 
     expect(accounts.calls, contains('delete:session-1'));

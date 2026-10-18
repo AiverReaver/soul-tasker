@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../core/theme.dart';
+import 'glass_alert.dart';
 
-/// A calm yes/no dialog body. Pops true only on the action button.
+/// A calm yes/no alert. Pops true only on the action row.
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
     super.key,
@@ -14,19 +14,9 @@ class ConfirmDialog extends StatelessWidget {
   final String action;
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      content: Text(question, style: Theme.of(context).textTheme.bodyLarge),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: Text('Not yet', style: TextStyle(color: context.palette.ash)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(action),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => GlassAlert(
+    body: question,
+    actions: [action, 'Not yet'],
+    onAction: (i) => Navigator.pop(context, i == 0),
+  );
 }

@@ -95,7 +95,7 @@ void main() {
       ),
     );
     expect(find.text('Day starts at'), findsOneWidget);
-    expect(find.byType(SimpleDialogOption), findsNWidgets(2));
+    expect(find.byType(NeedleFrame), findsNWidgets(2));
     await tester.tap(find.text('2:00 AM'));
     expect(picked, 2);
   });

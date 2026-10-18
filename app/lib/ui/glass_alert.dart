@@ -12,7 +12,7 @@ import 'thread_divider.dart';
 class GlassAlert extends StatelessWidget {
   const GlassAlert({
     super.key,
-    required this.title,
+    this.title,
     this.body,
     this.content,
     required this.actions,
@@ -20,7 +20,7 @@ class GlassAlert extends StatelessWidget {
     this.onAction,
   }) : assert(body != null || content != null);
 
-  final String title;
+  final String? title;
   final String? body;
 
   /// Replaces [body] with a widget, such as framed rows.
@@ -44,7 +44,7 @@ class GlassAlert extends StatelessWidget {
       scopesRoute: true,
       namesRoute: true,
       explicitChildNodes: true,
-      label: title,
+      label: title ?? body,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -67,15 +67,17 @@ class GlassAlert extends StatelessWidget {
                         children: [
                           if (label != null)
                             Text(label!.toUpperCase(), style: text.labelSmall),
-                          Text(
-                            title,
-                            textAlign: TextAlign.center,
-                            style: text.titleMedium!.copyWith(
-                              fontSize: 30,
-                              height: 34 / 30,
+                          if (title != null) ...[
+                            Text(
+                              title!,
+                              textAlign: TextAlign.center,
+                              style: text.titleMedium!.copyWith(
+                                fontSize: 30,
+                                height: 34 / 30,
+                              ),
                             ),
-                          ),
-                          const ThreadDivider(),
+                            const ThreadDivider(),
+                          ],
                           content ??
                               Text(
                                 body!,

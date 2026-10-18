@@ -101,6 +101,15 @@ ThemeData buildTheme([Biome biome = Biome.pharloom]) {
     ),
     fontFamily: _body,
     dialogTheme: DialogThemeData(backgroundColor: p.shell),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: p.shell,
+      hourMinuteColor: p.raised,
+      dialBackgroundColor: p.raised,
+    ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: p.shell,
+      headerBackgroundColor: p.shell,
+    ),
     colorScheme: base.copyWith(
       primary: p.silk,
       onPrimary: p.onSilk,
