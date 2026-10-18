@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:hearthrise/ui/ember_button.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:material_ui/material_ui.dart';
@@ -167,7 +168,7 @@ void main() {
       await pumpApp(tester, h, onboarded: false, reminders: reminders);
       await _toPage(tester, 5);
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byType(GlassSwitch));
       await tester.pump();
       await tester.tap(find.text('Begin'));
       await settle(tester);
@@ -187,7 +188,7 @@ void main() {
     await pumpApp(tester, h, onboarded: false, reminders: reminders);
     await _toPage(tester, 5);
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(GlassSwitch));
     await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);

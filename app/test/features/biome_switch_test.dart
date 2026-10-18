@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
+import 'package:hearthrise/ui/glass_circle_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -25,7 +26,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Moss Grotto'));
     await settle(tester);
-    await tester.pageBack();
+    await tester.tap(find.byType(GlassCircleButton).first);
     await settle(tester);
     expect(_palette(tester), Biome.moss.palette);
 

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/database.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/glass_circle_button.dart';
+import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -27,6 +29,9 @@ void main() {
     await open(tester);
     expect(find.text('SETTINGS'), findsOneWidget);
     expect(find.byType(BottomSheet), findsNothing);
+    expect(find.byType(GlassCircleButton), findsWidgets);
+    expect(find.byType(GlassSwitch), findsNWidgets(4));
+    expect(find.byType(Switch), findsNothing);
     await tearDownApp(tester, h);
   });
 

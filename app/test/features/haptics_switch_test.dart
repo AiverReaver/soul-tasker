@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:hearthrise/ui/setting_switch_row.dart';
 
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
@@ -33,8 +33,8 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
-    final tile = find.widgetWithText(SwitchListTile, 'Haptics');
-    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+    final tile = find.widgetWithText(SettingSwitchRow, 'Haptics');
+    expect(tester.widget<SettingSwitchRow>(tile).value, isTrue);
 
     await tester.tap(tile);
     await settle(tester);
@@ -42,7 +42,7 @@ void main() {
     // getSingle, not watch().first: a stream never emits under fake async.
     final stored = await h.db.select(h.db.userSettings).getSingle();
     expect(stored.haptics, isFalse);
-    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+    expect(tester.widget<SettingSwitchRow>(tile).value, isFalse);
     await tearDownApp(tester, h);
   });
 

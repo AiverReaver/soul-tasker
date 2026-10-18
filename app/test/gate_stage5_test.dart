@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/day_dao.dart';
 import 'package:hearthrise/data/enums.dart';
@@ -48,7 +49,7 @@ void main() {
     await tester.enterText(dailies.last, 'Flashcards');
     await tester.tap(find.text('Next'));
     await settle(tester);
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(GlassSwitch));
     await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);

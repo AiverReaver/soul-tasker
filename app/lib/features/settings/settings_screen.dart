@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/clock.dart';
@@ -8,6 +9,8 @@ import '../../data/providers.dart';
 import '../../ui/biome_choice_row.dart';
 import '../../ui/choice_dialog.dart';
 import '../../ui/flash_line.dart';
+import '../../ui/glass_circle_button.dart';
+import '../../ui/stroke_icon.dart';
 import '../../ui/setting_choice_row.dart';
 import '../../ui/setting_switch_row.dart';
 import '../../ui/setting_value_row.dart';
@@ -79,59 +82,85 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final s = ref.watch(settingsProvider).value;
 
     return Scaffold(
-      appBar: AppBar(title: Text('SETTINGS', style: text.labelSmall)),
       body: SafeArea(
         child: s == null
             ? const SizedBox.shrink()
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+            : Column(
                 children: [
-                  SettingSwitchRow(
-                    title: 'Tap instead of hold',
-                    value: s.tapMode,
-                    onChanged: dao.setTapMode,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      Space.sm,
+                      20,
+                      Space.md,
+                    ),
+                    child: Row(
+                      spacing: Space.sm + 4,
+                      children: [
+                        GlassCircleButton(
+                          icon: StrokeIcons.back,
+                          semanticLabel: 'Back',
+                          onTap: () => context.go('/'),
+                        ),
+                        Text('SETTINGS', style: text.labelSmall),
+                      ],
+                    ),
                   ),
-                  SettingSwitchRow(
-                    title: 'Haptics',
-                    value: s.haptics,
-                    onChanged: dao.setHaptics,
-                  ),
-                  SettingSwitchRow(
-                    title: 'Motion effects',
-                    value: ref.watch(motionEffectsProvider),
-                    onChanged: dao.setMotionEffects,
-                  ),
-                  SettingSwitchRow(
-                    title: 'Evening reminder',
-                    value: s.reminderEnabled,
-                    onChanged: _setReminder,
-                  ),
-                  FlashLine(_flash),
-                  SettingValueRow(
-                    title: 'Reminder time',
-                    value: formatClock(s.reminderMinutes),
-                    onTap: () => _pickTime(s.reminderMinutes),
-                  ),
-                  SettingValueRow(
-                    title: 'Day starts at',
-                    value: formatClock(s.rolloverHour * 60),
-                    onTap: _pickRollover,
-                  ),
-                  const SizedBox(height: Space.md),
-                  SettingChoiceRow<ResetOnFail>(
-                    title: 'On a failed attempt, reset (new bosses)',
-                    options: {for (final r in ResetOnFail.values) r: r.label},
-                    selected: s.defaultResetOnFail,
-                    onChanged: dao.setDefaultReset,
-                  ),
-                  const SizedBox(height: Space.md),
-                  const CopyTesterReportTile(),
-                  const SizedBox(height: Space.md),
-                  const SyncSection(),
-                  const SizedBox(height: Space.md),
-                  BiomeChoiceRow(
-                    selected: ref.watch(biomeProvider) ?? Biome.pharloom,
-                    onChanged: dao.setBiome,
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+                      children: [
+                        SettingSwitchRow(
+                          title: 'Tap instead of hold',
+                          value: s.tapMode,
+                          onChanged: dao.setTapMode,
+                        ),
+                        SettingSwitchRow(
+                          title: 'Haptics',
+                          value: s.haptics,
+                          onChanged: dao.setHaptics,
+                        ),
+                        SettingSwitchRow(
+                          title: 'Motion effects',
+                          value: ref.watch(motionEffectsProvider),
+                          onChanged: dao.setMotionEffects,
+                        ),
+                        SettingSwitchRow(
+                          title: 'Evening reminder',
+                          value: s.reminderEnabled,
+                          onChanged: _setReminder,
+                        ),
+                        FlashLine(_flash),
+                        SettingValueRow(
+                          title: 'Reminder time',
+                          value: formatClock(s.reminderMinutes),
+                          onTap: () => _pickTime(s.reminderMinutes),
+                        ),
+                        SettingValueRow(
+                          title: 'Day starts at',
+                          value: formatClock(s.rolloverHour * 60),
+                          onTap: _pickRollover,
+                        ),
+                        const SizedBox(height: Space.md),
+                        SettingChoiceRow<ResetOnFail>(
+                          title: 'On a failed attempt, reset (new bosses)',
+                          options: {
+                            for (final r in ResetOnFail.values) r: r.label,
+                          },
+                          selected: s.defaultResetOnFail,
+                          onChanged: dao.setDefaultReset,
+                        ),
+                        const SizedBox(height: Space.md),
+                        const CopyTesterReportTile(),
+                        const SizedBox(height: Space.md),
+                        const SyncSection(),
+                        const SizedBox(height: Space.md),
+                        BiomeChoiceRow(
+                          selected: ref.watch(biomeProvider) ?? Biome.pharloom,
+                          onChanged: dao.setBiome,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
