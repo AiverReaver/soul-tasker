@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/core/glass_tilt.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/features/boss/boss_stage.dart';
 import 'package:hearthrise/features/shell/atmosphere.dart';
@@ -45,6 +46,60 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(frame, 0);
+  });
+
+  group('glass tilt', () {
+    Offset? tilt;
+    Widget tiltProbe() => Builder(
+      builder: (context) {
+        final source = GlassTilt.of(context);
+        return ValueListenableBuilder<Offset>(
+          valueListenable: source,
+          builder: (_, value, _) {
+            tilt = value;
+            return const SizedBox();
+          },
+        );
+      },
+    );
+
+    testWidgets('a still atmosphere keeps the tilt at zero for 10 s', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(home: Atmosphere(isStill: true, child: tiltProbe())),
+      );
+      await tester.pump(const Duration(seconds: 10));
+      expect(tilt, Offset.zero);
+    });
+
+    testWidgets('reduced motion keeps the tilt at zero', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: Atmosphere(child: tiltProbe()),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 10));
+      expect(tilt, Offset.zero);
+    });
+
+    testWidgets('a live atmosphere drifts the tilt within -1 to 1', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(home: Atmosphere(child: tiltProbe())),
+      );
+      for (var i = 0; i < 180; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(tilt!.dx.abs(), lessThanOrEqualTo(1));
+        expect(tilt!.dy.abs(), lessThanOrEqualTo(1));
+      }
+      expect(tilt, isNot(Offset.zero));
+      await tester.pumpWidget(const SizedBox()); // stop the tickers
+    });
   });
 
   testWidgets('a struck boss flashes white, then recovers', (tester) async {

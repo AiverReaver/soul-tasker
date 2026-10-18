@@ -1,9 +1,12 @@
+import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/glass_tilt.dart';
 import '../../ui/pharloom_backdrop.dart';
 
 /// The app's one ambient clock. It drifts the backdrop's motes and steps
-/// the boil of hand-drawn ink. It holds still under reduced motion and when
+/// the boil of hand-drawn ink, and eases the shared [GlassTilt] along its
+/// idle drift. It holds still under reduced motion and when
 /// [isStill] (tests), so nothing waits on a loop that never ends.
 class Atmosphere extends StatefulWidget {
   const Atmosphere({super.key, required this.child, this.isStill = false});
@@ -31,12 +34,19 @@ class Atmosphere extends StatefulWidget {
   State<Atmosphere> createState() => _AtmosphereState();
 }
 
-class _AtmosphereState extends State<Atmosphere>
-    with SingleTickerProviderStateMixin {
+class _AtmosphereState extends State<Atmosphere> with TickerProviderStateMixin {
   late final AnimationController _clock = AnimationController(
     vsync: this,
     duration: Atmosphere.loop,
   );
+  final _tilt = ValueNotifier(Offset.zero);
+  late final Ticker _tiltTicker = createTicker(_driftTilt);
+  Duration _lastTick = Duration.zero;
+
+  void _driftTilt(Duration elapsed) {
+    _tilt.value = easeTilt(_tilt.value, idleTilt(elapsed), elapsed - _lastTick);
+    _lastTick = elapsed;
+  }
 
   @override
   void didChangeDependencies() {
@@ -55,25 +65,34 @@ class _AtmosphereState extends State<Atmosphere>
       _clock
         ..stop()
         ..value = 0;
+      _tiltTicker.stop();
+      _tilt.value = Offset.zero;
     } else if (!_clock.isAnimating) {
       _clock.repeat();
+      _lastTick = Duration.zero;
+      _tiltTicker.start();
     }
   }
 
   @override
   void dispose() {
+    _tiltTicker.dispose();
+    _tilt.dispose();
     _clock.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => _Clock(
-    notifier: _clock,
-    child: AnimatedBuilder(
-      animation: _clock,
-      builder: (context, child) =>
-          PharloomBackdrop(drift: _clock.value, child: child!),
-      child: widget.child,
+  Widget build(BuildContext context) => GlassTilt(
+    notifier: _tilt,
+    child: _Clock(
+      notifier: _clock,
+      child: AnimatedBuilder(
+        animation: _clock,
+        builder: (context, child) =>
+            PharloomBackdrop(drift: _clock.value, child: child!),
+        child: widget.child,
+      ),
     ),
   );
 }
