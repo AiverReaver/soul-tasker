@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart'
     show Offset, Scrollable, ScrollableState;
 
 import '../data/harness.dart';
+import '../support/foe_actions.dart';
 import 'pump.dart';
 
 void main() {
@@ -23,19 +24,8 @@ void main() {
     await settle(tester);
   }
 
-  Future<void> menu(WidgetTester tester, String task, String item) async {
-    final tip = find.byTooltip('Actions for $task');
-    if (tip.evaluate().isEmpty) {
-      await tester.scrollUntilVisible(tip, 100);
-    } else {
-      await tester.ensureVisible(tip);
-    }
-    await settle(tester);
-    await tester.tap(find.byTooltip('Actions for $task'));
-    await settle(tester);
-    await tester.tap(find.text(item));
-    await settle(tester);
-  }
+  Future<void> menu(WidgetTester tester, String task, String item) =>
+      tapFoeAction(tester, task, item);
 
   testWidgets('promise from Today: the row shows its deadline', (tester) async {
     await h.seed();
@@ -135,8 +125,7 @@ void main() {
     await h.bosses.setStatus(view.boss.id, BossStatus.waiting);
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    await tester.tap(find.byTooltip('Actions for Read chapter 4'));
-    await settle(tester);
+    await openFoeActions(tester, 'Read chapter 4');
     expect(find.text('Promise by…'), findsNothing);
     expect(find.text('Edit'), findsOneWidget);
     await tester.tapAt(Offset.zero);

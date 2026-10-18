@@ -15,7 +15,7 @@ TaskRowTile _tile({
   int pips = 2,
   String meta = 'Thesis Warden · +3 embers',
   Widget? trailing = _button,
-  Widget? menu,
+  VoidCallback? onTap,
   Widget? sweep,
   Widget? deadline,
 }) => TaskRowTile(
@@ -25,7 +25,7 @@ TaskRowTile _tile({
   isDone: isDone,
   phase: phase,
   trailing: trailing,
-  menu: menu,
+  onTap: onTap,
   sweep: sweep,
   deadline: deadline,
 );
@@ -91,20 +91,43 @@ void main() {
     expect(find.bySemanticsLabel('Write 500 words, struck'), findsOneWidget);
   });
 
-  testWidgets('the slash, the menu and the deadline have their slots', (
+  testWidgets('tapping the row fires onTap, but not on the trailing button', (
     tester,
   ) async {
+    var taps = 0, buttons = 0;
+    await tester.pumpWidget(
+      glassHost(
+        TaskRowTile(
+          title: 'Write 500 words',
+          pips: 1,
+          meta: 'Thesis · +1 embers',
+          isDone: false,
+          onTap: () => taps++,
+          trailing: GestureDetector(
+            key: const ValueKey('btn'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () => buttons++,
+            child: const SizedBox.square(dimension: 48),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Write 500 words'));
+    expect(taps, 1);
+    await tester.tap(find.byKey(const ValueKey('btn')));
+    expect((taps, buttons), (1, 1));
+  });
+
+  testWidgets('the slash and the deadline have their slots', (tester) async {
     await tester.pumpWidget(
       glassHost(
         _tile(
           sweep: const SizedBox(key: ValueKey('sw')),
-          menu: const Text('menu'),
           deadline: const Text('by 11:00 PM'),
         ),
       ),
     );
     expect(find.byKey(const ValueKey('sw')), findsOneWidget);
-    expect(find.text('menu'), findsOneWidget);
     expect(find.text('by 11:00 PM'), findsOneWidget);
   });
 

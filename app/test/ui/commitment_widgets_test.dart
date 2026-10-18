@@ -12,7 +12,7 @@ import 'package:material_ui/material_ui.dart';
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
   MaterialApp(
     theme: buildTheme(),
-    home: Scaffold(body: SingleChildScrollView(child: child)),
+    home: Scaffold(body: child),
   ),
 );
 

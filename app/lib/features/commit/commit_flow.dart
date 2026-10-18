@@ -4,12 +4,12 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/clock.dart';
 import '../../core/deadlines.dart';
 import '../../core/reminders.dart';
-import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/commitment_dao.dart';
 import '../../data/providers.dart';
 import '../../ui/commit_sheet.dart';
 import '../../ui/extend_sheet.dart';
+import '../../ui/glass_sheet.dart';
 
 /// "That is six promises, four of them heavy." (plan D17).
 String loadNoteText(LoadNote note) =>
@@ -32,21 +32,18 @@ Future<void> showCommitSheet(
   if (!context.mounted) return;
   var remind = false;
   var everyDay = false;
-  final preset = await showModalBottomSheet<DeadlinePreset>(
-    context: context,
-    backgroundColor: context.palette.shell,
-    builder: (sheet) => StatefulBuilder(
-      builder: (sheet, setState) => SafeArea(
-        child: CommitSheet(
-          title: view.task.title,
-          isDaily: view.isDaily,
-          remind: remind,
-          everyDay: everyDay,
-          note: before == null ? null : loadNoteText(before),
-          onRemindChanged: (v) => setState(() => remind = v),
-          onEveryDayChanged: (v) => setState(() => everyDay = v),
-          onCommit: (p) => Navigator.pop(sheet, p),
-        ),
+  final preset = await showGlassSheet<DeadlinePreset>(
+    context,
+    (sheet) => StatefulBuilder(
+      builder: (sheet, setState) => CommitSheet(
+        title: view.task.title,
+        isDaily: view.isDaily,
+        remind: remind,
+        everyDay: everyDay,
+        note: before == null ? null : loadNoteText(before),
+        onRemindChanged: (v) => setState(() => remind = v),
+        onEveryDayChanged: (v) => setState(() => everyDay = v),
+        onCommit: (p) => Navigator.pop(sheet, p),
       ),
     ),
   );
@@ -92,16 +89,13 @@ Future<void> showExtendSheet(
         p,
   ];
   if (options.isEmpty) return onMessage('It cannot move later today.');
-  final preset = await showModalBottomSheet<DeadlinePreset>(
-    context: context,
-    backgroundColor: context.palette.shell,
-    builder: (sheet) => SafeArea(
-      child: ExtendSheet(
-        options: options,
-        costsFlask: c.extensions >= 1,
-        flasks: flasks,
-        onExtend: (p) => Navigator.pop(sheet, p),
-      ),
+  final preset = await showGlassSheet<DeadlinePreset>(
+    context,
+    (sheet) => ExtendSheet(
+      options: options,
+      costsFlask: c.extensions >= 1,
+      flasks: flasks,
+      onExtend: (p) => Navigator.pop(sheet, p),
     ),
   );
   if (preset == null) return;

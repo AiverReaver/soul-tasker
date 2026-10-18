@@ -4,12 +4,12 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/clock.dart';
 import '../../core/deadlines.dart';
-import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/confirm_dialog.dart';
 import '../../ui/deadline_chip.dart';
+import '../../ui/foe_actions_sheet.dart';
 import '../commit/commit_flow.dart';
 import '../fallen/health_fall.dart';
 import '../strike/boss_vanish.dart';
@@ -95,6 +95,29 @@ class TaskRow extends ConsumerWidget {
     }
   }
 
+  Future<void> _openActions(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool canPromise,
+    required bool canExtend,
+  }) async {
+    final action = await showGlassFoeActions(
+      context,
+      title: view.task.title,
+      canPromise: canPromise,
+      canExtend: canExtend,
+      canTry: !view.isStruck,
+    );
+    if (action == null || !context.mounted) return;
+    await _act(context, ref, switch (action) {
+      FoeAction.promise => _Action.promise,
+      FoeAction.extend => _Action.extend,
+      FoeAction.tried => _Action.tried,
+      FoeAction.edit => _Action.edit,
+      FoeAction.delete => _Action.delete,
+    });
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final task = view.task;
@@ -124,29 +147,11 @@ class TaskRow extends ConsumerWidget {
       deadline: label == null
           ? null
           : DeadlineChip(label: label.text, isSoon: label.isSoon),
-      menu: PopupMenuButton<_Action>(
-        tooltip: 'Actions for ${task.title}',
-        iconColor: context.palette.ash,
-        onSelected: (a) => _act(context, ref, a),
-        itemBuilder: (_) => [
-          if (canCommit && promise == null && !view.isStruck)
-            const PopupMenuItem(
-              value: _Action.promise,
-              child: Text('Promise by…'),
-            ),
-          if (canExtend)
-            const PopupMenuItem(
-              value: _Action.extend,
-              child: Text('Move it later'),
-            ),
-          if (!view.isStruck)
-            const PopupMenuItem(
-              value: _Action.tried,
-              child: Text('Mark as tried'),
-            ),
-          const PopupMenuItem(value: _Action.edit, child: Text('Edit')),
-          const PopupMenuItem(value: _Action.delete, child: Text('Delete')),
-        ],
+      onOpenActions: () => _openActions(
+        context,
+        ref,
+        canPromise: canCommit && promise == null && !view.isStruck,
+        canExtend: canExtend,
       ),
     );
   }

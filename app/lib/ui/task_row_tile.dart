@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show kTouchSlop;
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
@@ -10,7 +11,7 @@ import 'stroke_icon.dart';
 enum RowPhase { idle, charge, hit, shatter, settle }
 
 /// A foe row: weight pips, title, a meta line, then the hold button in
-/// [trailing]. A struck row swaps the button for a silk check, wears the
+/// [trailing]; tapping the rest of the row calls [onTap]. A struck row swaps the button for a silk check, wears the
 /// struck colours and draws an ink line through its title. Pure
 /// presentation; hold logic lives in `features/strike/hold_to_strike.dart`.
 class TaskRowTile extends StatelessWidget {
@@ -23,7 +24,7 @@ class TaskRowTile extends StatelessWidget {
     this.phase = RowPhase.idle,
     this.sweep,
     this.trailing,
-    this.menu,
+    this.onTap,
     this.deadline,
   });
 
@@ -43,8 +44,8 @@ class TaskRowTile extends StatelessWidget {
   /// The hold button.
   final Widget? trailing;
 
-  /// A row menu, left of the button.
-  final Widget? menu;
+  /// Tapping the row away from the button: opens the foe's actions.
+  final VoidCallback? onTap;
 
   /// The commitment's chip, when the task is promised today.
   final Widget? deadline;
@@ -87,90 +88,133 @@ class TaskRowTile extends StatelessWidget {
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: NeedleFrame(
-        tier: Cut.md,
-        edge: isDone
-            ? p.struckEdge
-            : phase == RowPhase.charge
-            ? p.silk
-            : null,
-        fill: isHit
-            ? p.bone
-            : isDone
-            ? p.struckBg
-            : null,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 64),
-          child: Padding(
-            padding: const EdgeInsets.only(left: Space.md, right: Space.sm),
-            child: Row(
-              spacing: 14,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 4,
-                  children: [
-                    for (var i = 0; i < pips; i++)
-                      DiamondPip(color: isDone ? p.dim : p.silk),
-                  ],
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: Space.sm),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Stack(
-                          alignment: Alignment.centerLeft,
-                          children: [
-                            Text(title, style: titleStyle),
-                            if (isDone)
-                              Positioned.fill(
-                                child: Center(
-                                  child: ColoredBox(
-                                    key: const ValueKey('row-ink-line'),
-                                    color: p.ink,
-                                    child: const SizedBox(
-                                      height: 1.5,
-                                      width: double.infinity,
+      child: _TapRegion(
+        onTap: onTap,
+        builder: (absorb) => NeedleFrame(
+          tier: Cut.md,
+          edge: isDone
+              ? p.struckEdge
+              : phase == RowPhase.charge
+              ? p.silk
+              : null,
+          fill: isHit
+              ? p.bone
+              : isDone
+              ? p.struckBg
+              : null,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.only(left: Space.md, right: Space.sm),
+              child: Row(
+                spacing: 14,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 4,
+                    children: [
+                      for (var i = 0; i < pips; i++)
+                        DiamondPip(color: isDone ? p.dim : p.silk),
+                    ],
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: Space.sm),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
+                            alignment: Alignment.centerLeft,
+                            children: [
+                              Text(title, style: titleStyle),
+                              if (isDone)
+                                Positioned.fill(
+                                  child: Center(
+                                    child: ColoredBox(
+                                      key: const ValueKey('row-ink-line'),
+                                      color: p.ink,
+                                      child: const SizedBox(
+                                        height: 1.5,
+                                        width: double.infinity,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                        Text(
-                          meta,
-                          style: text.bodySmall!.copyWith(
-                            fontSize: 13,
-                            height: 18 / 13,
-                            color: ink ?? p.ash,
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                ?deadline,
-                ?menu,
-                if (isDone)
-                  SizedBox.square(
-                    dimension: 48,
-                    child: Center(
-                      child: StrokeIcon(
-                        key: const ValueKey('row-check'),
-                        path: StrokeIcons.check,
-                        color: p.silk,
+                          Text(
+                            meta,
+                            style: text.bodySmall!.copyWith(
+                              fontSize: 13,
+                              height: 18 / 13,
+                              color: ink ?? p.ash,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                else
-                  ?trailing,
-              ],
+                  ),
+                  ?deadline,
+                  if (isDone)
+                    SizedBox.square(
+                      dimension: 48,
+                      child: Center(
+                        child: StrokeIcon(
+                          key: const ValueKey('row-check'),
+                          path: StrokeIcons.check,
+                          color: p.silk,
+                        ),
+                      ),
+                    )
+                  else if (trailing case final trailing?)
+                    absorb(trailing),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Turns a quick press on the row into [onTap] without joining the gesture
+/// arena, so a drag that starts on the row still scrolls the list. A press
+/// that starts on a child wrapped with `absorb` (the hold button) is not a
+/// row tap.
+class _TapRegion extends StatefulWidget {
+  const _TapRegion({required this.onTap, required this.builder});
+
+  final VoidCallback? onTap;
+  final Widget Function(Widget Function(Widget child) absorb) builder;
+
+  @override
+  State<_TapRegion> createState() => _TapRegionState();
+}
+
+class _TapRegionState extends State<_TapRegion> {
+  Offset? _down;
+  bool _absorbed = false;
+
+  Widget _absorb(Widget child) =>
+      Listener(onPointerDown: (_) => _absorbed = true, child: child);
+
+  @override
+  Widget build(BuildContext context) => Listener(
+    behavior: HitTestBehavior.opaque,
+    onPointerDown: (e) {
+      // Children run first: an absorbed press has already set the flag.
+      _down = _absorbed ? null : e.position;
+      _absorbed = false;
+    },
+    onPointerUp: (e) {
+      final down = _down;
+      _down = null;
+      if (down != null && (e.position - down).distance <= kTouchSlop) {
+        widget.onTap?.call();
+      }
+    },
+    onPointerCancel: (_) => _down = null,
+    child: widget.builder(_absorb),
+  );
 }

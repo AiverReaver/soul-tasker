@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
 import '../support/boss_actions.dart';
+import '../support/foe_actions.dart';
 import 'pump.dart';
 
 void main() {
@@ -117,12 +118,9 @@ void main() {
   testWidgets('mark as tried shows the quiet line', (tester) async {
     final h = Harness();
     final view = await h.seed();
-    await pumpApp(tester, h, location: '/boss/${view.boss.id}');
+    await pumpApp(tester, h, location: '/boss/${view.boss.id}', tall: true);
 
-    await tester.tap(find.byTooltip('Actions for Read chapter 4'));
-    await settle(tester);
-    await tester.tap(find.text('Mark as tried'));
-    await settle(tester);
+    await tapFoeAction(tester, 'Read chapter 4', 'Mark as tried');
 
     expect(find.text('You tried. That counts.'), findsOneWidget);
     await tearDownApp(tester, h);

@@ -9,6 +9,7 @@ import 'package:hearthrise/data/health_dao.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
+import '../support/foe_actions.dart';
 import 'pump.dart';
 
 // Starts 2026-10-14 08:00, the day after install, so no missed day is
@@ -188,10 +189,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
 
-    await tester.tap(find.byTooltip('Actions for A T0'));
-    await settle(tester);
-    await tester.tap(find.text('Mark as tried'));
-    await settle(tester);
+    await tapFoeAction(tester, 'A T0', 'Mark as tried');
 
     expect(find.text('Fallen.'), findsOneWidget);
     expect(find.text('One promised, none kept.'), findsOneWidget);
@@ -217,17 +215,7 @@ void main() {
 
     // The deadlines pass between ticks; the strike settles them first.
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
-    final tip = find.byTooltip('Actions for A T5');
-    if (tip.evaluate().isEmpty) {
-      await tester.scrollUntilVisible(tip, 100);
-    } else {
-      await tester.ensureVisible(tip);
-    }
-    await settle(tester);
-    await tester.tap(find.byTooltip('Actions for A T5'));
-    await settle(tester);
-    await tester.tap(find.text('Mark as tried'));
-    await settle(tester);
+    await tapFoeAction(tester, 'A T5', 'Mark as tried');
 
     expect(find.text('Fallen.'), findsOneWidget);
     await tester.tap(find.text('Rest first'));

@@ -23,7 +23,7 @@ class HoldToStrike extends ConsumerStatefulWidget {
     required this.onStrike,
     this.onTried,
     this.tapMode = false,
-    this.menu,
+    this.onOpenActions,
     this.deadline,
     this.bossName,
   });
@@ -38,8 +38,8 @@ class HoldToStrike extends ConsumerStatefulWidget {
   final VoidCallback? onTried;
   final bool tapMode;
 
-  /// Shown left of the hold button, e.g. the task's action menu.
-  final Widget? menu;
+  /// Tapping the row away from the hold button.
+  final VoidCallback? onOpenActions;
 
   /// Opens the meta line: "{bossName} · +N embers".
   final String? bossName;
@@ -261,7 +261,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
                   ],
                 )
               : null,
-          menu: widget.menu,
+          onTap: widget.onOpenActions,
           deadline: widget.deadline,
           trailing: _button(context),
         ),

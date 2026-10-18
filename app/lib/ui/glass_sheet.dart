@@ -105,11 +105,13 @@ class GlassSheet extends StatelessWidget {
   }
 }
 
-/// Shows [builder] (a [GlassSheet]) over a 62% ink scrim.
+/// Shows [builder] (a [GlassSheet]) over a 62% ink scrim. It goes on the
+/// root navigator, so it covers the floating tab bar.
 Future<T?> showGlassSheet<T>(BuildContext context, WidgetBuilder builder) =>
     showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
