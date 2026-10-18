@@ -13,13 +13,21 @@ class GlassAlert extends StatelessWidget {
   const GlassAlert({
     super.key,
     required this.title,
-    required this.body,
+    this.body,
+    this.content,
     required this.actions,
     this.label,
-  });
+    this.onAction,
+  }) : assert(body != null || content != null);
 
   final String title;
-  final String body;
+  final String? body;
+
+  /// Replaces [body] with a widget, such as framed rows.
+  final Widget? content;
+
+  /// Called with the action's index instead of popping the route.
+  final ValueChanged<int>? onAction;
   final String? label;
   final List<String> actions;
 
@@ -68,11 +76,12 @@ class GlassAlert extends StatelessWidget {
                             ),
                           ),
                           const ThreadDivider(),
-                          Text(
-                            body,
-                            textAlign: TextAlign.center,
-                            style: text.bodyMedium!.copyWith(color: p.ash),
-                          ),
+                          content ??
+                              Text(
+                                body!,
+                                textAlign: TextAlign.center,
+                                style: text.bodyMedium!.copyWith(color: p.ash),
+                              ),
                         ],
                       ),
                     ),
@@ -88,16 +97,19 @@ class GlassAlert extends StatelessWidget {
     );
   }
 
+  void _act(BuildContext context, int i) =>
+      onAction != null ? onAction!(i) : Navigator.of(context).pop(i);
+
   Widget _row(BuildContext context, int i, String action) {
     final p = context.palette;
     return Semantics(
       button: true,
       label: action,
-      onTap: () => Navigator.of(context).pop(i),
+      onTap: () => _act(context, i),
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.of(context).pop(i),
+        onTap: () => _act(context, i),
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: i == 0 ? p.silk.withValues(alpha: .28) : null,

@@ -7,6 +7,7 @@ import 'package:hearthrise/ui/commit_sheet.dart';
 import 'package:hearthrise/ui/deadline_chip.dart';
 import 'package:hearthrise/ui/extend_sheet.dart';
 import 'package:hearthrise/ui/player_health_bar.dart';
+import 'package:hearthrise/ui/glass_alert.dart';
 import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -188,10 +189,10 @@ void main() {
           onClose: () {},
         ),
       );
-      expect(
-        find.text('While you were away, two deadlines passed.'),
-        findsOneWidget,
-      );
+      expect(find.text('Two deadlines passed.'), findsOneWidget);
+      expect(find.text('WHILE YOU WERE AWAY'), findsOneWidget);
+      expect(find.byType(GlassAlert), findsOneWidget);
+      expect(find.byType(NeedleFrame), findsNWidgets(2)); // one per row
       expect(find.text('−2 health'), findsOneWidget);
       await tester.tap(find.text('Done late').first);
       expect(late, 'c1');
@@ -208,10 +209,7 @@ void main() {
           onClose: () {},
         ),
       );
-      expect(
-        find.text('While you were away, a deadline passed.'),
-        findsOneWidget,
-      );
+      expect(find.text('A deadline passed.'), findsOneWidget);
       expect(find.text('Done late'), findsNothing);
     });
   });
@@ -258,6 +256,20 @@ void main() {
       );
       expect(find.byType(Text), findsNothing);
     });
+  });
+
+  testWidgets('AwaySummary: Go on closes it', (tester) async {
+    var closed = 0;
+    await _pump(
+      tester,
+      AwaySummary(
+        rows: const [AwayRow(id: 'c1', title: 'Walk', cost: 'frozen')],
+        onDoneLate: (_) {},
+        onClose: () => closed++,
+      ),
+    );
+    await tester.tap(find.text('Go on'));
+    expect(closed, 1);
   });
 
   testWidgets('AwaySummary scrolls when many deadlines passed', (tester) async {

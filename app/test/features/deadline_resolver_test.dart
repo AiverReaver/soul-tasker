@@ -64,10 +64,7 @@ void main() {
     h.clock.now = DateTime(2026, 10, 14, 12);
     await pumpApp(tester, h, tall: true);
 
-    expect(
-      find.text('While you were away, two deadlines passed.'),
-      findsOneWidget,
-    );
+    expect(find.text('Two deadlines passed.'), findsOneWidget);
     expect(find.text('−2 health'), findsNWidgets(2));
     await tester.tap(find.text('Done late').first);
     await settle(tester);
@@ -169,10 +166,7 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await settle(tester);
     expect(await health.health('2026-10-14'), 16);
-    expect(
-      find.text('While you were away, a deadline passed.'),
-      findsOneWidget,
-    );
+    expect(find.text('A deadline passed.'), findsOneWidget);
     await tester.tap(find.text('Go on'));
     await settle(tester);
     await tearDownApp(tester, h);
