@@ -11,7 +11,8 @@ import '../../ui/inscription_field.dart';
 import '../../ui/lesson_timeline.dart';
 import '../../ui/needle_frame.dart';
 import '../../ui/relic_emblem.dart';
-import '../../ui/victory_numbers.dart';
+import '../../ui/stat_row.dart';
+import '../../ui/thread_divider.dart';
 
 /// How long the whole reveal takes; five sections fade in one after another.
 const _reveal = Duration(milliseconds: 5000);
@@ -101,6 +102,8 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Center(child: RelicEmblem(weathering: relic.emblem, size: 140)),
+          const SizedBox(height: Space.md),
           _fadeIn(
             0,
             Text(
@@ -109,16 +112,47 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
               style: text.displayMedium?.copyWith(fontSize: 42),
             ),
           ),
-          const SizedBox(height: Space.lg),
+          const SizedBox(height: Space.md),
+          const Center(child: SizedBox(width: 200, child: ThreadDivider())),
+          const SizedBox(height: Space.md),
           _fadeIn(
             1,
-            VictoryNumbers(
-              attempts: relic.attempts,
-              days: relic.days,
-              effort: relic.effort,
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.end,
+              spacing: 12,
+              children: [
+                Text('Taken in', style: text.bodyMedium),
+                Text(
+                  '${relic.attempts}',
+                  key: const ValueKey('victory-attempts'),
+                  style: text.displayMedium?.copyWith(fontSize: 88, height: 1),
+                ),
+                Text(
+                  relic.attempts == 1 ? 'attempt' : 'attempts',
+                  style: text.bodyMedium,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: Space.lg),
+          const SizedBox(height: Space.md),
+          _fadeIn(
+            1,
+            StatRow(
+              stats: [
+                Stat('${relic.days}', 'Days'),
+                Stat('${relic.effort}', 'Embers'),
+              ],
+            ),
+          ),
+          if (view.story.lessons.isNotEmpty) ...[
+            const SizedBox(height: Space.lg),
+            Text(
+              'What the falls taught you',
+              style: text.titleMedium?.copyWith(fontSize: 22, height: 28 / 22),
+            ),
+            const SizedBox(height: Space.sm),
+          ],
           _fadeIn(
             2,
             LessonTimeline(
@@ -129,23 +163,6 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
                     text: l.text,
                     isMissedDay: l.cause == FallCause.missedDay,
                   ),
-              ],
-            ),
-          ),
-          const SizedBox(height: Space.xl),
-          _fadeIn(
-            3,
-            Column(
-              children: [
-                Text('A relic remains.', style: text.titleMedium),
-                const SizedBox(height: Space.md),
-                RelicEmblem(weathering: relic.emblem),
-                const SizedBox(height: Space.md),
-                Text(
-                  relic.name,
-                  textAlign: TextAlign.center,
-                  style: text.bodyLarge,
-                ),
               ],
             ),
           ),

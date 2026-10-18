@@ -117,15 +117,12 @@ void main() {
     await tester.tap(find.text('The Certification'));
     await settle(tester);
 
-    expect(
-      tester.widget<Text>(find.byKey(const ValueKey('victory-attempts'))).data,
-      '3',
-    );
-    expect(find.text('attempts'), findsOneWidget);
+    expect(find.text('Attempts'), findsOneWidget);
     expect(find.text('3 attempts. Every one of them counted.'), findsOneWidget);
-    expect(find.textContaining('Attempt 1. Lesson 1.'), findsOneWidget);
-    expect(find.textContaining('Attempt 2. Lesson 2.'), findsOneWidget);
-    expect(find.text('Relic of The Certification'), findsOneWidget);
+    expect(find.text('Lesson 1.'), findsOneWidget);
+    expect(find.text('Lesson 2.'), findsOneWidget);
+    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('Relic of The Certification'), findsNothing);
     expect(find.byType(GlassCircleButton), findsOneWidget); // back
     expect(find.text('What the falls taught you'), findsOneWidget);
     expect(find.text('0 / 120'), findsOneWidget);
@@ -170,9 +167,9 @@ void main() {
     await h.bosses.deleteBoss((await h.bosses.loadAll()).single.boss.id);
     await pumpApp(tester, h, location: '/relic/$id');
 
-    expect(find.text('Relic of The Certification'), findsOneWidget);
+    expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('2 attempts. Every one of them counted.'), findsOneWidget);
-    expect(find.textContaining('Attempt 1. Lesson 1.'), findsOneWidget);
+    expect(find.text('Lesson 1.'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }

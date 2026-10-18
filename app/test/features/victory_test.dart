@@ -43,7 +43,6 @@ void main() {
     await _strikeAndConfirm(tester);
 
     expect(find.text('The Certification falls.'), findsOneWidget);
-    expect(find.text('A relic remains.'), findsOneWidget);
     expect(await h.db.select(h.db.relics).get(), hasLength(1));
     await tearDownApp(tester, h);
   });
@@ -60,7 +59,6 @@ void main() {
     await settle(tester);
 
     expect(find.text('The Certification falls.'), findsOneWidget);
-    expect(find.text('A relic remains.'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -77,7 +75,7 @@ void main() {
     await tester.tap(find.text('Keep as a relic'));
     await settle(tester);
 
-    expect(find.text('Relic of The Certification'), findsWidgets);
+    expect(find.text('The Certification'), findsWidgets);
     expect(find.text('The Certification falls.'), findsNothing);
     await tearDownApp(tester, h);
   });
@@ -97,7 +95,6 @@ void main() {
     await tester.tap(find.text('Not yet'));
     await settle(tester);
 
-    expect(find.text('A relic remains.'), findsNothing);
     expect((await h.reload(id)).boss.status, BossStatus.active);
     expect(await h.db.select(h.db.relics).get(), isEmpty);
     await tearDownApp(tester, h);
@@ -120,14 +117,13 @@ void main() {
       '3',
     );
     expect(find.text('attempts'), findsOneWidget);
-    expect(find.text('1 day'), findsOneWidget);
-    expect(find.text('3 embers of effort'), findsOneWidget);
-    final first = find.textContaining('Attempt 1. Started too late.');
-    final second = find.textContaining('Attempt 2. Skipped the warm-up.');
+    expect(find.text('Days'), findsOneWidget);
+    expect(find.text('Embers'), findsOneWidget);
+    final first = find.text('Started too late.');
+    final second = find.text('Skipped the warm-up.');
     expect(first, findsOneWidget);
     expect(tester.getTopLeft(first).dy, lessThan(tester.getTopLeft(second).dy));
     expect(find.bySemanticsLabel('A worn emblem'), findsOneWidget);
-    expect(find.text('Relic of The Certification'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -148,7 +144,6 @@ void main() {
 
     final relic = (await h.db.select(h.db.relics).get()).single;
     expect(relic.inscription, 'Patience.');
-    expect(find.text('A relic remains.'), findsNothing);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     await tearDownApp(tester, h);
   });
@@ -198,7 +193,6 @@ void main() {
     await pumpApp(tester, h, location: '/boss/$id');
     await _strikeAndConfirm(tester);
 
-    expect(find.text('A relic remains.'), findsOneWidget);
     expect(sent, isEmpty);
     await tearDownApp(tester, h);
   });

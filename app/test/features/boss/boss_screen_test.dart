@@ -51,10 +51,7 @@ void main() {
       find.text('Boss health'),
       find.byType(BossStage),
     ]) {
-      expect(
-        find.descendant(of: panel, matching: inside),
-        findsOneWidget,
-      );
+      expect(find.descendant(of: panel, matching: inside), findsOneWidget);
     }
     await tearDownApp(tester, h);
   });

@@ -127,10 +127,10 @@ void main() {
       '3',
     );
     expect(find.text('attempts'), findsOneWidget);
-    expect(find.text('3 days'), findsOneWidget);
-    expect(find.text('$earned embers of effort'), findsOneWidget);
-    final first = find.textContaining('Attempt 1. Started too late.');
-    final second = find.textContaining('Attempt 2. Skipped the warm-up.');
+    expect(find.text('Days'), findsOneWidget);
+    expect(find.text('$earned'), findsOneWidget);
+    final first = find.text('Started too late.');
+    final second = find.text('Skipped the warm-up.');
     expect(first, findsOneWidget);
     expect(tester.getTopLeft(first).dy, lessThan(tester.getTopLeft(second).dy));
     expect(find.bySemanticsLabel('A worn emblem'), findsOneWidget);
@@ -185,7 +185,7 @@ void main() {
     expect(find.text('The Certification'), findsOneWidget);
     await tester.tap(find.text('The Certification'));
     await settle(tester);
-    expect(find.textContaining('Attempt 1. Started too late.'), findsOneWidget);
+    expect(find.text('Started too late.'), findsOneWidget);
     expect(find.text('3 attempts. Every one of them counted.'), findsOneWidget);
     await tester.ensureVisible(find.byType(TextField));
     await tester.enterText(find.byType(TextField), 'Patience, earned.');

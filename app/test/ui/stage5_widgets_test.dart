@@ -8,7 +8,6 @@ import 'package:hearthrise/ui/level_line.dart';
 import 'package:hearthrise/ui/onboarding_page.dart';
 import 'package:hearthrise/ui/relic_emblem.dart';
 import 'package:hearthrise/ui/relic_tile.dart';
-import 'package:hearthrise/ui/victory_numbers.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
@@ -46,31 +45,6 @@ void main() {
     });
   });
 
-  group('VictoryNumbers', () {
-    testWidgets('plural copy', (tester) async {
-      await _pump(
-        tester,
-        const VictoryNumbers(attempts: 3, days: 12, effort: 48),
-      );
-      expect(find.text('3'), findsOneWidget); // the 88 px numeral
-      expect(tester.widget<Text>(find.text('3')).style?.fontSize, 88);
-      expect(find.text('attempts'), findsOneWidget);
-      expect(find.text('12 days'), findsOneWidget);
-      expect(find.text('48 embers of effort'), findsOneWidget);
-    });
-
-    testWidgets('singular copy, never "first try"', (tester) async {
-      await _pump(
-        tester,
-        const VictoryNumbers(attempts: 1, days: 1, effort: 1),
-      );
-      expect(find.text('attempt'), findsOneWidget);
-      expect(find.text('1 day'), findsOneWidget);
-      expect(find.text('1 ember of effort'), findsOneWidget);
-      expect(find.textContaining('first try'), findsNothing);
-    });
-  });
-
   group('LessonTimeline', () {
     testWidgets('rows in order with a quiet missed-day marker', (tester) async {
       await _pump(
@@ -82,11 +56,14 @@ void main() {
           ],
         ),
       );
-      expect(
-        find.textContaining('Attempt 1. Started too late.'),
-        findsOneWidget,
+      expect(find.text('I'), findsOneWidget);
+      expect(find.text('II'), findsOneWidget);
+      final line = tester.widget<Text>(
+        find.textContaining('Started too late.'),
       );
-      expect(find.textContaining('Attempt 2. Rushed it.'), findsOneWidget);
+      expect(line.style?.fontStyle, FontStyle.italic);
+      expect(line.style?.fontFamily, 'CormorantGaramond');
+      expect(find.textContaining('Rushed it.'), findsOneWidget);
       expect(find.textContaining('a missed day'), findsOneWidget);
     });
 
@@ -107,7 +84,8 @@ void main() {
         tester,
         InscriptionField(controller: c, onSaved: (t) => saved = t),
       );
-      expect(find.text('What did this fight make of you?'), findsOneWidget);
+      expect(find.text('Inscription'), findsOneWidget);
+      expect(find.text('A line to remember this by'), findsOneWidget);
       expect(find.text('0 / $kInscriptionMax'), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Patience.');
       await tester.tap(find.text('Save'));

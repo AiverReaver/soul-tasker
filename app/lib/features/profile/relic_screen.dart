@@ -12,7 +12,8 @@ import '../../ui/inscription_field.dart';
 import '../../ui/lesson_timeline.dart';
 import '../../ui/relic_emblem.dart';
 import '../../ui/stroke_icon.dart';
-import '../../ui/victory_numbers.dart';
+import '../../ui/stat_row.dart';
+import '../../ui/thread_divider.dart';
 
 /// "3 attempts. Every one of them counted." One attempt reads "One attempt.
 /// It counted."
@@ -90,9 +91,9 @@ class _RelicScreenState extends ConsumerState<RelicScreen> {
           Center(child: RelicEmblem(weathering: relic.emblem)),
           const SizedBox(height: Space.md),
           Text(
-            relic.name,
+            relic.name.replaceFirst('Relic of ', ''),
             textAlign: TextAlign.center,
-            style: text.displaySmall,
+            style: text.displaySmall?.copyWith(fontSize: 40, height: 44 / 40),
           ),
           const SizedBox(height: Space.xs),
           Text(
@@ -105,10 +106,14 @@ class _RelicScreenState extends ConsumerState<RelicScreen> {
             Text(meaning, textAlign: TextAlign.center, style: text.bodySmall),
           ],
           const SizedBox(height: Space.lg),
-          VictoryNumbers(
-            attempts: relic.attempts,
-            days: relic.days,
-            effort: relic.effort,
+          const Center(child: SizedBox(width: 200, child: ThreadDivider())),
+          const SizedBox(height: Space.md),
+          StatRow(
+            stats: [
+              Stat('${relic.attempts}', 'Attempts'),
+              Stat('${relic.days}', 'Days'),
+              Stat('${relic.effort}', 'Effort'),
+            ],
           ),
           const SizedBox(height: Space.md),
           Text(
@@ -126,7 +131,11 @@ class _RelicScreenState extends ConsumerState<RelicScreen> {
           ],
           if (view.story.lessons.isNotEmpty) ...[
             const SizedBox(height: Space.lg),
-            Text('What the falls taught you', style: text.titleMedium),
+            Text(
+              'What the falls taught you',
+              style: text.titleMedium?.copyWith(fontSize: 22, height: 28 / 22),
+            ),
+            const SizedBox(height: Space.sm),
           ],
           LessonTimeline(
             lessons: [
