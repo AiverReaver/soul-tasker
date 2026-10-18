@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme.dart';
+import '../../core/clock.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
@@ -24,7 +25,28 @@ class BossCard extends ConsumerWidget {
     final current = view.currentPhase;
     return current == null
         ? 'All phases done'
-        : 'Phase ${fighting.indexOf(current) + 1} of ${fighting.length}';
+        : 'Phase ${_roman(fighting.indexOf(current) + 1)} of '
+              '${_roman(fighting.length)}';
+  }
+
+  static String _roman(int n) {
+    const parts = {10: 'X', 9: 'IX', 5: 'V', 4: 'IV', 1: 'I'};
+    var rest = n;
+    final out = StringBuffer();
+    for (final MapEntry(:key, :value) in parts.entries) {
+      while (rest >= key) {
+        out.write(value);
+        rest -= key;
+      }
+    }
+    return out.toString();
+  }
+
+  String? _daysLeft(DateTime now) {
+    final target = view.boss.targetDate;
+    if (target == null || !target.isAfter(now)) return null;
+    final days = (target.difference(now).inHours / 24).ceil();
+    return days == 1 ? '1 day left' : '$days days left';
   }
 
   Future<void> _actions(BuildContext context, WidgetRef ref) async {
@@ -75,7 +97,11 @@ class BossCard extends ConsumerWidget {
     if (boss.isPinned && boss.status == BossStatus.active) {
       return PinnedBossPanel(
         title: boss.title,
-        subtitle: 'Attempt ${boss.attemptNumber} · $_progress',
+        subtitle: [
+          _progress,
+          'Attempt ${boss.attemptNumber}',
+          ?_daysLeft(ref.read(clockProvider)()),
+        ].join(' · '),
         health: view.health,
         boilFrame: Atmosphere.boilFrameOf(context),
         onEnter: () => context.push('/boss/${boss.id}'),

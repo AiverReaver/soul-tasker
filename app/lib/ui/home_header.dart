@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import 'diamond_pip.dart';
+import 'glass_circle_button.dart';
+import 'level_badge.dart';
+import 'stroke_icon.dart';
 
 /// "Morning.", "Afternoon." or "Evening." for a local [hour].
 String greetingFor(int hour) => hour >= 5 && hour < 12
@@ -10,8 +12,8 @@ String greetingFor(int hour) => hour >= 5 && hour < 12
     ? 'Afternoon.'
     : 'Evening.';
 
-/// Home's top: the date, a serif greeting, banked embers and the level with
-/// its five-bar meter. Values in, nothing out.
+/// Home's top: the date and a serif greeting on the left, the profile and
+/// settings circles on the right, then the level badge. Values in, taps out.
 class HomeHeader extends StatelessWidget {
   const HomeHeader({
     super.key,
@@ -20,6 +22,9 @@ class HomeHeader extends StatelessWidget {
     required this.embers,
     required this.level,
     required this.levelBars,
+    required this.percentToNext,
+    required this.onProfile,
+    required this.onSettings,
   });
 
   final String dateLine;
@@ -29,44 +34,51 @@ class HomeHeader extends StatelessWidget {
 
   /// 0 to 5 lit bars.
   final int levelBars;
+  final int percentToNext;
+  final VoidCallback onProfile;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final p = context.palette;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.md),
+      key: const ValueKey('home-header'),
+      padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: Space.sm,
         children: [
-          Text(dateLine, style: text.labelSmall),
-          const SizedBox(height: Space.xs),
-          Text(greeting, style: text.displaySmall),
-          const SizedBox(height: Space.sm),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DiamondPip(color: p.silk),
-              const SizedBox(width: Space.sm),
-              Text('$embers', style: text.bodyMedium),
-              const Spacer(),
-              Text('Level $level', style: text.bodySmall),
-              const SizedBox(width: Space.sm),
-              for (var i = 0; i < 5; i++)
-                Padding(
-                  key: ValueKey('level-slot-$i'),
-                  padding: const EdgeInsets.only(left: 2),
-                  child: Container(
-                    key: ValueKey(
-                      i < levelBars ? 'level-bar-on' : 'level-bar-off',
-                    ),
-                    width: 10,
-                    height: 4,
-                    color: i < levelBars
-                        ? p.silk
-                        : p.dim.withValues(alpha: 0.35),
-                  ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(dateLine, style: text.labelSmall),
+                    const SizedBox(height: Space.xs),
+                    Text(greeting, style: text.displaySmall),
+                  ],
                 ),
+              ),
+              GlassCircleButton(
+                icon: StrokeIcons.profile,
+                semanticLabel: 'Your profile',
+                onTap: onProfile,
+              ),
+              const SizedBox(width: Space.sm),
+              GlassCircleButton(
+                icon: StrokeIcons.settings,
+                semanticLabel: 'Settings',
+                onTap: onSettings,
+              ),
             ],
+          ),
+          LevelBadge(
+            level: level,
+            embers: embers,
+            percentToNext: percentToNext,
+            bars: levelBars,
           ),
         ],
       ),

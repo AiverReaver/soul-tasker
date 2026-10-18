@@ -6,6 +6,8 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
+import '../../ui/glass_pill_button.dart';
+import '../../ui/glass_tab_bar.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/plan_banner.dart';
 import '../../ui/thread_divider.dart';
@@ -27,10 +29,23 @@ List<TaskView> todayTasks(BossView view) {
 
 /// Today: tasks from every active boss, grouped by boss, with a filter.
 class TodayView extends ConsumerStatefulWidget {
-  const TodayView({super.key, required this.bosses, required this.tapMode});
+  const TodayView({
+    super.key,
+    required this.bosses,
+    required this.tapMode,
+    this.leading = const [],
+    this.onNewFoe,
+  });
 
   final List<BossView> bosses;
   final bool tapMode;
+
+  /// Shown above the list (Home's header and panels).
+  final List<Widget> leading;
+
+  /// When set, the title row carries a "New foe" button and the count line
+  /// reads "N of M struck" (Home); otherwise Today's long form.
+  final VoidCallback? onNewFoe;
 
   @override
   ConsumerState<TodayView> createState() => _TodayViewState();
@@ -62,20 +77,27 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final open = [
       for (final (_, tasks) in groups) ...tasks.where((t) => !t.isStruck),
     ].length;
+    final isHome = widget.onNewFoe != null;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+      padding: EdgeInsets.fromLTRB(
+        isHome ? 0 : 20,
+        0,
+        isHome ? 0 : 20,
+        GlassTabBar.clearance + Space.md,
+      ),
       children: [
-        if (health != null)
+        ...widget.leading,
+        if (health != null && !isHome)
           Padding(
             padding: const EdgeInsets.only(bottom: Space.sm),
             child: PlayerHealthBar(health: health, max: kMaxHealthHalfPoints),
           ),
-        if (tally != null)
+        if (tally != null && !isHome)
           Padding(
             padding: const EdgeInsets.only(bottom: Space.sm),
             child: EmberTally(carried: tally.carried, banked: tally.banked),
           ),
-        if (picks.isNotEmpty)
+        if (picks.isNotEmpty && !isHome)
           Padding(
             padding: const EdgeInsets.only(bottom: Space.md),
             child: PlanBanner(
@@ -100,16 +122,34 @@ class _TodayViewState extends ConsumerState<TodayView> {
             ),
           ),
         FlashLine(_flash),
-        Text('Today’s foes', style: text.titleMedium),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
+          child: Row(
+            children: [
+              Expanded(child: Text('Today’s foes', style: text.titleMedium)),
+              if (isHome)
+                GlassPillButton(label: 'New foe', onTap: widget.onNewFoe),
+            ],
+          ),
+        ),
         if (open + struck > 0)
           Padding(
-            padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
+            padding: EdgeInsets.only(
+              left: isHome ? 20 : 0,
+              top: Space.xs,
+              bottom: Space.sm,
+            ),
             child: Text(
-              '$struck of ${open + struck} struck · hold to strike',
+              isHome
+                  ? '$struck of ${open + struck} struck'
+                  : '$struck of ${open + struck} struck · hold to strike',
               style: text.bodySmall,
             ),
           ),
-        const ThreadDivider(),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
+          child: const ThreadDivider(),
+        ),
         if (open == 0)
           Padding(
             padding: const EdgeInsets.only(top: Space.xl),
@@ -121,19 +161,29 @@ class _TodayViewState extends ConsumerState<TodayView> {
               style: text.bodyLarge,
             ),
           ),
-        for (final (boss, tasks) in groups) ...[
+        for (final (boss, tasks) in groups)
           Padding(
-            padding: const EdgeInsets.only(top: 20, bottom: 6),
-            child: Text(boss.boss.title.toUpperCase(), style: text.labelSmall),
-          ),
-          for (final t in tasks)
-            TaskRow(
-              view: t,
-              tapMode: widget.tapMode,
-              onMessage: _say,
-              bossName: boss.boss.title,
+            padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 6),
+                  child: Text(
+                    boss.boss.title.toUpperCase(),
+                    style: text.labelSmall,
+                  ),
+                ),
+                for (final t in tasks)
+                  TaskRow(
+                    view: t,
+                    tapMode: widget.tapMode,
+                    onMessage: _say,
+                    bossName: boss.boss.title,
+                  ),
+              ],
             ),
-        ],
+          ),
       ],
     );
   }

@@ -36,14 +36,14 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     expect(find.text("Failing is fine. Quitting isn't."), findsOneWidget);
-    expect(find.text('HEARTHRISE'), findsNothing);
+    expect(find.byKey(const ValueKey('home-header')), findsNothing);
     await tearDownApp(tester, h);
   });
 
   testWidgets('an upgraded database opens Home', (tester) async {
     final h = Harness();
     await pumpApp(tester, h);
-    expect(find.text('HEARTHRISE'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(find.text("Failing is fine. Quitting isn't."), findsNothing);
     await tearDownApp(tester, h);
   });
@@ -176,7 +176,7 @@ void main() {
       expect(reminders.calls, isNot(contains('schedule:1260')));
       expect((await h.settings.read()).reminderEnabled, isFalse);
       expect((await h.settings.device()).onboarded, isTrue);
-      expect(find.text('HEARTHRISE'), findsOneWidget);
+      expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
       await tearDownApp(tester, h);
     },
   );
@@ -231,7 +231,7 @@ void main() {
     expect(walk.recurrence, Recurrence.daily);
     expect((await h.settings.device()).onboarded, isTrue);
 
-    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Walk · daily'), findsOneWidget);
@@ -245,7 +245,7 @@ void main() {
     await tester.tap(find.text('Skip'));
     await settle(tester);
 
-    expect(find.text('No boss stands before you.'), findsOneWidget);
+    expect(find.text('Nothing stands in your way today.'), findsOneWidget);
     expect((await h.settings.device()).onboarded, isTrue);
     expect(await h.bosses.loadAll(), isEmpty);
     await tearDownApp(tester, h);
@@ -290,7 +290,7 @@ void main() {
     await tap(find.text('Begin'));
 
     expect(steps, lessThanOrEqualTo(12));
-    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }

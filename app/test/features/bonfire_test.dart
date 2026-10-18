@@ -109,12 +109,12 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the home card opens the bonfire', (tester) async {
+  testWidgets('the Bonfire tab opens the bonfire', (tester) async {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h);
 
-    await tester.tap(find.text('Rest at the bonfire'));
+    await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(find.text('BONFIRE'), findsOneWidget);
     await tearDownApp(tester, h);

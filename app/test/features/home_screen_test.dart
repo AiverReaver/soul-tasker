@@ -3,6 +3,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
+import 'package:hearthrise/ui/hold_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -23,16 +24,24 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('Level 1'), findsOneWidget);
-
-    await tester.tap(find.text('Today'));
-    await settle(tester);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Semantics &&
+            w.properties.label == 'Level 1, 0 percent to level 2',
+      ),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Your profile'), findsOneWidget);
+    expect(find.bySemanticsLabel('Settings'), findsOneWidget);
     expect(find.text('Today’s foes'), findsOneWidget);
-    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
+    expect(find.text('New foe'), findsOneWidget);
+    expect(find.byType(HoldButton), findsWidgets);
 
     await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
     await settle(tester);
-    expect(find.text('1 of 4 struck · hold to strike'), findsOneWidget);
+    expect(find.text('1 of 4 struck'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -50,8 +59,6 @@ void main() {
     );
     final view = await h.reload(id);
     await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
     await h.attempts.strike(taskNamed(view, 'Walk').task.id);
     await settle(tester);
     expect(find.text('All foes struck. Rest at the bonfire'), findsOneWidget);
@@ -67,11 +74,11 @@ void main() {
 
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Today’s foes'), findsOneWidget);
+    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
     expect(find.byType(GlassTabBar), findsOneWidget);
     await tester.tap(find.text('Home'));
     await settle(tester);
-    expect(find.text('Today’s foes'), findsNothing);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
 
     await tester.tap(find.text('Profile'));
     await settle(tester);
@@ -85,7 +92,7 @@ void main() {
 
     await tester.tap(find.text('Home'));
     await settle(tester);
-    expect(find.text('Name a new boss'), findsOneWidget);
+    expect(find.bySemanticsLabel('Your profile'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -108,9 +115,22 @@ void main() {
     await pumpApp(tester, h, tall: true);
 
     expect(find.byKey(const Key('pinned-boss-panel')), findsOneWidget);
+    expect(find.text('Phase I of II · Attempt 1'), findsOneWidget);
+    expect(find.text('Boss health'), findsOneWidget);
     await tester.tap(find.text('Enter the fight'));
     await settle(tester);
     expect(find.text('Phase I of II'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('All bosses leads to the full list', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
+    expect(find.text('Name a new boss'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }

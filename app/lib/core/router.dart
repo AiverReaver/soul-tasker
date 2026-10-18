@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../features/bonfire/bonfire_screen.dart';
 import '../features/boss/boss_screen.dart';
 import '../features/boss_edit/boss_edit_screen.dart';
+import '../features/home/bosses_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_flow.dart';
 import '../features/onboarding/start_gate.dart';
@@ -39,6 +40,7 @@ GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
         _tab('/profile', const ProfileScreen()),
       ],
     ),
+    GoRoute(path: '/bosses', builder: (_, _) => const BossesScreen()),
     GoRoute(path: '/welcome', builder: (_, _) => const OnboardingFlow()),
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     GoRoute(

@@ -236,7 +236,7 @@ void main() {
     await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
     await pumpApp(tester, h);
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
     expect(find.text('Copied.'), findsNothing);
     await tester.tap(find.text('Copy tester report'));

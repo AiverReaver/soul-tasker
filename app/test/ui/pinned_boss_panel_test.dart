@@ -29,6 +29,8 @@ void main() {
     expect(find.text('Attempt 2 · Phase 1 of 3'), findsOneWidget);
     expect(find.byType(BossArt), findsOneWidget);
     expect(find.byKey(const ValueKey('shard-on')), findsNWidgets(6));
+    expect(find.text('Boss health'), findsOneWidget);
+    expect(find.text('6 / 12'), findsOneWidget);
     expect(
       tester.widget<NeedleFrame>(find.byType(NeedleFrame).first).edge,
       Biome.pharloom.palette.deep,

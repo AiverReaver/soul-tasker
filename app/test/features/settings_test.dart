@@ -19,7 +19,7 @@ void main() {
   Future<void> open(WidgetTester tester) async {
     await pumpApp(tester, h, reminders: reminders);
     reminders.calls.clear(); // the start-up rearm is not under test here
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
   }
 

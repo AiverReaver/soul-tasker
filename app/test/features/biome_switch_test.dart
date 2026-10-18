@@ -19,7 +19,7 @@ void main() {
     await pumpApp(tester, h);
     expect(_palette(tester), Biome.pharloom.palette);
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
     await tester.drag(find.byType(ListView), const Offset(0, -2000));
     await tester.pumpAndSettle();

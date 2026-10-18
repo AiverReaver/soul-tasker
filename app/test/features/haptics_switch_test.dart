@@ -31,7 +31,7 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h);
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
     final tile = find.widgetWithText(SwitchListTile, 'Haptics');
     expect(tester.widget<SwitchListTile>(tile).value, isTrue);

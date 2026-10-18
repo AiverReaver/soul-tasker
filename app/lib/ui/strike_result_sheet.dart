@@ -8,10 +8,7 @@ import 'glass_tap_target.dart';
 /// Asks how a landed strike went, after the beats have played. Pops true for
 /// a clean strike, false for a real try; Cancel or a tap outside pops null.
 Future<bool?> showStrikeResultSheet(BuildContext context, String title) =>
-    showGlassSheet<bool>(
-      context,
-      (_) => StrikeResultSheet(title: title),
-    );
+    showGlassSheet<bool>(context, (_) => StrikeResultSheet(title: title));
 
 class StrikeResultSheet extends StatelessWidget {
   const StrikeResultSheet({super.key, required this.title});

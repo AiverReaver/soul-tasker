@@ -52,7 +52,7 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Walk · daily'), findsOneWidget);

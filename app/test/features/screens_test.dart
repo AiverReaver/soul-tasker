@@ -8,21 +8,23 @@ import '../data/harness.dart';
 import 'pump.dart';
 
 void main() {
-  testWidgets('home shows the empty state', (tester) async {
+  testWidgets('the bosses list shows the empty state', (tester) async {
     final h = Harness();
-    await pumpApp(tester, h, tall: true);
+    await pumpApp(tester, h, location: '/bosses', tall: true);
 
     expect(find.text('No boss stands before you.'), findsOneWidget);
     expect(find.text('Name a new boss'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('home lists active bosses and a waiting section', (tester) async {
+  testWidgets('the bosses list has active bosses and a waiting section', (
+    tester,
+  ) async {
     final h = Harness();
     final waiting = await h.seed();
     await h.bosses.setStatus(waiting.boss.id, BossStatus.waiting);
     await h.seed();
-    await pumpApp(tester, h, tall: true);
+    await pumpApp(tester, h, location: '/bosses', tall: true);
 
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('WAITING (1)'), findsOneWidget);

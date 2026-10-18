@@ -35,7 +35,7 @@ void main() {
   testWidgets('the Home app bar opens the profile', (tester) async {
     final h = Harness();
     await pumpApp(tester, h);
-    await tester.tap(find.byTooltip('Profile'));
+    await tester.tap(find.bySemanticsLabel('Your profile'));
     await settle(tester);
     expect(find.text('PROFILE'), findsOneWidget);
     await tearDownApp(tester, h);

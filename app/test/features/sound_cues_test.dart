@@ -82,7 +82,7 @@ void main() {
     await h.settings.setSound(true);
     await pumpApp(tester, h, overrides: [player.asOverride]);
 
-    await tester.tap(find.text('Rest at the bonfire'));
+    await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 
@@ -97,7 +97,7 @@ void main() {
     final h = Harness();
     await h.settings.setSound(true);
     await pumpApp(tester, h, overrides: [player.asOverride]);
-    await tester.tap(find.text('Rest at the bonfire'));
+    await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 

@@ -73,6 +73,18 @@ class PinnedBossPanel extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: Space.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Boss health', style: text.labelSmall),
+                    ),
+                    Text(
+                      '${shardsFor(health)} / ${ShardMeter.count}',
+                      style: text.bodySmall,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Space.xs),
                 ShardMeter(filled: shardsFor(health)),
                 const SizedBox(height: Space.md),
                 EmberButton(label: 'Enter the fight', onPressed: onEnter),

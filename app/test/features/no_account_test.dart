@@ -44,7 +44,7 @@ void main() {
     expect(find.byType(Scaffold), findsWidgets);
 
     // Opening Settings shows the offer and still sends nothing.
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
     expect(find.text('Back up and sync'), findsOneWidget);
     expect(server.pullCalls, 0);

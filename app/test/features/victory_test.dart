@@ -151,7 +151,7 @@ void main() {
     final relic = (await h.db.select(h.db.relics).get()).single;
     expect(relic.inscription, 'Patience.');
     expect(find.text('A relic remains.'), findsNothing);
-    expect(find.text('HEARTHRISE'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -170,7 +170,7 @@ void main() {
       (await h.db.select(h.db.relics).get()).single.inscription,
       'Still here.',
     );
-    expect(find.text('HEARTHRISE'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -217,7 +217,7 @@ void main() {
 
     expect(find.text('The Certification'), findsNothing);
     expect(find.text('VANQUISHED (1)'), findsNothing);
-    expect(find.text('No boss stands before you.'), findsOneWidget);
+    expect(find.text('All bosses · 0 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Sit the exam'), findsNothing);

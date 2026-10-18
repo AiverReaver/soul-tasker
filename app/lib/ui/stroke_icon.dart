@@ -9,6 +9,8 @@ abstract final class StrokeIcons {
       'M5.2 10.4 7 12.2 5.2 14 3.4 12.2zM12 10.4l1.8 1.8L12 14l-1.8-1.8z'
       'M18.8 10.4l1.8 1.8-1.8 1.8-1.8-1.8z';
   static const check = 'M5 12.5 10 17.5 19 7';
+  static const profile = 'M12 4 15 8 12 12 9 8zM5 20 8 15.5h8L19 20';
+  static const settings = 'M4 8h16M4 16h16M9 6l2 2-2 2-2-2zM15 14l2 2-2 2-2-2z';
   static const strike = 'M4 20 16 8M18.5 3 21 5.5 18.5 8 16 5.5z';
 }
 
