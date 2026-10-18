@@ -12,6 +12,7 @@ import '../../core/clock.dart';
 import '../../core/days_left.dart';
 import '../../ui/boss_actions_sheet.dart';
 import '../../ui/flash_line.dart';
+import '../../ui/glass_alert.dart';
 import '../../ui/glass_circle_button.dart';
 import '../../ui/glass_sheet.dart';
 import '../../ui/shard_meter.dart';
@@ -74,6 +75,17 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     final dao = ref.read(bossDaoProvider);
     switch (action) {
       case BossAction.leave:
+        final kept = ref.read(profileProvider).value?.banked ?? 0;
+        final choice = await showGlassAlert(
+          context,
+          label: boss.title,
+          title: 'Leave the fight?',
+          body:
+              'Struck foes stay struck and you keep $kept embers. '
+              '${boss.title} waits where you left it.',
+          actions: const ['Keep fighting', 'Leave for now'],
+        );
+        if (choice != 1 || !mounted) return;
         await dao.setStatus(boss.id, BossStatus.waiting);
         if (mounted) context.go('/');
       case BossAction.resume:

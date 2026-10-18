@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/data/profile_dao.dart';
 import 'package:hearthrise/features/boss_edit/boss_edit_screen.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -126,7 +127,39 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Leave for now sets the boss waiting and returns Home', (
+  testWidgets('Leave for now asks first, with the boss and the embers kept', (
+    tester,
+  ) async {
+    await h.attempts.strike(
+      (await h.reload(id)).phases.first.tasks.first.task.id,
+    );
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tapBossAction(tester, 'Leave for now');
+    final kept = (await ProfileDao(h.db, h.clock.call).read()).banked;
+    expect(find.text('Leave the fight?'), findsOneWidget);
+    expect(find.text('THE CERTIFICATION'), findsOneWidget);
+    expect(
+      find.textContaining('Struck foes stay struck and you keep $kept embers.'),
+      findsOneWidget,
+    );
+    expect((await h.reload(id)).boss.status, BossStatus.active);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Keep fighting closes the alert and changes nothing', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tapBossAction(tester, 'Leave for now');
+    await tester.tap(find.text('Keep fighting'));
+    await settle(tester);
+    expect(find.text('Leave the fight?'), findsNothing);
+    expect((await h.reload(id)).boss.status, BossStatus.active);
+    expect(find.text('Phase I of II'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('confirming Leave for now sets waiting and returns Home', (
     tester,
   ) async {
     await pumpApp(tester, h, tall: true);
@@ -135,6 +168,8 @@ void main() {
     await tester.tap(find.text('The Certification'));
     await settle(tester);
     await tapBossAction(tester, 'Leave for now');
+    await tester.tap(find.text('Leave for now').last);
+    await settle(tester);
     expect((await h.reload(id)).boss.status, BossStatus.waiting);
     expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     await tearDownApp(tester, h);
