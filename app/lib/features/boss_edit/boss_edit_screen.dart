@@ -408,12 +408,40 @@ class _TaskLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final daily = task.recurrence == Recurrence.daily ? ' · daily' : '';
-    return ListTile(
-      minTileHeight: kMinTarget,
-      contentPadding: const EdgeInsets.symmetric(horizontal: Space.sm),
-      title: Text(task.title, style: text.bodyMedium),
-      trailing: Text('${task.weight.label}$daily', style: text.bodySmall),
-      onTap: onTap,
+    return Padding(
+      padding: const EdgeInsets.only(top: Space.sm),
+      child: NeedleFrame(
+        tier: Cut.md,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Space.md,
+                vertical: Space.sm,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(task.title, style: text.bodyMedium),
+                        Text(
+                          '${task.weight.label}$daily',
+                          style: text.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: context.palette.ash),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

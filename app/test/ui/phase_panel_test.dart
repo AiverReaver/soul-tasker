@@ -40,7 +40,9 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    expect(find.byType(NeedleFrame), findsOneWidget);
+    // the panel, then one framed row per task
+    expect(find.byType(NeedleFrame), findsNWidgets(3));
+    expect(find.byIcon(Icons.chevron_right), findsNWidgets(2));
     expect(find.byIcon(Icons.drag_handle), findsOneWidget);
     expect(find.text('Learn'), findsOneWidget);
     expect(find.text('Read chapter 4'), findsOneWidget);

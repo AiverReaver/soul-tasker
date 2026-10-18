@@ -91,19 +91,34 @@ class PhasePanel extends StatelessWidget {
                 ],
               ),
               for (final (i, f) in foes.indexed)
-                InkWell(
-                  onTap: () => onEditFoe(i),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: kMinTarget),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Space.sm),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(f.title, style: text.bodyMedium),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Space.sm),
+                  child: NeedleFrame(
+                    tier: Cut.md,
+                    child: InkWell(
+                      onTap: () => onEditFoe(i),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 52),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Space.md,
+                            vertical: Space.sm,
                           ),
-                          Text(f.note, style: text.bodySmall),
-                        ],
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(f.title, style: text.bodyMedium),
+                                    Text(f.note, style: text.bodySmall),
+                                  ],
+                                ),
+                              ),
+                              Icon(Icons.chevron_right, color: p.ash),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
