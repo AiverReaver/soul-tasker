@@ -7,9 +7,9 @@ const kStrikeSweepKey = ValueKey('strike-sweep');
 /// The transform that throws a struck row during the shatter.
 const kStrikeShakeKey = ValueKey('strike-shake');
 
-/// How long a landed strike runs, from the first cut to the last fleck
-/// (§7.2, §7.4). Boss-tier runs longer. Long enough for the slash's beats
-/// (ui/strike_sweep_view.dart) to read; expected to move in tuning.
+/// How long a landed strike runs, from the hit to the end of the settle
+/// (§7.2, D8): the beats of `strikeBeatAt` end at 1300 ms. Boss-tier rests
+/// a little longer on its heavier flecks.
 Duration sweepDuration(Weight weight) => weight == Weight.bossTier
-    ? const Duration(milliseconds: 1100)
-    : const Duration(milliseconds: 700);
+    ? const Duration(milliseconds: 1600)
+    : const Duration(milliseconds: 1300);

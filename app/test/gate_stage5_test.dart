@@ -106,11 +106,11 @@ void main() {
     );
     await tester.tap(holdButton('Phase task 1'));
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
     await tester.tap(holdButton('Phase task 2'));
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
     await tester.tap(find.text('Defeated'));
     await settle(tester);

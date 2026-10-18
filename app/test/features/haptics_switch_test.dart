@@ -72,7 +72,7 @@ void main() {
 
     await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
 
     expect(sent, isEmpty);
@@ -103,7 +103,7 @@ void main() {
     await tester.pump(Weight.bossTier.holdDuration);
     await gesture.up();
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
 
     expect(sent, hasLength(sentBeforeFlip));

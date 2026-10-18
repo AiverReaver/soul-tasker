@@ -7,7 +7,7 @@ import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/dust_vanish.dart';
 import '../../ui/hold_button.dart';
-import '../../ui/strike_choice_dialog.dart';
+import '../../ui/strike_result_sheet.dart';
 import '../../ui/strike_sweep_view.dart';
 import '../../ui/task_row_tile.dart';
 import 'strike_sweep.dart';
@@ -126,18 +126,19 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
         haptics.doubleHeavy();
     }
     if (widget.onTried == null) return _strike();
-    _ask();
+    _playThenAsk();
   }
 
-  Future<void> _ask() async {
-    final choice = await showDialog<bool>(
-      context: context,
-      builder: (_) => StrikeChoiceDialog(title: widget.title),
-    );
+  /// The beats play first, then the sheet asks; nothing is written until
+  /// the player chooses (D8).
+  Future<void> _playThenAsk() async {
+    await _play();
     if (!mounted) return;
-    switch (choice) {
+    final clean = await showStrikeResultSheet(context, widget.title);
+    if (!mounted) return;
+    switch (clean) {
       case true:
-        _strike();
+        widget.onStrike();
       case false:
         _progress.value = 0;
         widget.onTried?.call();
@@ -146,16 +147,18 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
     }
   }
 
-  void _strike() {
+  Future<void> _play() async {
     final sweepLength = motionOf(context, sweepDuration(widget.weight));
-    if (sweepLength > Duration.zero) {
-      _sweep
-        ..duration = sweepLength
-        ..forward(from: 0);
-      _dust
-        ..duration = sweepLength * 3
-        ..forward(from: 0);
-    }
+    if (sweepLength == Duration.zero) return;
+    _dust
+      ..duration = sweepLength * 3
+      ..forward(from: 0);
+    _sweep.duration = sweepLength;
+    await _sweep.forward(from: 0).orCancel.catchError((_) {});
+  }
+
+  void _strike() {
+    _play();
     widget.onStrike();
   }
 

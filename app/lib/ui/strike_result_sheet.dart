@@ -1,0 +1,76 @@
+import 'package:material_ui/material_ui.dart';
+
+import '../core/theme.dart';
+import 'glass_sheet.dart';
+import 'glass_surface.dart';
+import 'glass_tap_target.dart';
+
+/// Asks how a landed strike went, after the beats have played. Pops true for
+/// a clean strike, false for a real try; Cancel or a tap outside pops null.
+Future<bool?> showStrikeResultSheet(BuildContext context, String title) =>
+    showGlassSheet<bool>(
+      context,
+      (_) => StrikeResultSheet(title: title),
+    );
+
+class StrikeResultSheet extends StatelessWidget {
+  const StrikeResultSheet({super.key, required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => GlassSheet(
+    label: 'How did the strike land?',
+    title: title,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: Space.sm + 4,
+      children: [
+        _Choice(
+          label: 'Clean strike',
+          isTinted: true,
+          onTap: () => Navigator.pop(context, true),
+        ),
+        _Choice(
+          label: 'A real try',
+          onTap: () => Navigator.pop(context, false),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Choice extends StatelessWidget {
+  const _Choice({
+    required this.label,
+    required this.onTap,
+    this.isTinted = false,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+  final bool isTinted;
+
+  @override
+  Widget build(BuildContext context) => GlassTapTarget(
+    semanticLabel: label,
+    onTap: onTap,
+    child: GlassSurface(
+      shape: const GlassShape.stadium(),
+      isTinted: isTinted,
+      child: SizedBox(
+        height: 52,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: context.palette.bone,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
