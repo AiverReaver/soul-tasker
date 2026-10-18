@@ -1,6 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 
-/// The design's 22 colour tokens. One instance per [Biome]; widgets read the
+/// Fixed whites of the glass sheen, inner ring and faint rim. White in every
+/// biome, so they are shape, not palette.
+const glassSheen = Color(0x24FFFFFF);
+const glassRing = Color(0x29FFFFFF);
+const glassRim = Color(0x38FFFFFF);
+
+/// The design's 22 colour tokens plus four glass tokens. One instance per [Biome]; widgets read the
 /// active one with `context.palette`.
 @immutable
 class HearthPalette extends ThemeExtension<HearthPalette> {
@@ -27,17 +33,22 @@ class HearthPalette extends ThemeExtension<HearthPalette> {
     required this.ink,
     required this.mote,
     required this.mask,
+    required this.glassFill,
+    required this.glassFillHi,
+    required this.glassLight,
+    required this.glassKey,
   });
 
   final Color void_, ground, ground2, voidfall;
   final Color shell, raised, raised2, seam, struckBg, struckEdge, deep;
   final Color silk, silkHi, onSilk;
   final Color bone, text, ash, shard, dim, ink, mote, mask;
+  final Color glassFill, glassFillHi, glassLight, glassKey;
 
   List<Color> get _all => [
     void_, ground, ground2, voidfall, shell, raised, raised2, seam, struckBg,
     struckEdge, deep, silk, silkHi, onSilk, bone, text, ash, shard, dim, ink,
-    mote, mask, //
+    mote, mask, glassFill, glassFillHi, glassLight, glassKey, //
   ];
 
   @override
@@ -64,6 +75,10 @@ class HearthPalette extends ThemeExtension<HearthPalette> {
     Color? ink,
     Color? mote,
     Color? mask,
+    Color? glassFill,
+    Color? glassFillHi,
+    Color? glassLight,
+    Color? glassKey,
   }) => HearthPalette(
     void_: void_ ?? this.void_,
     ground: ground ?? this.ground,
@@ -87,6 +102,10 @@ class HearthPalette extends ThemeExtension<HearthPalette> {
     ink: ink ?? this.ink,
     mote: mote ?? this.mote,
     mask: mask ?? this.mask,
+    glassFill: glassFill ?? this.glassFill,
+    glassFillHi: glassFillHi ?? this.glassFillHi,
+    glassLight: glassLight ?? this.glassLight,
+    glassKey: glassKey ?? this.glassKey,
   );
 
   @override
@@ -116,6 +135,10 @@ class HearthPalette extends ThemeExtension<HearthPalette> {
       ink: l(ink, other.ink),
       mote: l(mote, other.mote),
       mask: l(mask, other.mask),
+      glassFill: l(glassFill, other.glassFill),
+      glassFillHi: l(glassFillHi, other.glassFillHi),
+      glassLight: l(glassLight, other.glassLight),
+      glassKey: l(glassKey, other.glassKey),
     );
   }
 
@@ -171,6 +194,10 @@ const _pharloom = HearthPalette(
   ink: Color(0xFF050307),
   mote: Color(0xFFB7A8D6),
   mask: Color(0xFFF4EBDD),
+  glassFill: Color(0x14FFFFFF),
+  glassFillHi: Color(0x29FFFFFF),
+  glassLight: Color(0xD9FFF8EC),
+  glassKey: Color(0xFF050307),
 );
 
 const _docks = HearthPalette(
@@ -196,6 +223,10 @@ const _docks = HearthPalette(
   ink: Color(0xFF050302),
   mote: Color(0xFFFFAE63),
   mask: Color(0xFFEAD9C4),
+  glassFill: Color(0x14FFFFFF),
+  glassFillHi: Color(0x29FFFFFF),
+  glassLight: Color(0xD9FFF8EC),
+  glassKey: Color(0xFF050302),
 );
 
 const _choral = HearthPalette(
@@ -223,6 +254,10 @@ const _choral = HearthPalette(
   ink: Color(0xFF2A1E0F),
   mote: Color(0xFFC49030),
   mask: Color(0xFFFFFAF0),
+  glassFill: Color(0x99FFFAF0),
+  glassFillHi: Color(0xE6FFFAF0),
+  glassLight: Color(0xF2FFFFFF),
+  glassKey: Color(0xFF2A1E0F),
 );
 
 const _moss = HearthPalette(
@@ -250,6 +285,10 @@ const _moss = HearthPalette(
   ink: Color(0xFF1C2A1A),
   mote: Color(0xFF8DB255),
   mask: Color(0xFFFBFDF5),
+  glassFill: Color(0x99FBFDF5),
+  glassFillHi: Color(0xE6FBFDF5),
+  glassLight: Color(0xF2FFFFFF),
+  glassKey: Color(0xFF1C2A1A),
 );
 
 const _greymoor = HearthPalette(
@@ -275,4 +314,8 @@ const _greymoor = HearthPalette(
   ink: Color(0xFF04070A),
   mote: Color(0xFFA9C3D6),
   mask: Color(0xFFE3E9EE),
+  glassFill: Color(0x14FFFFFF),
+  glassFillHi: Color(0x29FFFFFF),
+  glassLight: Color(0xD9FFF8EC),
+  glassKey: Color(0xFF04070A),
 );

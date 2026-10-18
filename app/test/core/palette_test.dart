@@ -69,4 +69,68 @@ void main() {
       });
     }
   });
+
+  group('glass tokens', () {
+    Color white(double a) => Color.fromARGB((a * 255).round(), 255, 255, 255);
+    Color c(int rgb, double a) => Color((((a * 255).round()) << 24) | rgb);
+    final dark = [Biome.pharloom, Biome.docks, Biome.greymoor];
+    const keys = {
+      Biome.pharloom: Color(0xFF050307),
+      Biome.docks: Color(0xFF050302),
+      Biome.choral: Color(0xFF2A1E0F),
+      Biome.moss: Color(0xFF1C2A1A),
+      Biome.greymoor: Color(0xFF04070A),
+    };
+
+    test('each biome pins its four glass values', () {
+      for (final b in Biome.values) {
+        final p = b.palette;
+        expect(p.glassKey, keys[b], reason: b.label);
+        if (dark.contains(b)) {
+          expect(p.glassFill, white(0.08), reason: b.label);
+          expect(p.glassFillHi, white(0.16), reason: b.label);
+          expect(p.glassLight, c(0xFFF8EC, 0.85), reason: b.label);
+        }
+      }
+      expect(Biome.choral.palette.glassFill, c(0xFFFAF0, 0.6));
+      expect(Biome.choral.palette.glassFillHi, c(0xFFFAF0, 0.9));
+      expect(Biome.choral.palette.glassLight, white(0.95));
+      expect(Biome.moss.palette.glassFill, c(0xFBFDF5, 0.6));
+      expect(Biome.moss.palette.glassFillHi, c(0xFBFDF5, 0.9));
+      expect(Biome.moss.palette.glassLight, white(0.95));
+    });
+
+    test('lerp blends the glass fields; copyWith replaces them', () {
+      final a = Biome.pharloom.palette, b = Biome.moss.palette;
+      final m = a.lerp(b, 0.5);
+      expect(m.glassFill, Color.lerp(a.glassFill, b.glassFill, 0.5));
+      expect(m.glassFillHi, Color.lerp(a.glassFillHi, b.glassFillHi, 0.5));
+      expect(m.glassLight, Color.lerp(a.glassLight, b.glassLight, 0.5));
+      expect(m.glassKey, Color.lerp(a.glassKey, b.glassKey, 0.5));
+      const x = Color(0xFF123456);
+      final k = a.copyWith(glassKey: x);
+      expect(k.glassKey, x);
+      expect(k.glassFill, a.glassFill);
+    });
+
+    test('equality covers the glass fields', () {
+      final a = Biome.pharloom.palette;
+      expect(a.copyWith(glassFill: const Color(0x11FFFFFF)), isNot(a));
+    });
+
+    test('the fixed whites are 14%, 16% and 22%', () {
+      expect(glassSheen, white(0.14));
+      expect(glassRing, white(0.16));
+      expect(glassRim, white(0.22));
+    });
+
+    for (final b in Biome.values) {
+      test('${b.label}: ash and bone keep 4.5:1 over glassFill on void', () {
+        final p = b.palette;
+        final bg = Color.alphaBlend(p.glassFill, p.void_);
+        expect(_contrast(p.ash, bg), greaterThanOrEqualTo(4.5));
+        expect(_contrast(p.bone, bg), greaterThanOrEqualTo(4.5));
+      });
+    }
+  });
 }
