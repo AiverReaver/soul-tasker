@@ -25,11 +25,13 @@ class StrikeResultSheet extends StatelessWidget {
       children: [
         _Choice(
           label: 'Clean strike',
+          note: 'Done in full. Promise kept.',
           isTinted: true,
           onTap: () => Navigator.pop(context, true),
         ),
         _Choice(
           label: 'A real try',
+          note: 'Part done. Effort still earns embers.',
           onTap: () => Navigator.pop(context, false),
         ),
       ],
@@ -41,10 +43,12 @@ class _Choice extends StatelessWidget {
   const _Choice({
     required this.label,
     required this.onTap,
+    required this.note,
     this.isTinted = false,
   });
 
   final String label;
+  final String note;
   final VoidCallback onTap;
   final bool isTinted;
 
@@ -56,16 +60,23 @@ class _Choice extends StatelessWidget {
       shape: const GlassShape.stadium(),
       isTinted: isTinted,
       child: SizedBox(
-        height: 52,
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: context.palette.bone,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+        height: 68,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: context.palette.bone,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
+            Text(
+              note,
+              style: TextStyle(color: context.palette.ash, fontSize: 13),
+            ),
+          ],
         ),
       ),
     ),

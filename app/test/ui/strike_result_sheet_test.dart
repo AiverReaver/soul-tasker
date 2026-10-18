@@ -31,6 +31,17 @@ Future<bool?> _open(WidgetTester tester, String tap) async {
 }
 
 void main() {
+  testWidgets('each choice says what it means', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: const Scaffold(body: StrikeResultSheet(title: 'Run 3 km')),
+      ),
+    );
+    expect(find.text('Done in full. Promise kept.'), findsOneWidget);
+    expect(find.text('Part done. Effort still earns embers.'), findsOneWidget);
+  });
+
   testWidgets('Clean strike pops true', (tester) async {
     expect(await _open(tester, 'Clean strike'), isTrue);
   });
