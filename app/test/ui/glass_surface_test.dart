@@ -188,4 +188,11 @@ void main() {
       expect(builds, 1);
     });
   });
+
+  test('the saturation matrix keeps grey grey: each colour row sums to 1', () {
+    const m = GlassSurface.saturateValues;
+    for (final row in [0, 5, 10]) {
+      expect(m[row] + m[row + 1] + m[row + 2], closeTo(1, 0.001));
+    }
+  });
 }

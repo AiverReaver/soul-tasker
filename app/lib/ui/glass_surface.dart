@@ -62,13 +62,16 @@ class GlassSurface extends StatelessWidget {
 
   static const pressDuration = Duration(milliseconds: 350);
 
-  /// Saturation 1.7 over the blurred backdrop.
-  static const _saturate = ColorFilter.matrix(<double>[
-    1.5059, -0.5005, -0.0504, 0, 0, //
-    -0.1491, 1.3645, -0.0504, 0, 0, //
+  /// Saturation 1.7 over the blurred backdrop (the CSS `saturate()` matrix).
+  @visibleForTesting
+  static const saturateValues = <double>[
+    1.5511, -0.5005, -0.0504, 0, 0, //
+    -0.1491, 1.1998, -0.0504, 0, 0, //
     -0.1491, -0.5005, 1.6496, 0, 0, //
     0, 0, 0, 1, 0, //
-  ]);
+  ];
+
+  static const _saturate = ColorFilter.matrix(saturateValues);
 
   @override
   Widget build(BuildContext context) {
