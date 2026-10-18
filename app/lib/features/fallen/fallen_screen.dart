@@ -39,12 +39,16 @@ class FallenStory {
     required this.bossTitle,
     this.health,
     this.maxHealth,
+    this.embers,
   });
 
   final int attempt;
   final String bossTitle;
   final int? health;
   final int? maxHealth;
+
+  /// Embers banked and kept.
+  final int? embers;
 }
 
 /// The fallen moment (§5.5): slow dim, one quiet line, one question.
@@ -185,6 +189,15 @@ class _FallenScreenState extends State<FallenScreen>
       ),
     ],
     const SizedBox(height: Space.xs),
+    if (st.embers case final embers?)
+      Text(
+        embers.toString().replaceAllMapped(
+          RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (_) => ',',
+        ),
+        textAlign: TextAlign.center,
+        style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+      ),
     Text('Embers kept', textAlign: TextAlign.center, style: text.bodySmall),
   ];
 
@@ -205,7 +218,7 @@ class _FallenScreenState extends State<FallenScreen>
                 textAlign: TextAlign.center,
                 style: text.displayMedium?.copyWith(
                   fontSize: 60,
-                  letterSpacing: 6,
+                  letterSpacing: 8,
                 ),
               ),
               const SizedBox(height: 8),
@@ -232,6 +245,8 @@ class _FallenScreenState extends State<FallenScreen>
                   child: TextField(
                     controller: _lesson,
                     maxLength: 120,
+                    minLines: 3,
+                    maxLines: 4,
                     style: text.bodyMedium,
                     cursorColor: context.palette.silk,
                     decoration: InputDecoration(

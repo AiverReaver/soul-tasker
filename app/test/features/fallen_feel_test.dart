@@ -214,6 +214,7 @@ void main() {
                   bossTitle: 'The Certification',
                   health: 4,
                   maxHealth: 10,
+                  embers: 1240,
                 ),
               ),
               child: const Text('open'),
@@ -231,7 +232,10 @@ void main() {
     );
     expect(find.text('Rest, then rise.'), findsNothing);
     expect(find.text('2 / 5'), findsOneWidget);
+    expect(find.text('1,240'), findsOneWidget);
     expect(find.text('Embers kept'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Fallen.')).style?.letterSpacing, 8);
+    expect(tester.widget<TextField>(find.byType(TextField)).minLines, 3);
     expect(
       find.text('You will see it at the start of attempt 4.'),
       findsOneWidget,

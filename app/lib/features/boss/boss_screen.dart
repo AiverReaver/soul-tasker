@@ -55,6 +55,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
               bossTitle: boss.title,
               health: ref.read(healthProvider).value,
               maxHealth: kMaxHealthHalfPoints,
+              embers: ref.read(profileProvider).value?.banked,
             ),
     );
     if (!mounted) return;
