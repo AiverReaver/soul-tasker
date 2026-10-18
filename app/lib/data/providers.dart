@@ -170,6 +170,11 @@ final tomorrowPicksProvider = FutureProvider.autoDispose((ref) {
   return ref.watch(planPickDaoProvider).tomorrow();
 });
 
+/// Rests so far, for "Night {n} at the hearth".
+final restCountProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(dayDaoProvider).restCount(),
+);
+
 final relicDaoProvider = Provider(
   (ref) => RelicDao(ref.watch(databaseProvider), ref.watch(clockProvider)),
 );

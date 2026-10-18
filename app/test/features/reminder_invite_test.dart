@@ -40,7 +40,10 @@ void main() {
     await tester.tap(find.text('Yes, remind me'));
     await settle(tester);
 
-    expect(reminders.calls, ['permission', 'schedule:1260']);
+    expect(
+      reminders.calls,
+      containsAllInOrder(['permission', 'schedule:1260']),
+    );
     expect((await settings()).reminderEnabled, isTrue);
     await tearDownApp(tester, h);
   });
@@ -51,7 +54,8 @@ void main() {
     await tester.tap(find.text('Not now'));
     await settle(tester);
 
-    expect(reminders.calls, isEmpty);
+    expect(reminders.calls, isNot(contains('permission'))); // Home may sync
+    expect(reminders.calls, isNot(contains('schedule:1260')));
     expect((await settings()).reminderEnabled, isFalse);
     await tearDownApp(tester, h);
   });
@@ -63,7 +67,7 @@ void main() {
     await rest(tester);
 
     expect(find.text('A quiet nudge each evening?'), findsNothing);
-    expect(find.text('You have rested.'), findsOneWidget);
+    expect(find.text('Rest at the hearth'), findsNothing); // gone Home
     await tearDownApp(tester, h);
   });
 

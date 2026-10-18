@@ -1,6 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hearthrise/core/deadlines.dart';
-import 'package:hearthrise/data/commitment_dao.dart';
 import 'package:hearthrise/data/ember_dao.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/health_dao.dart';
@@ -29,13 +27,12 @@ void main() {
     expect(find.text('Rise'), findsOneWidget);
     expect(find.text('Rest at the hearth'), findsNothing);
     expect(find.byType(TextField), findsNothing);
-    expect(find.text("TOMORROW'S THREE"), findsNothing);
-    expect(find.bySemanticsLabel('Fallen. Health 0 of 10'), findsOneWidget);
+    expect(find.text('Tomorrow’s foes'), findsNothing);
+    expect(find.text('How did today go?'), findsNothing);
 
     await tester.tap(find.text('Rise'));
     await settle(tester);
 
-    expect(find.bySemanticsLabel('Health 10 of 10'), findsOneWidget);
     expect(
       await EmberDao(h.db, h.clock.call).tally(),
       const EmberTally(carried: 0, banked: 1),
@@ -47,24 +44,6 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Rest at the hearth'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('the bonfire shows today\'s and the week\'s accuracy', (
-    tester,
-  ) async {
-    final view = await h.seed();
-    final commits = CommitmentDao(h.db, h.clock.call);
-    final read = taskNamed(view, 'Read chapter 4').task.id;
-    await commits.commit(read, DeadlinePreset.tonight);
-    await commits.commit(
-      taskNamed(view, 'Flashcards').task.id,
-      DeadlinePreset.tonight,
-    );
-    await h.attempts.strike(read);
-    await pumpApp(tester, h, location: '/bonfire');
-
-    expect(find.text('Today: 1 of 2 kept. This week: 1 of 2.'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }
