@@ -6,46 +6,85 @@ import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/collapsible_section.dart';
+import '../../ui/glass_circle_button.dart';
+import '../../ui/glass_pill_button.dart';
+import '../../ui/stroke_icon.dart';
 import 'boss_card.dart';
 
-/// Every boss: active ones first, waiting ones folded below (C3 restyles it).
+/// Every boss: the pinned one first, then the other active ones, with the
+/// waiting bosses folded below (D10).
 class BossesScreen extends ConsumerWidget {
   const BossesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(title: const Text('All bosses')),
     body: SafeArea(
-      child: switch (ref.watch(bossListProvider)) {
-        AsyncData(:final value) => _BossList(bosses: value),
-        AsyncError() => const Center(
-          child: Text('Could not load your bosses.'),
-        ),
-        _ => const SizedBox.shrink(),
-      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.md),
+            child: Row(
+              spacing: Space.sm + 4,
+              children: [
+                GlassCircleButton(
+                  icon: StrokeIcons.back,
+                  semanticLabel: 'Back',
+                  onTap: () => context.pop(),
+                ),
+                Expanded(
+                  child: Text(
+                    'All bosses',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: switch (ref.watch(bossListProvider)) {
+              AsyncData(:final value) => _BossList(bosses: value),
+              AsyncError() => const Center(
+                child: Text('Could not load your bosses.'),
+              ),
+              _ => const SizedBox.shrink(),
+            },
+          ),
+        ],
+      ),
     ),
   );
 }
 
-class _BossList extends StatelessWidget {
+class _BossList extends StatefulWidget {
   const _BossList({required this.bosses});
 
   final List<BossView> bosses;
 
+  @override
+  State<_BossList> createState() => _BossListState();
+}
+
+class _BossListState extends State<_BossList> {
+  bool _showWaiting = false;
+
   List<BossView> _with(BossStatus status) =>
-      bosses.where((b) => b.boss.status == status).toList();
+      widget.bosses.where((b) => b.boss.status == status).toList();
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final active = _with(BossStatus.active);
     final waiting = _with(BossStatus.waiting);
-    final newBoss = TextButton(
-      onPressed: () => context.push('/boss/new'),
-      child: const Text('Name a new boss'),
+    final newBoss = Align(
+      alignment: Alignment.centerLeft,
+      child: GlassPillButton(
+        label: 'Name a new boss',
+        onTap: () => context.push('/boss/new'),
+      ),
     );
 
-    // Defeated bosses live on as relics, not on Home (Stage 5 plan D8).
+    // Defeated bosses live on as relics, not here (Stage 5 plan D8).
     if (active.isEmpty && waiting.isEmpty) {
       return Center(
         child: Column(
@@ -65,22 +104,16 @@ class _BossList extends StatelessWidget {
         for (final b in active) BossCard(view: b),
         const SizedBox(height: Space.sm),
         newBoss,
-        if (waiting.isNotEmpty) _section(context, 'Waiting', waiting),
+        if (waiting.isNotEmpty)
+          CollapsibleSection(
+            title: 'Waiting (${waiting.length})',
+            isExpanded: _showWaiting,
+            onToggle: () => setState(() => _showWaiting = !_showWaiting),
+            child: Column(
+              children: [for (final b in waiting) BossCard(view: b)],
+            ),
+          ),
       ],
-    );
-  }
-
-  Widget _section(BuildContext context, String title, List<BossView> list) {
-    final text = Theme.of(context).textTheme;
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      shape: const Border(),
-      collapsedShape: const Border(),
-      title: Text(
-        '${title.toUpperCase()} (${list.length})',
-        style: text.labelSmall,
-      ),
-      children: [for (final b in list) BossCard(view: b)],
     );
   }
 }

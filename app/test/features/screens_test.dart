@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/features/boss_edit/boss_edit_screen.dart';
 import 'package:hearthrise/features/boss/boss_stage.dart';
 import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
@@ -17,17 +19,76 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the bosses list has active bosses and a waiting section', (
+  testWidgets('the pinned boss comes first, then the other active ones', (
     tester,
   ) async {
     final h = Harness();
-    final waiting = await h.seed();
-    await h.bosses.setStatus(waiting.boss.id, BossStatus.waiting);
-    await h.seed();
+    final other = await h.seed();
+    final pinned = await h.seed();
+    await h.bosses.setPinned(pinned.boss.id, isPinned: true);
+    await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
     await pumpApp(tester, h, location: '/bosses', tall: true);
 
+    final pinnedY = tester.getTopLeft(
+      find.byKey(const Key('pinned-boss-panel')),
+    );
+    expect(find.text('Pinned'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('The Habit')).dy,
+      greaterThan(pinnedY.dy),
+    );
+    expect(other.boss.id, isNot(pinned.boss.id));
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Name a new boss opens the editor', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, location: '/bosses', tall: true);
+    await tester.tap(find.text('Name a new boss'));
+    await settle(tester);
+    expect(find.byType(BossEditScreen), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Waiting (n) is collapsed until you open it', (tester) async {
+    final h = Harness();
+    final waiting = await h.seed();
+    await h.bosses.setStatus(waiting.boss.id, BossStatus.waiting);
+    await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
+    await pumpApp(tester, h, location: '/bosses', tall: true);
+
+    expect(find.text('Waiting (1)'), findsOneWidget);
+    expect(find.text('The Certification'), findsNothing);
+    await tester.tap(find.text('Waiting (1)'));
+    await settle(tester);
     expect(find.text('The Certification'), findsOneWidget);
-    expect(find.text('WAITING (1)'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the back circle leaves the list', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, tall: true);
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await settle(tester);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
