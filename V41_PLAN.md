@@ -126,7 +126,19 @@ GlassSurface({
   - Under reduced motion and `isStill` (tests), the value stays at zero.
 - `lib/ui/` glass widgets read `GlassTilt.of(context)` the same way they read `context.palette`. This extends the STAGES.md rule "the theme is the only shared input" to "theme and glass tilt". Step D1 records the change in STAGES.md.
   - The alternative, passing tilt through every screen, touches every constructor for a light effect.
-- **Gyroscope: not in this plan.** It needs a new dependency (`sensors_plus`) and the iOS motion permission. The idle drift gives the moving light without either. It is a follow-up if the feel check asks for it.
+- **Real motion tilt (D3b, added 2026-10-18 after research).** Idle drift stays as the fallback, and the phone's motion steers the same notifier. See `reports/Liquid Glass motion tilt.md`.
+  - What Apple ships: one hedged line in WWDC25 session 219, "in some cases, the lighting responds to device motion". No sensor, angle, damping or Reduce Motion behavior is published, so every number below is a tuning value, not a copy of Apple.
+  - **Signal:** the accelerometer's gravity vector from `sensors_plus` (`accelerometerEventStream`, `SensorInterval.uiInterval`, about 15 Hz, no Android permission needed). No gyroscope: it drifts and adds code for a decorative light. A gyro rate (rad/s) is never used as an angle.
+  - **Tilt:** roll = `atan2(gx, hypot(gy, gz))`, pitch = `atan2(gy, gz)`, taken relative to a learned neutral pose. Full deflection at about 22°, with a 1.5° deadzone and a soft clamp to −1…1.
+  - **Smoothing:** frame-rate independent, `alpha = 1 - exp(-dt/tau)`. Sensor tau 0.15 s, display tau 0.3 s. `easeTilt` already does the display half.
+  - **Neutral:** it tracks the pose with a 10 s time constant and resets on resume, so a phone held at 40° still centres the light.
+  - **Fallbacks to idle drift:** lying flat or face-down (|gz| above 0.95), no sensor events for 1 s (simulator, web, a device without the sensor), and the blend `out = lerp(idle, tilt, w)` eases `w` over 0.8 s in both directions.
+  - **Reduce motion:** no subscription at all. Check `MediaQuery.disableAnimations` and the iOS-only `PlatformDispatcher.accessibilityFeatures.reduceMotion`, and listen to `didChangeAccessibilityFeatures`. The value holds at zero, as it does now.
+  - **Lifecycle:** cancel the stream and stop the ticker on inactive, paused or hidden. Resume re-subscribes and re-centres.
+  - **Setting:** a persisted "Motion effects" switch in Settings (a `GlassSwitch`), on by default, off removes the sensor and the drift together.
+  - **Where it lives:** a `TiltController` in `lib/features/shell/` owns the subscription behind a `TiltSource` interface, and writes the target into `Atmosphere`'s notifier path. `lib/core/glass_tilt.dart` gets the pure math (`tiltFromGravity`, `blendTilt`). `lib/ui/` stays unchanged: glass already reads `GlassTilt.of`.
+  - **Painting:** the moving light is the only thing that repaints per tilt frame. It sits in its own `RepaintBoundary` above the blur, so the backdrop pass never reruns (D2). Notify only when the change is above 0.002.
+  - **Platform:** add `sensors_plus` to `pubspec.yaml` (7.1.1 at research time, Android, iOS and partial web), and `NSMotionUsageDescription` to `Info.plist`, which the plugin's README requires. Check the pinned Flutter and Gradle versions against its needs before adding it (step A2b).
 
 **D4. Glass circle buttons replace the app bars.** `GlassCircleButton({icon, semanticLabel, onTap})` in `lib/ui/`:
 - 44 px visible, inside a 48 px hit area. The icon is a 22 px stroke icon at 1.6 px, with square caps and round joins, in bone.
@@ -308,6 +320,32 @@ Tests first, `test/features/shell/atmosphere_test.dart` (extend):
 
 Code: `lib/core/glass_tilt.dart`, plus the notifier and idle drift in `Atmosphere` (D3).
 Done when: the atmosphere tests pass.
+
+**Step A2b. Motion tilt (D3b).** Scheduled after C2 and before C3, because it touches only `core`, `shell` and Settings.
+Tests first:
+- `test/core/glass_tilt_test.dart` (extend), pure math with fixed inputs:
+  - `tiltFromGravity` gives zero at the neutral pose, and about ±1 at ±22° on each axis.
+  - It stays inside −1…1 for any input, and a 1° wobble inside the deadzone gives zero.
+  - A phone lying flat (|gz| above 0.95) reports `isFlat`.
+  - `blendTilt(idle, tilt, w)` is `idle` at w 0, `tilt` at w 1, and the midpoint at 0.5.
+- `test/features/shell/tilt_controller_test.dart`, with a `TiltSource` driven by a `StreamController` and a fake clock:
+  - Events steer the notifier toward the tilt, and the weight reaches 1 about 0.8 s after the first event.
+  - With no event for 1 s the weight eases back to 0 and the idle drift returns.
+  - Flat events do not move the light and do not move the neutral.
+  - The neutral follows a held pose: after 30 s at a constant 40° the output is near zero.
+  - Under `disableAnimations` or `reduceMotion` the stream is never listened to and the value stays at zero.
+  - A lifecycle `paused` cancels the subscription, and `resumed` listens again and re-centres.
+  - The "Motion effects" setting off: no subscription and no drift, value zero.
+- `test/features/settings_test.dart` (extend): the "Motion effects" switch shows on by default and stores the choice.
+- Existing `atmosphere_test.dart` keeps passing with no source (idle drift only).
+Code: `tiltFromGravity` and `blendTilt` in `lib/core/glass_tilt.dart`. `TiltSource` and `TiltController` in `lib/features/shell/`, a `sensors_plus` source behind the interface, the setting in `settings` (device table field plus the Settings row), and `NSMotionUsageDescription` in `ios/Runner/Info.plist`. `Atmosphere` takes the controller's target instead of only `idleTilt`.
+Done when: those tests pass, with `flutter analyze` clean and the full suite green.
+Manual (on a real phone; the iOS Simulator sends no motion):
+- Tilting the phone slides the light across the tab bar, circles and a sheet, slowly and subtly, never snapping.
+- Laid flat on a table, the light drifts as before. Held still at any angle, it centres within about 10 s.
+- iOS Reduce Motion and Android "Remove animations" both freeze the light.
+- Backgrounding the app and returning leaves no stale light. Axis signs match on iOS and on Android.
+- No visible jank on a mid-range Android phone with the tab bar and a sheet open; battery use over 10 minutes of Home is unremarkable.
 
 **Step A3. `GlassSurface` and `GlassPainter`.**
 Tests first, `test/ui/glass_surface_test.dart`:
@@ -546,7 +584,7 @@ Done when (phase C): every screen test passes, along with the full suite.
 
 ## 7. Order and size
 
-A1 → A1b → A2 → A3 → A4 → B1 → B2 → B3 → B4 → C1 → C2 … C18 → D1 → D2.
+A1 → A1b → A2 → A3 → A4 → B1 → B2 → B3 → B4 → C1 → C2 → A2b → C3 … C18 → D1 → D2.
 
 - Phase A blocks everything. Phase B needs A4's `HoldButton` and `GlassSheet`.
 - C1, C2 and C4 come first because they carry the hold rows. C16 changes how `TaskRow` opens its actions, so it goes right after C4. After that, C3, C5 to C15, C17 and C18 do not depend on each other and can be done in any order, or split across sessions. They touch separate files, apart from shared `lib/ui/` parts, which already exist after phase A.
@@ -559,6 +597,7 @@ A1 → A1b → A2 → A3 → A4 → B1 → B2 → B3 → B4 → C1 → C2 … C1
 - **Blur cost on Android.** `BackdropFilter` is the main cost. The mitigations are in D2: `blur: 0` on solid fills, a grouped backdrop and a lower blur on Android. The step D2 manual check decides.
 - **Strike reorder.** Moving the choice after the animation changes when data is written. The B4 tests cover the kill and back paths. Sync and the ember fold see the same writes as before, only later.
 - **Tilt rebuilding everything.** Tilt is a repaint listenable, never `setState` (D2). The A3 test pins a build count of 1.
+- **Motion tilt (A2b).** Apple publishes no numbers, so the range, tau and deadzone are tuning values to settle in the manual check. The iOS and Android axis signs, the real delivered sample rate and whether iOS Reduce Motion sets `disableAnimations` are unverified until a real-device run. A user can still turn the whole effect off in Settings.
 - **Overshoot rule.** The glass press breaks `DESIGN.md`'s "no springs". It is limited to glass and recorded in step D1.
 - **Light biomes.** Glass was drawn mainly on Pharloom. The A3 screenshots and the step D2 check catch muddy fills.
 - **Trademark gate** (Q6) blocks release, not this work.
