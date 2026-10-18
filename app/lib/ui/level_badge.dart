@@ -12,6 +12,7 @@ class LevelBadge extends StatelessWidget {
     required this.embers,
     required this.percentToNext,
     required this.bars,
+    this.isLarge = false,
   });
 
   final int level;
@@ -23,10 +24,14 @@ class LevelBadge extends StatelessWidget {
   /// 0 to 5 lit bars.
   final int bars;
 
+  /// The Profile size: a bigger diamond, numeral and bars.
+  final bool isLarge;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final p = context.palette;
+    final scale = isLarge ? 1.8 : 1.0;
     return Semantics(
       label: 'Level $level, $percentToNext percent to level ${level + 1}',
       excludeSemantics: true,
@@ -37,12 +42,12 @@ class LevelBadge extends StatelessWidget {
           Stack(
             alignment: Alignment.center,
             children: [
-              DiamondPip(color: p.silk, size: 26),
+              DiamondPip(color: p.silk, size: 26 * scale),
               Text(
                 '$level',
                 style: text.titleMedium!.copyWith(
                   color: p.onSilk,
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                 ),
               ),
             ],
@@ -63,8 +68,8 @@ class LevelBadge extends StatelessWidget {
                         key: ValueKey(
                           i < bars ? 'level-bar-on' : 'level-bar-off',
                         ),
-                        width: 10,
-                        height: 4,
+                        width: 10 * scale,
+                        height: 4 * scale,
                         child: ColoredBox(
                           color: i < bars
                               ? p.silk

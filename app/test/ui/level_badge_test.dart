@@ -25,4 +25,29 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('large: a bigger numeral, same bars', (tester) async {
+    Future<double> numeralSize({required bool isLarge}) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildTheme(),
+          home: Scaffold(
+            body: LevelBadge(
+              level: 7,
+              embers: 42,
+              percentToNext: 56,
+              bars: 3,
+              isLarge: isLarge,
+            ),
+          ),
+        ),
+      );
+      return tester.widget<Text>(find.text('7')).style!.fontSize!;
+    }
+
+    final small = await numeralSize(isLarge: false);
+    final large = await numeralSize(isLarge: true);
+    expect(large, greaterThan(small));
+    expect(find.byKey(const ValueKey('level-bar-on')), findsNWidgets(3));
+  });
 }

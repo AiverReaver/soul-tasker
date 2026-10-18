@@ -181,8 +181,8 @@ void main() {
       onboarded: null,
       reminders: reminders,
     );
-    expect(find.text('Relic of The Certification'), findsOneWidget);
-    await tester.tap(find.text('Relic of The Certification'));
+    expect(find.text('The Certification'), findsOneWidget);
+    await tester.tap(find.text('The Certification'));
     await settle(tester);
     expect(find.textContaining('Attempt 1. Started too late.'), findsOneWidget);
     expect(find.text('3 attempts. Every one of them counted.'), findsOneWidget);

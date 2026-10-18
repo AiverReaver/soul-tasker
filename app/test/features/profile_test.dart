@@ -4,6 +4,8 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/commitment_dao.dart';
 import 'package:hearthrise/data/ember_dao.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/glass_circle_button.dart';
+import 'package:hearthrise/ui/level_badge.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -38,6 +40,7 @@ void main() {
     await tester.tap(find.bySemanticsLabel('Your profile'));
     await settle(tester);
     expect(find.text('PROFILE'), findsOneWidget);
+    expect(find.byType(GlassCircleButton), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -56,6 +59,9 @@ void main() {
     await EmberDao(h.db, h.clock.call).bank();
     await pumpApp(tester, h, location: '/profile');
 
+    expect(find.byType(LevelBadge), findsOneWidget);
+    expect(tester.widget<LevelBadge>(find.byType(LevelBadge)).isLarge, isTrue);
+    expect(find.bySemanticsLabel('Health 10 of 10'), findsOneWidget);
     expect(find.text('Level 1'), findsOneWidget);
     expect(find.text('7 embers to the next'), findsOneWidget);
     expect(find.text('3 embers banked'), findsOneWidget);
@@ -81,9 +87,10 @@ void main() {
     await _relic(h, 'Newer');
     await pumpApp(tester, h, location: '/profile');
 
+    expect(find.text('Relic of Newer'), findsNothing);
     expect(
-      tester.getTopLeft(find.text('Relic of Newer')).dy,
-      lessThan(tester.getTopLeft(find.text('Relic of Older')).dy),
+      tester.getTopLeft(find.text('Newer')).dy,
+      lessThan(tester.getTopLeft(find.text('Older')).dy),
     );
     await tearDownApp(tester, h);
   });
@@ -95,7 +102,7 @@ void main() {
     await _relic(h, 'The Certification', falls: 2);
     await pumpApp(tester, h, location: '/profile');
 
-    await tester.tap(find.text('Relic of The Certification'));
+    await tester.tap(find.text('The Certification'));
     await settle(tester);
 
     expect(
