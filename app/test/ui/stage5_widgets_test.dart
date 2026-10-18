@@ -108,7 +108,7 @@ void main() {
         InscriptionField(controller: c, onSaved: (t) => saved = t),
       );
       expect(find.text('What did this fight make of you?'), findsOneWidget);
-      expect(find.text('0/$kInscriptionMax'), findsOneWidget);
+      expect(find.text('0 / $kInscriptionMax'), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Patience.');
       await tester.tap(find.text('Save'));
       expect(saved, 'Patience.');
