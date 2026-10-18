@@ -90,6 +90,40 @@ void main() {
     });
   });
 
+  group('strike beat timeline (v4.1)', () {
+    Duration ms(int v) => Duration(milliseconds: v);
+    test('hit, shatter, settle, then idle', () {
+      expect(strikeBeatAt(Duration.zero), StrikeBeat.hit);
+      expect(strikeBeatAt(ms(109)), StrikeBeat.hit);
+      expect(strikeBeatAt(ms(110)), StrikeBeat.shatter);
+      expect(strikeBeatAt(ms(499)), StrikeBeat.shatter);
+      expect(strikeBeatAt(ms(500)), StrikeBeat.settle);
+      expect(strikeBeatAt(ms(1299)), StrikeBeat.settle);
+      expect(strikeBeatAt(ms(1300)), StrikeBeat.idle);
+    });
+
+    test('before the strike begins the row is idle', () {
+      expect(strikeBeatAt(const Duration(milliseconds: -5)), StrikeBeat.idle);
+    });
+
+    test('the row holds still until the shatter starts', () {
+      expect(rowShakeAt(Duration.zero), Offset.zero);
+      expect(rowShakeAt(ms(109)), Offset.zero);
+    });
+
+    test('the row shakes in 5 held steps and is still by 280 ms', () {
+      final steps = [for (var i = 0; i < 5; i++) rowShakeAt(ms(110 + i * 56))];
+      expect(steps.toSet().length, 5);
+      expect(steps.first, const Offset(-5, 2));
+      for (var i = 0; i < 5; i++) {
+        // Held: the same offset across the whole 56 ms step.
+        expect(rowShakeAt(ms(110 + i * 56 + 55)), steps[i]);
+      }
+      expect(rowShakeAt(ms(110 + 280)), Offset.zero);
+      expect(rowShakeAt(ms(600)), Offset.zero);
+    });
+  });
+
   group('silk slash', () {
     test('beats run arc, full arc, hit-stop, shatter', () {
       expect(slashBeat(0.05), SlashBeat.arcRising);

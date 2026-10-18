@@ -36,6 +36,39 @@ Offset strikeShake(double progress) {
   return _shake[step.clamp(0, _shake.length - 1)];
 }
 
+/// The beats of a strike on the clock since the hold completed (D8): the
+/// row flashes for 110 ms, shatters to 500 ms, settles to 1300 ms, then rests.
+enum StrikeBeat { idle, hit, shatter, settle }
+
+const _shatterStart = Duration(milliseconds: 110);
+const _settleStart = Duration(milliseconds: 500);
+const _strikeEnd = Duration(milliseconds: 1300);
+
+/// Which beat a strike is on [t] after its hold completed.
+StrikeBeat strikeBeatAt(Duration t) {
+  if (t.isNegative || t >= _strikeEnd) return StrikeBeat.idle;
+  if (t < _shatterStart) return StrikeBeat.hit;
+  if (t < _settleStart) return StrikeBeat.shatter;
+  return StrikeBeat.settle;
+}
+
+const _rowShake = [
+  Offset(-5, 2),
+  Offset(4, -2),
+  Offset(-3, -1),
+  Offset(2, 1),
+  Offset(-1, 0),
+];
+const _rowShakeStep = Duration(milliseconds: 56);
+
+/// Where the struck row sits [t] after its hold completed: five held steps
+/// across the 280 ms after the shatter starts, still before and after.
+Offset rowShakeAt(Duration t) {
+  final s = t - _shatterStart;
+  if (s.isNegative || s >= _rowShakeStep * _rowShake.length) return Offset.zero;
+  return _rowShake[s.inMilliseconds ~/ _rowShakeStep.inMilliseconds];
+}
+
 /// How many flecks and silk threads a strike throws.
 int slashFlecks(bool isBossTier) => isBossTier ? 14 : 8;
 
