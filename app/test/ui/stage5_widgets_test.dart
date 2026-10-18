@@ -143,7 +143,7 @@ void main() {
     testWidgets('empty state', (tester) async {
       await _pump(tester, HallOfRelics(entries: const [], onOpen: (_) {}));
       expect(
-        find.text('No foes vanquished yet. The first relic awaits.'),
+        find.text('No bosses vanquished yet. The first relic awaits.'),
         findsOneWidget,
       );
     });

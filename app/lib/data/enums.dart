@@ -10,7 +10,7 @@ enum BossStatus { active, waiting, defeated }
 /// What a failed attempt undoes (§5.1).
 enum ResetOnFail {
   nothing('Nothing'),
-  currentPhase('Current phase'),
+  currentPhase('Current chapter'),
   wholeBoss('Whole boss');
 
   const ResetOnFail(this.label);

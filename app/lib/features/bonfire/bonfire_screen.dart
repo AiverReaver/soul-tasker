@@ -240,7 +240,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
 
   String? _moodNote(int strikes) => switch (_mood) {
     0 =>
-      '$strikes ${strikes == 1 ? 'foe' : 'foes'} struck. The Warden felt it.',
+      '$strikes ${strikes == 1 ? 'task' : 'tasks'} struck. The Warden felt it.',
     1 => 'Holding on is a kind of winning.',
     2 => 'You fell. Rise. Embers are kept.',
     _ => null,

@@ -65,7 +65,7 @@ class PhasePanel extends StatelessWidget {
                       style: text.bodyLarge,
                       cursorColor: p.silk,
                       decoration: InputDecoration(
-                        hintText: 'Phase name',
+                        hintText: 'Chapter name',
                         hintStyle: TextStyle(color: p.ash),
                         counterText: '',
                         border: InputBorder.none,
@@ -76,7 +76,7 @@ class PhasePanel extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Delete phase',
+                    tooltip: 'Delete chapter',
                     icon: Icon(Icons.close, color: p.ash),
                     onPressed: onDelete,
                   ),
@@ -100,7 +100,7 @@ class PhasePanel extends StatelessWidget {
                     ),
                   ),
                 ),
-              TextButton(onPressed: onAddFoe, child: const Text('Add a foe')),
+              TextButton(onPressed: onAddFoe, child: const Text('Add a task')),
             ],
           ),
         ),

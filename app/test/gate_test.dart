@@ -19,7 +19,7 @@ void main() {
     final first = Harness(NativeDatabase(file, setup: registerSyncFunctions));
     final view = await first.seed();
     await first.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
-    await first.attempts.fall(view.boss.id, 'Rushed the second phase.');
+    await first.attempts.fall(view.boss.id, 'Rushed the second chapter.');
     await first.db.close();
 
     // Second run: a new database on the same file, then the boss screen.
@@ -28,7 +28,7 @@ void main() {
 
     expect(
       find.textContaining(
-        'Attempt 2 · Last lesson: Rushed the second phase.',
+        'Attempt 2 · Last lesson: Rushed the second chapter.',
         findRichText: true,
       ),
       findsOneWidget,

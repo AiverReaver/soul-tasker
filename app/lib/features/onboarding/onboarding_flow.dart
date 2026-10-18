@@ -184,13 +184,13 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             ),
           ),
           page(
-            line: 'Break it into phases.',
+            line: 'Break it into chapters.',
             body: NameListEditor(
               items: _phases,
               keyPrefix: 'phase',
-              hint: 'Phase name',
-              removeLabel: 'Remove phase',
-              addLabel: 'Add a phase',
+              hint: 'Chapter name',
+              removeLabel: 'Remove chapter',
+              addLabel: 'Add a chapter',
               max: _maxPhases,
               onChanged: (id, t) => _phases = _edit(_phases, id, t),
               onRemove: (id) => setState(
@@ -212,9 +212,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             body: NameListEditor(
               items: _dailies,
               keyPrefix: 'daily',
-              hint: 'A small daily foe',
-              removeLabel: 'Remove daily foe',
-              addLabel: 'Add a daily foe',
+              hint: 'A small daily task',
+              removeLabel: 'Remove daily task',
+              addLabel: 'Add a daily task',
               max: _maxDailies,
               onChanged: (id, t) => _dailies = _edit(_dailies, id, t),
               onRemove: (id) => setState(

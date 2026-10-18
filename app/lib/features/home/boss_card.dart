@@ -19,14 +19,14 @@ class BossCard extends ConsumerWidget {
   final BossView view;
 
   String get _progress {
-    if (!view.hasSegments) return 'Daily foes';
+    if (!view.hasSegments) return 'Daily tasks';
     final fighting = view.phases
         .where((p) => p.tasks.any((t) => t.isSegment))
         .toList();
     final current = view.currentPhase;
     return current == null
-        ? 'All phases done'
-        : 'Phase ${_roman(fighting.indexOf(current) + 1)} of '
+        ? 'All chapters done'
+        : 'Chapter ${_roman(fighting.indexOf(current) + 1)} of '
               '${_roman(fighting.length)}';
   }
 

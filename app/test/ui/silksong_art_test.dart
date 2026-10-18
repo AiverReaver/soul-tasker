@@ -171,7 +171,7 @@ void main() {
           BossCardTile(
             title: 'Gwyn',
             attemptNumber: 1,
-            progressLabel: 'Phase 1 of 2',
+            progressLabel: 'Chapter 1 of 2',
             health: 1,
             isPinned: pinned,
             onTap: () {},

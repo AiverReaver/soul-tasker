@@ -80,7 +80,7 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return GlassSheet(
-      title: widget.isNew ? 'A new foe' : 'Edit foe',
+      title: widget.isNew ? 'A new task' : 'Edit task',
       child: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.viewInsetsOf(context).bottom,
@@ -91,7 +91,7 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
           children: [
             NeedleTextField(
               controller: _title,
-              caption: 'Name the foe',
+              caption: 'Name the task',
               hint: 'What will you do?',
               autofocus: widget.isNew,
               onChanged: (_) => setState(() {}),
@@ -123,16 +123,16 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
               initialValue: _phase,
               style: text.bodyLarge,
               dropdownColor: context.palette.shell,
-              decoration: const InputDecoration(labelText: 'Phase'),
+              decoration: const InputDecoration(labelText: 'Chapter'),
               items: [
                 for (final p in widget.phases)
                   DropdownMenuItem(
                     value: p.id,
-                    child: Text(p.name.isEmpty ? 'Unnamed phase' : p.name),
+                    child: Text(p.name.isEmpty ? 'Unnamed chapter' : p.name),
                   ),
                 const DropdownMenuItem(
                   value: _beyond,
-                  child: Text('Beyond the phases'),
+                  child: Text('Beyond the chapters'),
                 ),
               ],
               onChanged: (v) => setState(() => _phase = v ?? _beyond),

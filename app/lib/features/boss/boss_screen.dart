@@ -93,7 +93,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           label: boss.title,
           title: 'Leave the fight?',
           body:
-              'Struck foes stay struck and you keep $kept embers. '
+              'Struck tasks stay struck and you keep $kept embers. '
               '${boss.title} waits where you left it.',
           actions: const ['Keep fighting', 'Leave for now'],
         );
@@ -240,14 +240,14 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           const SizedBox(height: Space.xs),
           ShardMeter(filled: shardsFor(view.health)),
         ] else
-          Text('This foe is worn down by habit.', style: text.bodySmall),
+          Text('This task is worn down by habit.', style: text.bodySmall),
         const SizedBox(height: Space.sm),
         // Always one child here, so the rows below keep their elements when
         // the hint goes away with the last phase.
         if (view.hasSegments && current != null)
           Text(
             isFelled
-                ? '${boss.title} kneels. Phase '
+                ? '${boss.title} kneels. Chapter '
                       '${romanNumeral(view.phases.indexOf(current) + 1)} awaits.'
                 : 'Each strike takes shards from ${_withThe(boss.title)}.',
             style: text.bodySmall?.copyWith(color: p.ash),
@@ -263,7 +263,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           for (final t in ph.tasks) row(t),
         ],
         if (view.standalone.isNotEmpty) ...[
-          _header2(context, 'Beyond the phases'),
+          _header2(context, 'Beyond the chapters'),
           for (final t in view.standalone) row(t),
         ],
       ],
@@ -305,7 +305,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         .toList();
     final current = view.currentPhase;
     if (current == null || !fighting.contains(current)) return null;
-    return 'Phase ${romanNumeral(fighting.indexOf(current) + 1)} '
+    return 'Chapter ${romanNumeral(fighting.indexOf(current) + 1)} '
         'of ${romanNumeral(fighting.length)}';
   }
 

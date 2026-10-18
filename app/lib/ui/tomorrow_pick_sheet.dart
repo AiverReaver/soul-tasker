@@ -52,13 +52,13 @@ class TomorrowPickSheet extends StatelessWidget {
         spacing: Space.md,
         children: [
           Text(
-            'Choose up to three foes to face tomorrow. '
+            'Choose up to three tasks to face tomorrow. '
             'Keeping them is what counts.',
             style: text.bodyMedium,
           ),
           Row(
             children: [
-              Expanded(child: Text('Foes waiting', style: text.labelSmall)),
+              Expanded(child: Text('Tasks waiting', style: text.labelSmall)),
               Text('${picked.length} of $max chosen', style: text.labelSmall),
             ],
           ),

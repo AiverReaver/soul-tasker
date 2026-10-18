@@ -17,12 +17,12 @@ void main() {
     id = (await h.seed()).boss.id;
   });
 
-  testWidgets('the header has back, the phase and the ⋯ actions', (
+  testWidgets('the header has back, the chapter and the ⋯ actions', (
     tester,
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
     expect(find.bySemanticsLabel('Back'), findsOneWidget);
-    expect(find.text('Phase I of II'), findsOneWidget);
+    expect(find.text('Chapter I of II'), findsOneWidget);
     expect(find.bySemanticsLabel('Boss actions'), findsOneWidget);
     await tearDownApp(tester, h);
   });
@@ -58,7 +58,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the current phase is a heading with its struck count', (
+  testWidgets('the current chapter is a heading with its struck count', (
     tester,
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
@@ -72,7 +72,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the hint, then the boss kneels when the phase is done', (
+  testWidgets('the hint, then the boss kneels when the chapter is done', (
     tester,
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
@@ -86,7 +86,7 @@ void main() {
     }
     await settle(tester);
     expect(
-      find.text('The Certification kneels. Phase II awaits.'),
+      find.text('The Certification kneels. Chapter II awaits.'),
       findsOneWidget,
     );
     await tearDownApp(tester, h);
@@ -139,7 +139,9 @@ void main() {
     expect(find.text('Leave the fight?'), findsOneWidget);
     expect(find.text('THE CERTIFICATION'), findsOneWidget);
     expect(
-      find.textContaining('Struck foes stay struck and you keep $kept embers.'),
+      find.textContaining(
+        'Struck tasks stay struck and you keep $kept embers.',
+      ),
       findsOneWidget,
     );
     expect((await h.reload(id)).boss.status, BossStatus.active);
@@ -155,7 +157,7 @@ void main() {
     await settle(tester);
     expect(find.text('Leave the fight?'), findsNothing);
     expect((await h.reload(id)).boss.status, BossStatus.active);
-    expect(find.text('Phase I of II'), findsOneWidget);
+    expect(find.text('Chapter I of II'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 

@@ -24,7 +24,7 @@ void main() {
     await settle(tester);
 
     expect(find.byType(GlassSheet), findsOneWidget);
-    expect(find.text('Edit foe'), findsOneWidget);
+    expect(find.text('Edit task'), findsOneWidget);
     expect(find.byType(SegmentedButton<dynamic>), findsNothing);
     expect(find.byType(Switch), findsNothing);
     await tearDownApp(tester, h);

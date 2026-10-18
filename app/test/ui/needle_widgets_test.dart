@@ -32,13 +32,13 @@ void main() {
             home: Scaffold(
               body: NeedleTextField(
                 controller: TextEditingController(),
-                caption: 'Name the foe',
+                caption: 'Name the task',
                 isPlainCaption: true,
               ),
             ),
           ),
         );
-        final style = tester.widget<Text>(find.text('Name the foe')).style;
+        final style = tester.widget<Text>(find.text('Name the task')).style;
         expect(style?.fontSize, 15);
         expect(style?.fontWeight, FontWeight.w600);
       });

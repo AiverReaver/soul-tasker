@@ -293,7 +293,7 @@ class BossDao {
         .where((t) => t.isNotEmpty)
         .toList();
     if (clean.length < 2 || clean.length > 5) {
-      throw ArgumentError('Split into 2 to 5 smaller foes.');
+      throw ArgumentError('Split into 2 to 5 smaller tasks.');
     }
     return _db.transaction(() async {
       final now = _clock();

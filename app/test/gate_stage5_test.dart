@@ -44,7 +44,7 @@ void main() {
       (w) => w is TextFormField && w.key.toString().contains('daily-'),
     );
     await tester.enterText(dailies, 'Walk');
-    await tester.tap(find.text('Add a daily foe'));
+    await tester.tap(find.text('Add a daily task'));
     await settle(tester);
     await tester.enterText(dailies.last, 'Flashcards');
     await tester.tap(find.text('Next'));
@@ -70,7 +70,7 @@ void main() {
       draft.copyWith(
         phases: [
           for (final (i, p) in draft.phases.indexed)
-            p.copyWith(tasks: [TaskDraft(title: 'Phase task ${i + 1}')]),
+            p.copyWith(tasks: [TaskDraft(title: 'Chapter task ${i + 1}')]),
         ],
       ),
     );
@@ -106,11 +106,11 @@ void main() {
       reminders: reminders,
       tall: true,
     );
-    await tester.tap(holdButton('Phase task 1'));
+    await tester.tap(holdButton('Chapter task 1'));
     await settle(tester);
     await tester.tap(find.text('Clean strike'));
     await settle(tester);
-    await tester.tap(holdButton('Phase task 2'));
+    await tester.tap(holdButton('Chapter task 2'));
     await settle(tester);
     await tester.tap(find.text('Clean strike'));
     await settle(tester);

@@ -131,7 +131,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
             ),
           )
         else ...[
-          Text('Today’s foes', style: text.titleMedium),
+          Text('Today’s tasks', style: text.titleMedium),
           if (open + struck > 0)
             Padding(
               padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
@@ -150,7 +150,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
             padding: const EdgeInsets.only(top: Space.xl),
             child: Text(
               struck > 0
-                  ? 'All foes struck. Rest at the bonfire'
+                  ? 'All tasks struck. Rest at the bonfire'
                   : 'Nothing stands in your way today.',
               textAlign: TextAlign.center,
               style: text.bodyLarge,

@@ -144,7 +144,7 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     if (phase.tasks.isNotEmpty) {
       final ok = await confirm(
         context,
-        'Delete this phase and its ${phase.tasks.length} tasks?',
+        'Delete this chapter and its ${phase.tasks.length} tasks?',
         action: 'Delete',
       );
       if (!ok) return;
@@ -240,7 +240,7 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           onChanged: (r) => _update((d) => d.copyWith(resetOnFail: r)),
         ),
         const SizedBox(height: Space.lg),
-        Text('PHASES', style: text.labelSmall),
+        Text('CHAPTERS', style: text.labelSmall),
         ReorderableListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -284,17 +284,17 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
               ],
             ),
           ),
-          child: const Text('Add a phase'),
+          child: const Text('Add a chapter'),
         ),
         const SizedBox(height: Space.lg),
-        Text('BEYOND THE PHASES', style: text.labelSmall),
+        Text('BEYOND THE CHAPTERS', style: text.labelSmall),
         for (final t in draft.standalone)
           _TaskLine(task: t, onTap: () => _editTask(t, null)),
         TextButton(
           key: const ValueKey('add-standalone-task'),
           onPressed: () =>
               _editTask(TaskDraft(id: newId(), title: ''), null, isNew: true),
-          child: const Text('Add a foe'),
+          child: const Text('Add a task'),
         ),
         if (widget.bossId != null) ...[
           const SizedBox(height: Space.xl),

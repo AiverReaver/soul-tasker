@@ -27,7 +27,7 @@ class TomorrowRow extends StatelessWidget {
         : '$count · ${titles.take(2).join(', ')}';
     return Semantics(
       button: true,
-      label: 'Tomorrow’s foes, $summary',
+      label: 'Tomorrow’s tasks, $summary',
       onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
@@ -49,7 +49,7 @@ class TomorrowRow extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Tomorrow’s foes',
+                          'Tomorrow’s tasks',
                           style: text.bodyMedium!.copyWith(color: p.bone),
                         ),
                         Text(summary, style: text.bodySmall),

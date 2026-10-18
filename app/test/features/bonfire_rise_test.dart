@@ -27,7 +27,7 @@ void main() {
     expect(find.text('Rise'), findsOneWidget);
     expect(find.text('Rest at the hearth'), findsNothing);
     expect(find.byType(TextField), findsNothing);
-    expect(find.text('Tomorrow’s foes'), findsNothing);
+    expect(find.text('Tomorrow’s tasks'), findsNothing);
     expect(find.text('How did today go?'), findsNothing);
 
     await tester.tap(find.text('Rise'));

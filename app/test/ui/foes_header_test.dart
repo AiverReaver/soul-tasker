@@ -4,7 +4,7 @@ import 'package:hearthrise/ui/foes_header.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
-  testWidgets('serif title, quiet count, and a plus that adds a foe', (
+  testWidgets('serif title, quiet count, and a plus that adds a task', (
     tester,
   ) async {
     var taps = 0;
@@ -16,19 +16,19 @@ void main() {
         ),
       ),
     );
-    final title = tester.widget<Text>(find.text('Today’s foes'));
+    final title = tester.widget<Text>(find.text('Today’s tasks'));
     expect(title.style?.fontFamily, 'CormorantGaramond');
     expect(title.style?.fontSize, 22);
     expect(find.text('1 of 4 struck'), findsOneWidget);
     final count = tester.getRect(find.text('1 of 4 struck'));
     expect(
       count.left,
-      greaterThanOrEqualTo(tester.getRect(find.text('Today’s foes')).right),
+      greaterThanOrEqualTo(tester.getRect(find.text('Today’s tasks')).right),
     );
-    await tester.tap(find.bySemanticsLabel('New foe'));
+    await tester.tap(find.bySemanticsLabel('New task'));
     expect(taps, 1);
     expect(
-      tester.getSize(find.bySemanticsLabel('New foe')).shortestSide,
+      tester.getSize(find.bySemanticsLabel('New task')).shortestSide,
       greaterThanOrEqualTo(48),
     );
   });

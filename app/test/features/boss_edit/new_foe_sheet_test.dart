@@ -30,8 +30,8 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    expect(find.text('A new foe'), findsOneWidget);
-    expect(find.text('Name the foe'), findsOneWidget);
+    expect(find.text('A new task'), findsOneWidget);
+    expect(find.text('Name the task'), findsOneWidget);
     for (final w in Weight.values) {
       expect(find.text(w.label), findsOneWidget);
       expect(find.text('+${w.embers} embers'), findsOneWidget);
@@ -45,7 +45,7 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    expect(find.text('Today’s foes'), findsWidgets);
+    expect(find.text('Today’s tasks'), findsWidgets);
     expect(find.widgetWithText(EmberButton, 'Add to today'), findsOneWidget);
     final label = tester.getRect(find.text('Strikes at'));
     final row = tester.getRect(find.text('The Certification').last);
@@ -66,7 +66,7 @@ void main() {
       (t) => t.title == 'Call the bank',
     );
     expect(added.weight, Weight.heavy);
-    expect(find.text('A new foe'), findsNothing);
+    expect(find.text('A new task'), findsNothing);
     expect(find.text('Call the bank'), findsOneWidget);
     await tearDownApp(tester, h);
   });
@@ -76,7 +76,7 @@ void main() {
     final before = (await standalone()).length;
     await tester.tap(find.text('Add to today'));
     await settle(tester);
-    expect(find.text('A new foe'), findsOneWidget);
+    expect(find.text('A new task'), findsOneWidget);
     expect((await standalone()).length, before);
     await tearDownApp(tester, h);
   });
@@ -87,7 +87,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Never saved');
     await tester.tap(find.text('Cancel'));
     await settle(tester);
-    expect(find.text('A new foe'), findsNothing);
+    expect(find.text('A new task'), findsNothing);
     expect((await standalone()).length, before);
     await tearDownApp(tester, h);
   });

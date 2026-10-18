@@ -50,7 +50,7 @@ void main() {
     expect(find.text('Flasks restored'), findsOneWidget);
     expect(find.text('One thing for tomorrow'), findsOneWidget);
     expect(find.text('Write before noon'), findsOneWidget);
-    expect(find.text('Tomorrow’s foes'), findsOneWidget);
+    expect(find.text('Tomorrow’s tasks'), findsOneWidget);
     expect(find.text('0 of 3 chosen'), findsOneWidget);
     expect(restButton(), findsOneWidget);
     // The day summary, ember tally, health bar and accuracy line are gone.
@@ -84,7 +84,7 @@ void main() {
 
     await tester.tap(find.text('Fought well'));
     await settle(tester);
-    expect(find.text('1 foe struck. The Warden felt it.'), findsOneWidget);
+    expect(find.text('1 task struck. The Warden felt it.'), findsOneWidget);
 
     await tester.tap(find.text('Held on'));
     await settle(tester);
@@ -125,7 +125,7 @@ void main() {
     final embers = await h.db.select(h.db.emberEvents).get();
     expect(embers.where((e) => e.kind == EmberKind.bank).single.amount, 1);
     expect(haptics.events, contains('medium'));
-    expect(find.text('Today’s foes'), findsOneWidget); // Home
+    expect(find.text('Today’s tasks'), findsOneWidget); // Home
     expect(restButton(), findsNothing);
     await tearDownApp(tester, h);
   });
@@ -149,11 +149,11 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  group('Tomorrow’s foes (Q5)', () {
+  group('Tomorrow’s tasks (Q5)', () {
     Future<void> open(WidgetTester tester) async {
       await pumpApp(tester, h, location: '/bonfire', tall: true);
-      await tester.ensureVisible(find.text('Tomorrow’s foes'));
-      await tester.tap(find.text('Tomorrow’s foes'));
+      await tester.ensureVisible(find.text('Tomorrow’s tasks'));
+      await tester.tap(find.text('Tomorrow’s tasks'));
       await settle(tester);
     }
 

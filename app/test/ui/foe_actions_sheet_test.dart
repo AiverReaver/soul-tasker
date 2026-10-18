@@ -38,7 +38,7 @@ Future<FoeAction?> _open(
 }
 
 void main() {
-  testWidgets('every foe offers Edit and Delete; the title heads the sheet', (
+  testWidgets('every task offers Edit and Delete; the title heads the sheet', (
     tester,
   ) async {
     await _open(tester);

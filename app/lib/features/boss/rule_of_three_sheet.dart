@@ -63,7 +63,7 @@ class _RuleOfThreeSheet extends StatelessWidget {
             onTap: () => Navigator.pop(context, _Choice.change),
           ),
           GlassActionRow(
-            label: 'Split into smaller foes',
+            label: 'Split into smaller tasks',
             onTap: () => Navigator.pop(context, _Choice.split),
           ),
           GlassActionRow(
@@ -121,7 +121,7 @@ class _SplitSheetState extends State<_SplitSheet> {
           for (final (i, field) in _fields.indexed)
             NeedleTextField(
               controller: field,
-              caption: 'Smaller foe ${i + 1}',
+              caption: 'Smaller task ${i + 1}',
               autofocus: i == 0,
               onChanged: (_) => setState(() {}),
             ),

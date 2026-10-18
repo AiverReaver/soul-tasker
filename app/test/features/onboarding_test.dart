@@ -75,7 +75,7 @@ void main() {
     await _toPage(tester, 3, title: 'Run a 10K');
     expect(tester.testTextInput.hasAnyClients, isFalse);
 
-    await tester.tap(find.text('Add a phase'));
+    await tester.tap(find.text('Add a chapter'));
     await settle(tester);
     final added = find.byKey(const ValueKey('phase-3'));
     expect(
@@ -92,7 +92,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('phases: two suggestions; rename, add up to three, remove', (
+  testWidgets('chapters: two suggestions; rename, add up to three, remove', (
     tester,
   ) async {
     final h = Harness();
@@ -107,12 +107,12 @@ void main() {
     expect(find.text('The fight'), findsOneWidget);
 
     await tester.enterText(find.text('The fight'), 'The exam');
-    await tester.tap(find.text('Add a phase'));
+    await tester.tap(find.text('Add a chapter'));
     await settle(tester);
     expect(fields, findsNWidgets(3));
-    expect(find.text('Add a phase'), findsNothing);
+    expect(find.text('Add a chapter'), findsNothing);
 
-    await tester.tap(find.byTooltip('Remove phase 1'));
+    await tester.tap(find.byTooltip('Remove chapter 1'));
     await settle(tester);
     expect(fields, findsNWidgets(2));
     expect(find.text('Learn the pattern'), findsNothing);
@@ -120,7 +120,9 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('up to three daily foes; blank ones are dropped', (tester) async {
+  testWidgets('up to three daily tasks; blank ones are dropped', (
+    tester,
+  ) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _toPage(tester, 4);
@@ -130,12 +132,12 @@ void main() {
     );
     expect(fields, findsNWidgets(1));
     await tester.enterText(fields.first, 'Walk');
-    await tester.tap(find.text('Add a daily foe'));
+    await tester.tap(find.text('Add a daily task'));
     await settle(tester);
-    await tester.tap(find.text('Add a daily foe'));
+    await tester.tap(find.text('Add a daily task'));
     await settle(tester);
     expect(fields, findsNWidgets(3));
-    expect(find.text('Add a daily foe'), findsNothing);
+    expect(find.text('Add a daily task'), findsNothing);
     await tester.enterText(fields.at(2), 'Stretch');
     await _next(tester);
     await tester.tap(find.text('Begin'));

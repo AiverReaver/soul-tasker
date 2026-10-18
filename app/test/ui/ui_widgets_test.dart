@@ -29,7 +29,7 @@ void main() {
       BossCardTile(
         title: 'Gwyn',
         attemptNumber: 2,
-        progressLabel: 'Phase 1 of 2',
+        progressLabel: 'Chapter 1 of 2',
         health: 1,
         isPinned: true,
         showHealth: true,
@@ -38,7 +38,7 @@ void main() {
       ),
     );
     expect(find.text('Gwyn'), findsOneWidget);
-    expect(find.text('Attempt 2 · Phase 1 of 2'), findsOneWidget);
+    expect(find.text('Attempt 2 · Chapter 1 of 2'), findsOneWidget);
     expect(find.text('Pinned'), findsOneWidget);
     expect(find.byType(ShardMeter), findsOneWidget);
     await tester.tap(find.text('Gwyn'));
@@ -54,7 +54,7 @@ void main() {
       BossCardTile(
         title: 'Gwyn',
         attemptNumber: 1,
-        progressLabel: 'Phase 1 of 2',
+        progressLabel: 'Chapter 1 of 2',
         health: 1,
         isPinned: pinned,
         onTap: () {},
@@ -81,7 +81,7 @@ void main() {
             body: BossCardTile(
               title: 'A very long boss name that must wrap',
               attemptNumber: 12,
-              progressLabel: 'Phase 3 of 4',
+              progressLabel: 'Chapter 3 of 4',
               health: 0.5,
               isPinned: true,
               showHealth: true,
@@ -105,7 +105,7 @@ void main() {
       BossCardTile(
         title: 'Daily',
         attemptNumber: 1,
-        progressLabel: 'Daily foes',
+        progressLabel: 'Daily tasks',
         health: 0,
         isPinned: false,
         onTap: () {},

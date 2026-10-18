@@ -88,8 +88,8 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
     final p = context.palette;
     final text = Theme.of(context).textTheme;
     return GlassSheet(
-      label: 'Today’s foes',
-      title: 'A new foe',
+      label: 'Today’s tasks',
+      title: 'A new task',
       child: Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.viewInsetsOf(context).bottom,
@@ -100,7 +100,7 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
           children: [
             NeedleTextField(
               controller: _name,
-              caption: 'Name the foe',
+              caption: 'Name the task',
               isPlainCaption: true,
               hint: 'What will you do?',
               autofocus: true,

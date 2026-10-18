@@ -108,16 +108,16 @@ void main() {
                 await tester.pump();
               }
               if (page == 3) {
-                await tester.ensureVisible(find.text('Add a phase'));
-                await tester.tap(find.text('Add a phase'));
+                await tester.ensureVisible(find.text('Add a chapter'));
+                await tester.tap(find.text('Add a chapter'));
                 await settle(tester);
               }
               if (page == 4) {
-                await tester.ensureVisible(find.text('Add a daily foe'));
-                await tester.tap(find.text('Add a daily foe'));
+                await tester.ensureVisible(find.text('Add a daily task'));
+                await tester.tap(find.text('Add a daily task'));
                 await settle(tester);
-                await tester.ensureVisible(find.text('Add a daily foe'));
-                await tester.tap(find.text('Add a daily foe'));
+                await tester.ensureVisible(find.text('Add a daily task'));
+                await tester.tap(find.text('Add a daily task'));
                 await settle(tester);
               }
               await tester.tap(find.text('Next'));

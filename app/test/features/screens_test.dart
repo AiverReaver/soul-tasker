@@ -105,12 +105,14 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('a boss page names its phase in roman numerals', (tester) async {
+  testWidgets('a boss page names its chapter in roman numerals', (
+    tester,
+  ) async {
     final h = Harness();
     final view = await h.seed();
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    expect(find.text('Phase I of II'), findsOneWidget);
+    expect(find.text('Chapter I of II'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -133,13 +135,16 @@ void main() {
 
     await tapBossAction(tester, 'This attempt failed');
     await settle(tester);
-    await tester.enterText(find.byType(TextField), 'Rushed the second phase.');
+    await tester.enterText(
+      find.byType(TextField),
+      'Rushed the second chapter.',
+    );
     await tester.tap(find.text('Rise'));
     await settle(tester);
 
     expect(
       find.textContaining(
-        'Attempt 2 · Last lesson: Rushed the second phase.',
+        'Attempt 2 · Last lesson: Rushed the second chapter.',
         findRichText: true,
       ),
       findsOneWidget,

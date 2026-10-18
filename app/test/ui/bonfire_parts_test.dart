@@ -68,7 +68,7 @@ void main() {
 
     testWidgets('none chosen', (tester) async {
       await pump(tester, const [], () {});
-      expect(find.text('Tomorrow’s foes'), findsOneWidget);
+      expect(find.text('Tomorrow’s tasks'), findsOneWidget);
       expect(find.text('0 of 3 chosen'), findsOneWidget);
     });
 
@@ -76,7 +76,7 @@ void main() {
       var taps = 0;
       await pump(tester, const ['Walk', 'Sit', 'Call'], () => taps++);
       expect(find.text('3 of 3 chosen · Walk, Sit'), findsOneWidget);
-      await tester.tap(find.text('Tomorrow’s foes'));
+      await tester.tap(find.text('Tomorrow’s tasks'));
       expect(taps, 1);
     });
   });
@@ -154,11 +154,11 @@ void main() {
       expect(find.text('Tomorrow’s three'), findsOneWidget);
       expect(
         find.text(
-          'Choose up to three foes to face tomorrow. Keeping them is what counts.',
+          'Choose up to three tasks to face tomorrow. Keeping them is what counts.',
         ),
         findsOneWidget,
       );
-      expect(find.text('Foes waiting'), findsOneWidget);
+      expect(find.text('Tasks waiting'), findsOneWidget);
       expect(find.text('1 of 3 chosen'), findsOneWidget);
       expect(find.text('Walk'), findsOneWidget);
       expect(find.text('Three is enough for one day.'), findsOneWidget);

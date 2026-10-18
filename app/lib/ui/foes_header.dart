@@ -24,14 +24,14 @@ class FoesHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Today’s foes',
+            'Today’s tasks',
             style: text.titleMedium!.copyWith(fontSize: 22, height: 28 / 22),
           ),
         ),
         Text(countLabel, style: text.bodyMedium!.copyWith(color: p.ash)),
         GlassTapTarget(
           key: const ValueKey('new-foe'),
-          semanticLabel: 'New foe',
+          semanticLabel: 'New task',
           onTap: onNewFoe,
           child: SizedBox.square(
             dimension: kMinTarget,

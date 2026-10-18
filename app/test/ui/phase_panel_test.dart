@@ -36,7 +36,7 @@ void main() {
     ),
   );
 
-  testWidgets('a framed panel: name, grip, foes with notes, Add a foe', (
+  testWidgets('a framed panel: name, grip, tasks with notes, Add a task', (
     tester,
   ) async {
     await pump(tester);
@@ -45,10 +45,10 @@ void main() {
     expect(find.text('Learn'), findsOneWidget);
     expect(find.text('Read chapter 4'), findsOneWidget);
     expect(find.text('Light · daily'), findsOneWidget);
-    expect(find.text('Add a foe'), findsOneWidget);
+    expect(find.text('Add a task'), findsOneWidget);
   });
 
-  testWidgets('callbacks: rename, delete, add a foe, edit a foe', (
+  testWidgets('callbacks: rename, delete, add a task, edit a task', (
     tester,
   ) async {
     String? renamed;
@@ -62,8 +62,8 @@ void main() {
       onEditFoe: (i) => edited = i,
     );
     await tester.enterText(find.byType(TextFormField), 'Fight');
-    await tester.tap(find.byTooltip('Delete phase'));
-    await tester.tap(find.text('Add a foe'));
+    await tester.tap(find.byTooltip('Delete chapter'));
+    await tester.tap(find.text('Add a task'));
     await tester.tap(find.text('Walk'));
     expect((renamed, deleted, added, edited), ('Fight', 1, 1, 1));
   });

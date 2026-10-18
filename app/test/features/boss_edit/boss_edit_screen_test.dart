@@ -10,7 +10,7 @@ void main() {
   late Harness h;
   setUp(() => h = Harness());
 
-  testWidgets('new mode: "A new boss", empty fields, one empty phase', (
+  testWidgets('new mode: "A new boss", empty fields, one empty chapter', (
     tester,
   ) async {
     await pumpApp(tester, h, location: '/boss/new', tall: true);
@@ -22,7 +22,9 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('edit mode loads the boss, its phases and foes', (tester) async {
+  testWidgets('edit mode loads the boss, its chapters and tasks', (
+    tester,
+  ) async {
     final view = await h.seed();
     await pumpApp(
       tester,
@@ -38,7 +40,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Add a phase adds a panel; Add a foe opens the foe sheet', (
+  testWidgets('Add a chapter adds a panel; Add a task opens the task sheet', (
     tester,
   ) async {
     final view = await h.seed();
@@ -48,18 +50,18 @@ void main() {
       location: '/boss/${view.boss.id}/edit',
       tall: true,
     );
-    await tester.ensureVisible(find.text('Add a phase'));
-    await tester.tap(find.text('Add a phase'));
+    await tester.ensureVisible(find.text('Add a chapter'));
+    await tester.tap(find.text('Add a chapter'));
     await settle(tester);
     expect(find.byType(PhasePanel, skipOffstage: false), findsNWidgets(3));
 
-    await tester.tap(find.text('Add a foe').first);
+    await tester.tap(find.text('Add a task').first);
     await settle(tester);
-    expect(find.text('A new foe'), findsOneWidget); // the task sheet
+    expect(find.text('A new task'), findsOneWidget); // the task sheet
     await tearDownApp(tester, h);
   });
 
-  testWidgets('tapping a foe opens its sheet', (tester) async {
+  testWidgets('tapping a task opens its sheet', (tester) async {
     final view = await h.seed();
     await pumpApp(
       tester,
@@ -69,11 +71,11 @@ void main() {
     );
     await tester.tap(find.text('Read chapter 4'));
     await settle(tester);
-    expect(find.text('Edit foe'), findsOneWidget);
+    expect(find.text('Edit task'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('phases reorder by the grip, and Save writes the order', (
+  testWidgets('chapters reorder by the grip, and Save writes the order', (
     tester,
   ) async {
     final view = await h.seed();
@@ -120,7 +122,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('deleting a phase with foes, or the boss, asks first', (
+  testWidgets('deleting a chapter with tasks, or the boss, asks first', (
     tester,
   ) async {
     final view = await h.seed();
@@ -131,9 +133,9 @@ void main() {
       tall: true,
     );
 
-    await tester.tap(find.byTooltip('Delete phase').first);
+    await tester.tap(find.byTooltip('Delete chapter').first);
     await settle(tester);
-    expect(find.textContaining('Delete this phase'), findsOneWidget);
+    expect(find.textContaining('Delete this chapter'), findsOneWidget);
     await tester.tap(find.text('Not yet'));
     await settle(tester);
     expect(find.byType(PhasePanel, skipOffstage: false), findsNWidgets(2));

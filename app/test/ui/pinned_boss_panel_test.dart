@@ -18,7 +18,7 @@ void main() {
         home: Scaffold(
           body: PinnedBossPanel(
             title: 'The Certification',
-            subtitle: 'Attempt 2 · Phase 1 of 3',
+            subtitle: 'Attempt 2 · Chapter 1 of 3',
             health: 0.5,
             onEnter: () => enters++,
             onLongPress: () => longs++,
@@ -27,7 +27,7 @@ void main() {
       ),
     );
     expect(find.text('The Certification'), findsOneWidget);
-    expect(find.text('Attempt 2 · Phase 1 of 3'), findsOneWidget);
+    expect(find.text('Attempt 2 · Chapter 1 of 3'), findsOneWidget);
     expect(find.byType(BossArt), findsOneWidget);
     expect(find.byKey(const ValueKey('shard-on')), findsNWidgets(6));
     expect(find.text('Boss health'), findsOneWidget);

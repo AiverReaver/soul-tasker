@@ -68,11 +68,11 @@ void main() {
   group('fall', () {
     test('raises the counter and keeps a trimmed lesson', () async {
       final view = await h.seed();
-      await h.attempts.fall(view.boss.id, '  Rushed the second phase.  ');
+      await h.attempts.fall(view.boss.id, '  Rushed the second chapter.  ');
 
       final after = await h.reload(view.boss.id);
       expect(after.boss.attemptNumber, 2);
-      expect(after.lastLesson, 'Rushed the second phase.');
+      expect(after.lastLesson, 'Rushed the second chapter.');
     });
 
     test(
@@ -116,7 +116,7 @@ void main() {
       expect(taskNamed(after, 'Book the room').isStruck, isTrue);
     });
 
-    test('current phase reopens that phase only, not standalone', () async {
+    test('current chapter reopens that chapter only, not standalone', () async {
       final view = await h.seed(reset: ResetOnFail.currentPhase);
       await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
       await h.attempts.strike(taskNamed(view, 'Book the room').task.id);
@@ -127,7 +127,7 @@ void main() {
       expect(taskNamed(after, 'Book the room').isStruck, isTrue);
     });
 
-    test('current phase leaves finished earlier phases done', () async {
+    test('current chapter leaves finished earlier chapters done', () async {
       final view = await h.seed(reset: ResetOnFail.currentPhase);
       await strikeAll(h, view.boss.id); // Learn is done; Fight is current.
       await h.attempts.fall(view.boss.id, null);
@@ -190,7 +190,7 @@ void main() {
       expect(prompts, [false, false, true]);
     });
 
-    test('phase prompts on the 3rd fall at the same phase', () async {
+    test('chapter prompts on the 3rd fall at the same chapter', () async {
       final view = await h.seed();
       final prompts = [
         for (var i = 0; i < 3; i++) await h.attempts.fall(view.boss.id, null),
@@ -198,7 +198,7 @@ void main() {
       expect(prompts, [false, false, true]);
     });
 
-    test('a fall at a different phase starts a new run', () async {
+    test('a fall at a different chapter starts a new run', () async {
       final view = await h.seed();
       await h.attempts.fall(view.boss.id, null);
       await h.attempts.fall(view.boss.id, null);
@@ -281,19 +281,22 @@ void main() {
       expect(rows.single.bossId, view.boss.id);
     });
 
-    test('deleting a phase keeps falls and lessons; breaks the run', () async {
-      final view = await h.seed();
-      await h.attempts.fall(view.boss.id, 'First.');
-      await h.attempts.fall(view.boss.id, 'Second.');
+    test(
+      'deleting a chapter keeps falls and lessons; breaks the run',
+      () async {
+        final view = await h.seed();
+        await h.attempts.fall(view.boss.id, 'First.');
+        await h.attempts.fall(view.boss.id, 'Second.');
 
-      final draft = BossDraft.fromView(view);
-      await h.bosses.saveBoss(draft.copyWith(phases: [draft.phases.last]));
-      final after = await h.reload(view.boss.id);
+        final draft = BossDraft.fromView(view);
+        await h.bosses.saveBoss(draft.copyWith(phases: [draft.phases.last]));
+        final after = await h.reload(view.boss.id);
 
-      expect(after.boss.attemptNumber, 3);
-      expect(after.lastLesson, 'Second.');
-      // The two earlier falls lost their phase, so the run restarts.
-      expect(await h.attempts.fall(view.boss.id, null), isFalse);
-    });
+        expect(after.boss.attemptNumber, 3);
+        expect(after.lastLesson, 'Second.');
+        // The two earlier falls lost their phase, so the run restarts.
+        expect(await h.attempts.fall(view.boss.id, null), isFalse);
+      },
+    );
   });
 }

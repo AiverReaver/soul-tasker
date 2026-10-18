@@ -51,7 +51,7 @@ class FoeActionsSheet extends StatelessWidget {
       onTap: () => Navigator.pop(context, action),
     );
     return GlassSheet(
-      label: 'Foe actions',
+      label: 'Task actions',
       title: title,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

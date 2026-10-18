@@ -10,7 +10,7 @@ import '../data/harness.dart';
 import 'pump.dart';
 
 void main() {
-  testWidgets('Home opens on a greeting, the level and today’s foes', (
+  testWidgets('Home opens on a greeting, the level and today’s tasks', (
     tester,
   ) async {
     final h = Harness();
@@ -34,7 +34,7 @@ void main() {
     );
     expect(find.bySemanticsLabel('Your profile'), findsOneWidget);
     expect(find.bySemanticsLabel('Settings'), findsOneWidget);
-    expect(find.text('Today’s foes'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     expect(find.text('0 of 4 struck'), findsOneWidget);
     expect(find.byKey(const ValueKey('new-foe')), findsOneWidget);
     expect(find.byType(HoldButton), findsWidgets);
@@ -45,7 +45,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('with every foe struck, Home points to the bonfire', (
+  testWidgets('with every task struck, Home points to the bonfire', (
     tester,
   ) async {
     final h = Harness();
@@ -61,7 +61,7 @@ void main() {
     await pumpApp(tester, h, tall: true);
     await h.attempts.strike(taskNamed(view, 'Walk').task.id);
     await settle(tester);
-    expect(find.text('All foes struck. Rest at the bonfire'), findsOneWidget);
+    expect(find.text('All tasks struck. Rest at the bonfire'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -115,11 +115,11 @@ void main() {
     await pumpApp(tester, h, tall: true);
 
     expect(find.byKey(const Key('pinned-boss-panel')), findsOneWidget);
-    expect(find.text('Phase I of II · Attempt 1'), findsOneWidget);
+    expect(find.text('Chapter I of II · Attempt 1'), findsOneWidget);
     expect(find.text('Boss health'), findsOneWidget);
     await tester.tap(find.text('Enter the fight'));
     await settle(tester);
-    expect(find.text('Phase I of II'), findsOneWidget);
+    expect(find.text('Chapter I of II'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 

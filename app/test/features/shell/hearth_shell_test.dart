@@ -46,13 +46,13 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Today with no pinned boss opens the foes list', (tester) async {
+  testWidgets('Today with no pinned boss opens the tasks list', (tester) async {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Today’s foes'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -65,7 +65,7 @@ void main() {
     await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Phase I of II'), findsOneWidget);
+    expect(find.text('Chapter I of II'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }

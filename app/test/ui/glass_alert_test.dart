@@ -21,7 +21,7 @@ void main() {
                 context,
                 label: 'The Thesis Warden',
                 title: 'Leave the fight?',
-                body: 'Struck foes stay struck.',
+                body: 'Struck tasks stay struck.',
                 actions: const ['Keep fighting', 'Leave for now'],
               );
               done = true;
@@ -39,7 +39,7 @@ void main() {
     await open(tester);
     expect(find.text('THE THESIS WARDEN'), findsOneWidget);
     expect(find.text('Leave the fight?'), findsOneWidget);
-    expect(find.text('Struck foes stay struck.'), findsOneWidget);
+    expect(find.text('Struck tasks stay struck.'), findsOneWidget);
     expect(find.text('Keep fighting'), findsOneWidget);
     expect(find.text('Leave for now'), findsOneWidget);
   });

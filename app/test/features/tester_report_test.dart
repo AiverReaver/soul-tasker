@@ -160,7 +160,7 @@ void main() {
     expect(report, contains('Tap mode: off (changed 2 times, first on day 2)'));
   });
 
-  test('carries no boss, phase, task, lesson or inscription text', () async {
+  test('carries no boss, chapter, task, lesson or inscription text', () async {
     final h = Harness();
     final id = await h.bosses.saveBoss(
       const BossDraft(
@@ -168,7 +168,7 @@ void main() {
         resetOnFail: ResetOnFail.nothing,
         phases: [
           PhaseDraft(
-            name: 'Quuxphase',
+            name: 'Quuxchapter',
             tasks: [TaskDraft(title: 'Frobnicate widgets')],
           ),
         ],
@@ -191,7 +191,7 @@ void main() {
 
     for (final secret in [
       'Zorblax',
-      'Quuxphase',
+      'Quuxchapter',
       'Frobnicate',
       'Grumblesnort',
       'Plinkwhistle',
