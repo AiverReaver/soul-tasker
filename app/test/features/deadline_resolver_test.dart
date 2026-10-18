@@ -218,7 +218,7 @@ void main() {
     await tapFoeAction(tester, 'A T5', 'Mark as tried');
 
     expect(find.text('Fallen.'), findsOneWidget);
-    await tester.tap(find.text('Rest first'));
+    await tester.tap(find.text('Rest first. Write it tomorrow.'));
     await settle(tester);
     // Skipped: not offered again in this run.
     await tester.pump(kDeadlineTick);

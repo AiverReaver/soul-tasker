@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/commitment_resolver.dart' show kMaxHealthHalfPoints;
 import '../../core/roman.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
@@ -39,10 +40,21 @@ class _BossScreenState extends ConsumerState<BossScreen> {
   }
 
   Future<void> _fall() async {
+    final boss = (await ref.read(bossDaoProvider).loadBoss(widget.bossId))
+        ?.boss;
+    if (!mounted) return;
     final lesson = await FallenScreen.show(
       context,
       ref.read(hapticsProvider),
       sounds: ref.read(soundsProvider),
+      story: boss == null
+          ? null
+          : FallenStory(
+              attempt: boss.attemptNumber,
+              bossTitle: boss.title,
+              health: ref.read(healthProvider).value,
+              maxHealth: kMaxHealthHalfPoints,
+            ),
     );
     if (!mounted) return;
     final prompt = await ref

@@ -3,6 +3,7 @@ import 'package:hearthrise/core/haptics.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/features/fallen/fallen_screen.dart';
 import 'package:hearthrise/ui/ember_button.dart';
+import 'package:hearthrise/ui/snapping_thread.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -70,7 +71,10 @@ void main() {
       Biome.pharloom.palette.voidfall,
     );
     expect(find.widgetWithText(EmberButton, 'Rise'), findsOneWidget);
-    expect(find.text('Rest, then rise.'), findsOneWidget);
+    expect(
+      find.text('Attempt 1 ends. The Certification remains, and so do you.'),
+      findsOneWidget,
+    );
     expect(find.text('What did this teach you?'), findsOneWidget);
     expect(sent, [_heavy]);
     await tearDownApp(tester, h);
@@ -96,7 +100,7 @@ void main() {
   testWidgets('Skip pops null', (tester) async {
     final popped = await _openFromButton(tester);
 
-    await tester.tap(find.text('Rest first'));
+    await tester.tap(find.text('Rest first. Write it tomorrow.'));
     await tester.pumpAndSettle();
 
     expect(popped, [null]);
@@ -173,7 +177,7 @@ void main() {
     await open(null);
     expect(find.textContaining('promised'), findsNothing);
     expect(find.textContaining('This week'), findsNothing);
-    await tester.tap(find.text('Rest first'));
+    await tester.tap(find.text('Rest first. Write it tomorrow.'));
     await tester.pumpAndSettle();
 
     await open(
@@ -191,5 +195,47 @@ void main() {
       find.text('Your first week: nothing is lost but health.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('with a story: the attempt line, health, embers and helper', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => FallenScreen.show(
+                context,
+                Haptics(() => false),
+                story: const FallenStory(
+                  attempt: 3,
+                  bossTitle: 'The Certification',
+                  health: 4,
+                  maxHealth: 10,
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Attempt 3 ends. The Certification remains, and so do you.'),
+      findsOneWidget,
+    );
+    expect(find.text('Rest, then rise.'), findsNothing);
+    expect(find.text('2 / 5'), findsOneWidget);
+    expect(find.text('Embers kept'), findsOneWidget);
+    expect(
+      find.text('You will see it at the start of attempt 4.'),
+      findsOneWidget,
+    );
+    expect(find.byType(SnappingThread), findsOneWidget);
   });
 }
