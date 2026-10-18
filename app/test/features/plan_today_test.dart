@@ -51,4 +51,19 @@ void main() {
     expect(find.byType(PlanBanner), findsNothing);
     await tearDownApp(tester, h);
   });
+
+  testWidgets('rows are grouped under each boss with "n of m struck"', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.attempts.strike(taskNamed(view, 'Walk').task.id);
+    await pumpApp(tester, h);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+
+    expect(find.text('THE CERTIFICATION'), findsOneWidget);
+    expect(find.text('1 of 4 struck'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
 }

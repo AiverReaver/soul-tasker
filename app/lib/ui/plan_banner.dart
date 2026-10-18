@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
+import 'needle_frame.dart';
 
 /// One planned task in the banner.
 @immutable
@@ -33,43 +34,52 @@ class PlanBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final allDone = items.isNotEmpty && items.every((i) => i.isDone);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: text.labelSmall),
-        const SizedBox(height: Space.sm),
-        for (final item in items)
-          Padding(
-            padding: const EdgeInsets.only(bottom: Space.sm),
-            child: Row(
-              children: [
-                if (item.isDone)
-                  Icon(
-                    Icons.check,
-                    key: ValueKey('plan-done'),
-                    size: _icon,
-                    color: context.palette.ash,
-                  )
-                else
-                  Icon(
-                    Icons.circle_outlined,
-                    size: _icon,
-                    color: context.palette.dim,
-                  ),
-                const SizedBox(width: Space.sm),
-                Expanded(
-                  child: Text(
-                    item.title,
-                    style: text.bodyMedium?.copyWith(
-                      color: item.isDone ? context.palette.ash : null,
+    return NeedleFrame(
+      tier: Cut.md,
+      child: Padding(
+        padding: const EdgeInsets.all(Space.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: text.labelSmall),
+            const SizedBox(height: Space.sm),
+            for (final item in items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: Space.sm),
+                child: Row(
+                  children: [
+                    if (item.isDone)
+                      Icon(
+                        Icons.check,
+                        key: ValueKey('plan-done'),
+                        size: _icon,
+                        color: context.palette.ash,
+                      )
+                    else
+                      Icon(
+                        Icons.circle_outlined,
+                        size: _icon,
+                        color: context.palette.dim,
+                      ),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: text.bodyMedium?.copyWith(
+                          color: item.isDone ? context.palette.ash : null,
+                          decoration: item.isDone
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        if (allDone) Text('The three are done.', style: text.bodySmall),
-      ],
+              ),
+            if (allDone) Text('The three are done.', style: text.bodySmall),
+          ],
+        ),
+      ),
     );
   }
 }

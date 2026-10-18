@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:hearthrise/ui/plan_banner.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -39,6 +40,29 @@ void main() {
         ),
       );
       expect(find.text('The three are done.'), findsOneWidget);
+    });
+  });
+
+  group('PlanBanner on a needle frame', () {
+    testWidgets('is framed, and a struck item is inked out', (tester) async {
+      await _pump(
+        tester,
+        const PlanBanner(
+          items: [
+            PlanItem(title: 'Walk', bossTitle: 'Run', isDone: true),
+            PlanItem(title: 'Read', bossTitle: 'Run', isDone: false),
+          ],
+        ),
+      );
+      expect(find.byType(NeedleFrame), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('Walk')).style?.decoration,
+        TextDecoration.lineThrough,
+      );
+      expect(
+        tester.widget<Text>(find.text('Read')).style?.decoration,
+        isNot(TextDecoration.lineThrough),
+      );
     });
   });
 }

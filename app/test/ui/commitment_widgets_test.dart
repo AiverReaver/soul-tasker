@@ -7,6 +7,7 @@ import 'package:hearthrise/ui/commit_sheet.dart';
 import 'package:hearthrise/ui/deadline_chip.dart';
 import 'package:hearthrise/ui/extend_sheet.dart';
 import 'package:hearthrise/ui/player_health_bar.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
@@ -56,6 +57,22 @@ void main() {
           tester.widget<Text>(find.text(s)).style!.color!;
       expect(colorOf('in 40 min'), Biome.pharloom.palette.silk);
       expect(colorOf('missed'), Biome.pharloom.palette.ash);
+    });
+
+    testWidgets('sits in a needle frame, edged silk only when soon', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const Column(
+          children: [
+            DeadlineChip(label: 'in 40 min', isSoon: true),
+            DeadlineChip(label: 'missed', isSoon: false),
+          ],
+        ),
+      );
+      final frames = tester.widgetList<NeedleFrame>(find.byType(NeedleFrame));
+      expect(frames.map((f) => f.edge), [Biome.pharloom.palette.silk, null]);
     });
   });
 

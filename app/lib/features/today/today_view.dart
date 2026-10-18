@@ -8,6 +8,7 @@ import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
 import '../../ui/glass_pill_button.dart';
 import '../../ui/glass_tab_bar.dart';
+import '../../ui/filter_chips.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/plan_banner.dart';
 import '../../ui/thread_divider.dart';
@@ -112,14 +113,13 @@ class _TodayViewState extends ConsumerState<TodayView> {
             ),
           ),
         if (active.length > 1)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _chip('All', null),
-                for (final b in active) _chip(b.boss.title, b.boss.id),
-              ],
-            ),
+          FilterChips<String>(
+            labels: {
+              null: 'All',
+              for (final b in active) b.boss.id: b.boss.title,
+            },
+            selected: _filter,
+            onChanged: (id) => setState(() => _filter = id),
           ),
         FlashLine(_flash),
         Padding(
@@ -169,9 +169,21 @@ class _TodayViewState extends ConsumerState<TodayView> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 20, bottom: 6),
-                  child: Text(
-                    boss.boss.title.toUpperCase(),
-                    style: text.labelSmall,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          boss.boss.title.toUpperCase(),
+                          style: text.labelSmall,
+                        ),
+                      ),
+                      if (!isHome)
+                        Text(
+                          '${tasks.where((t) => t.isStruck).length} of '
+                          '${tasks.length} struck',
+                          style: text.bodySmall,
+                        ),
+                    ],
                   ),
                 ),
                 for (final t in tasks)
@@ -187,14 +199,4 @@ class _TodayViewState extends ConsumerState<TodayView> {
       ],
     );
   }
-
-  Widget _chip(String label, String? id) => Padding(
-    padding: const EdgeInsets.only(right: Space.sm),
-    child: ChoiceChip(
-      label: Text(label),
-      selected: _filter == id,
-      materialTapTargetSize: MaterialTapTargetSize.padded,
-      onSelected: (_) => setState(() => _filter = id),
-    ),
-  );
 }
