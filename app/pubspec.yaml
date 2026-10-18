@@ -50,6 +50,7 @@ dependencies:
     path: packages/hearthrise_api
   google_sign_in: ^7.2.0
   flutter_secure_storage: ^11.2.0
+  sensors_plus: ^7.1.1
 
 dev_dependencies:
   flutter_test:

@@ -45,6 +45,10 @@ class SettingsDao {
       .update(_db.settings)
       .write(SettingsCompanion(onboarded: Value(isDone)));
 
+  Future<void> setMotionEffects(bool isOn) => _db
+      .update(_db.settings)
+      .write(SettingsCompanion(motionEffects: Value(isOn)));
+
   Future<void> setBiome(Biome biome) =>
       _db.update(_db.settings).write(SettingsCompanion(biome: Value(biome)));
 

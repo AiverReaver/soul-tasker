@@ -3,8 +3,11 @@ import 'package:hearthrise/core/glass_tilt.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/features/boss/boss_stage.dart';
 import 'package:hearthrise/features/shell/atmosphere.dart';
+import 'package:hearthrise/features/shell/tilt_controller.dart';
 import 'package:hearthrise/ui/boss_art.dart';
 import 'package:material_ui/material_ui.dart';
+
+import 'shell/tilt_controller_test.dart' show FakeTiltSource;
 
 void main() {
   int? frame;
@@ -99,6 +102,79 @@ void main() {
       }
       expect(tilt, isNot(Offset.zero));
       await tester.pumpWidget(const SizedBox()); // stop the tickers
+    });
+  });
+
+  group('motion tilt', () {
+    Offset? tilt;
+    late FakeTiltSource source;
+    setUp(() => source = FakeTiltSource());
+
+    Widget host({bool disableAnimations = false, bool motionEffects = true}) =>
+        MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(disableAnimations: disableAnimations),
+            child: Atmosphere(
+              tiltSource: source,
+              motionEffects: motionEffects,
+              child: Builder(
+                builder: (context) => ValueListenableBuilder<Offset>(
+                  valueListenable: GlassTilt.of(context),
+                  builder: (_, v, _) {
+                    tilt = v;
+                    return const SizedBox();
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+
+    Future<void> feed(WidgetTester tester, Gravity g, int frames) async {
+      for (var i = 0; i < frames; i++) {
+        if (i % 4 == 0) source.controller.add(g);
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+
+    testWidgets('phone motion steers the shared tilt', (tester) async {
+      await tester.pumpWidget(host());
+      await feed(tester, (0.0, 6.3, 7.5), 90);
+      await feed(tester, (3.7, 6.3, 7.5), 150);
+      expect(tilt!.dx, greaterThan(0.6));
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('reduced motion never listens, and the tilt stays zero', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(disableAnimations: true));
+      expect(source.isListening, isFalse);
+      await tester.pump(const Duration(seconds: 3));
+      expect(tilt, Offset.zero);
+    });
+
+    testWidgets('the Motion effects setting off: no listener, no drift', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host(motionEffects: false));
+      expect(source.isListening, isFalse);
+      await tester.pump(const Duration(seconds: 3));
+      expect(tilt, Offset.zero);
+    });
+
+    testWidgets('pausing the app cancels the sensor; resuming listens', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host());
+      expect(source.isListening, isTrue);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      expect(source.isListening, isFalse);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(source.isListening, isTrue);
+      await tester.pumpWidget(const SizedBox());
     });
   });
 

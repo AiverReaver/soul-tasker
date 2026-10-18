@@ -97,6 +97,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onChanged: dao.setHaptics,
                   ),
                   SettingSwitchRow(
+                    title: 'Motion effects',
+                    value: ref.watch(motionEffectsProvider),
+                    onChanged: dao.setMotionEffects,
+                  ),
+                  SettingSwitchRow(
                     title: 'Evening reminder',
                     value: s.reminderEnabled,
                     onChanged: _setReminder,
@@ -125,7 +130,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SyncSection(),
                   const SizedBox(height: Space.md),
                   BiomeChoiceRow(
-                    selected: ref.watch(biomeProvider).value ?? Biome.pharloom,
+                    selected: ref.watch(biomeProvider) ?? Biome.pharloom,
                     onChanged: dao.setBiome,
                   ),
                 ],

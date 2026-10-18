@@ -3,16 +3,30 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/glass_tilt.dart';
 import '../../ui/pharloom_backdrop.dart';
+import 'tilt_controller.dart';
 
 /// The app's one ambient clock. It drifts the backdrop's motes and steps
 /// the boil of hand-drawn ink, and eases the shared [GlassTilt] along its
-/// idle drift. It holds still under reduced motion and when
+/// idle drift, or along the phone's motion when a [tiltSource] is given. It
+/// holds still under reduced motion, when [motionEffects] is off and when
 /// [isStill] (tests), so nothing waits on a loop that never ends.
 class Atmosphere extends StatefulWidget {
-  const Atmosphere({super.key, required this.child, this.isStill = false});
+  const Atmosphere({
+    super.key,
+    required this.child,
+    this.isStill = false,
+    this.tiltSource,
+    this.motionEffects = true,
+  });
 
   final Widget child;
   final bool isStill;
+
+  /// The phone's motion; null leaves only the idle drift.
+  final TiltSource? tiltSource;
+
+  /// The Settings switch. Off stills the light and never reads the sensor.
+  final bool motionEffects;
 
   static const loop = Duration(seconds: 42);
 
@@ -34,7 +48,8 @@ class Atmosphere extends StatefulWidget {
   State<Atmosphere> createState() => _AtmosphereState();
 }
 
-class _AtmosphereState extends State<Atmosphere> with TickerProviderStateMixin {
+class _AtmosphereState extends State<Atmosphere>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _clock = AnimationController(
     vsync: this,
     duration: Atmosphere.loop,
@@ -42,11 +57,40 @@ class _AtmosphereState extends State<Atmosphere> with TickerProviderStateMixin {
   final _tilt = ValueNotifier(Offset.zero);
   late final Ticker _tiltTicker = createTicker(_driftTilt);
   Duration _lastTick = Duration.zero;
+  TiltController? _motion;
+  bool _isActive = true;
 
   void _driftTilt(Duration elapsed) {
-    _tilt.value = easeTilt(_tilt.value, idleTilt(elapsed), elapsed - _lastTick);
+    final dt = elapsed - _lastTick;
+    final idle = idleTilt(elapsed);
+    _tilt.value = easeTilt(
+      _tilt.value,
+      _motion?.step(elapsed, dt, idle) ?? idle,
+      dt,
+    );
     _lastTick = elapsed;
   }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isActive = state == AppLifecycleState.resumed;
+    _sync();
+  }
+
+  @override
+  void didChangeAccessibilityFeatures() => _sync();
+
+  bool get _isStill =>
+      widget.isStill ||
+      !widget.motionEffects ||
+      MediaQuery.disableAnimationsOf(context) ||
+      View.of(context).platformDispatcher.accessibilityFeatures.reduceMotion;
 
   @override
   void didChangeDependencies() {
@@ -61,7 +105,15 @@ class _AtmosphereState extends State<Atmosphere> with TickerProviderStateMixin {
   }
 
   void _sync() {
-    if (widget.isStill || MediaQuery.disableAnimationsOf(context)) {
+    final source = widget.tiltSource;
+    final wantsMotion = source != null && !_isStill && _isActive;
+    if (!wantsMotion) {
+      _motion?.stop();
+      if (source == null) _motion = null;
+    } else {
+      (_motion ??= TiltController(source)).start();
+    }
+    if (_isStill) {
       _clock
         ..stop()
         ..value = 0;
@@ -76,6 +128,8 @@ class _AtmosphereState extends State<Atmosphere> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _motion?.stop();
     _tiltTicker.dispose();
     _tilt.dispose();
     _clock.dispose();

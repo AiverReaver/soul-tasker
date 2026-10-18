@@ -65,4 +65,15 @@ void main() {
       expect((await h.settings.device()).biome, Biome.moss);
     });
   });
+
+  group('motion effects', () {
+    test('a fresh database has them on', () async {
+      expect((await h.settings.device()).motionEffects, isTrue);
+    });
+
+    test('setMotionEffects is read back by device()', () async {
+      await h.settings.setMotionEffects(false);
+      expect((await h.settings.device()).motionEffects, isFalse);
+    });
+  });
 }

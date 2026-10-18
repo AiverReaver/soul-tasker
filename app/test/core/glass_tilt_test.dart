@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/glass_tilt.dart';
@@ -86,5 +88,70 @@ void main() {
       expect(tilt.value, const Offset(.1, .1));
       expect(builds, 1);
     });
+  });
+
+  group('tiltFromGravity', () {
+    // A phone held about 40 degrees back: gravity mostly on y and z.
+    const held = (6.3, 7.5);
+    Offset tilt(double gx, double gy, double gz, [Offset? neutral]) =>
+        tiltFromAngles(gravityAngles(gx, gy, gz), neutral ?? Offset.zero);
+
+    test('is zero at the neutral pose', () {
+      final neutral = gravityAngles(0, held.$1, held.$2);
+      expect(tilt(0, held.$1, held.$2, neutral), Offset.zero);
+    });
+
+    test('reaches about 1 at 22 degrees of roll', () {
+      final neutral = gravityAngles(0, held.$1, held.$2);
+      // Same pitch, rolled so atan2(gx, hypot(gy, gz)) is 22 degrees.
+      final r = math.sqrt(held.$1 * held.$1 + held.$2 * held.$2);
+      final gx = r * math.tan(22 * math.pi / 180);
+      expect(tilt(gx, held.$1, held.$2, neutral).dx, closeTo(1, 0.02));
+      expect(tilt(-gx, held.$1, held.$2, neutral).dx, closeTo(-1, 0.02));
+    });
+
+    test('never leaves -1 to 1, whatever the pose', () {
+      for (final g in [
+        (9.8, 0.0, 0.0),
+        (-9.8, 0.0, 0.0),
+        (0.0, 9.8, 0.0),
+        (0.0, -9.8, 0.0),
+        (0.0, 0.0, -9.8),
+      ]) {
+        final t = tilt(g.$1, g.$2, g.$3);
+        expect(t.dx.abs(), lessThanOrEqualTo(1));
+        expect(t.dy.abs(), lessThanOrEqualTo(1));
+      }
+    });
+
+    test('a 1 degree wobble inside the deadzone gives zero', () {
+      final neutral = gravityAngles(0, held.$1, held.$2);
+      final r = math.sqrt(held.$1 * held.$1 + held.$2 * held.$2);
+      final gx = r * math.tan(1 * math.pi / 180);
+      expect(tilt(gx, held.$1, held.$2, neutral), Offset.zero);
+    });
+
+    test('a pitch that wraps past 180 degrees is the short way round', () {
+      final near = gravityAngles(0, 0.2, -9.8); // just past face-down
+      final other = gravityAngles(0, -0.2, -9.8);
+      final t = tiltFromAngles(near, other);
+      expect(t.dy.abs(), lessThan(0.2));
+    });
+  });
+
+  test('isFlatGravity: lying on a table, either side up', () {
+    expect(isFlatGravity(0.1, 0.2, 9.8), isTrue);
+    expect(isFlatGravity(0.1, 0.2, -9.8), isTrue);
+    expect(isFlatGravity(0, 6.3, 7.5), isFalse);
+  });
+
+  test('blendTilt is idle at 0, tilt at 1 and the midpoint at 0.5', () {
+    const idle = Offset(0.4, -0.2);
+    const tilt = Offset(-0.6, 0.8);
+    expect(blendTilt(idle, tilt, 0), idle);
+    expect(blendTilt(idle, tilt, 1), tilt);
+    final mid = blendTilt(idle, tilt, 0.5);
+    expect(mid.dx, closeTo(-0.1, 1e-9));
+    expect(mid.dy, closeTo(0.3, 1e-9));
   });
 }

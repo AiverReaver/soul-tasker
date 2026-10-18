@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   final Clock _clock;
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   /// The hour a day ends. Every `dayOf` call reads this, so what is written
   /// and what is shown agree (plan step 1).
@@ -238,6 +238,9 @@ class AppDatabase extends _$AppDatabase {
       },
       from7To8: (m, schema) async {
         await m.addColumn(schema.settings, schema.settings.biome);
+      },
+      from8To9: (m, schema) async {
+        await m.addColumn(schema.settings, schema.settings.motionEffects);
       },
     ),
     beforeOpen: (details) async {

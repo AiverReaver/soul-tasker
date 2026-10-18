@@ -69,13 +69,22 @@ final settingsProvider = StreamProvider(
 
 /// Reads the setting on every haptic rather than watching it, so one object
 /// stays valid for the life of the app (D10). On while settings load.
-/// This phone's colour theme (device-only, not synced).
-final biomeProvider = StreamProvider(
-  (ref) => ref
-      .watch(settingsDaoProvider)
-      .watchDevice()
-      .map((d) => d.biome)
-      .distinct(),
+/// What only this phone keeps (device-only, not synced).
+final deviceSettingsProvider = StreamProvider(
+  (ref) => ref.watch(settingsDaoProvider).watchDevice(),
+);
+
+/// This phone's colour theme.
+final biomeProvider = Provider(
+  (ref) =>
+      ref.watch(deviceSettingsProvider.select((d) => d.asData?.value.biome)),
+);
+
+/// Whether the glass light follows the phone (on by default).
+final motionEffectsProvider = Provider(
+  (ref) => ref.watch(
+    deviceSettingsProvider.select((d) => d.asData?.value.motionEffects ?? true),
+  ),
 );
 
 final hapticsProvider = Provider(

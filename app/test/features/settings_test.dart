@@ -65,6 +65,18 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('Motion effects is on by default and the switch stores it', (
+    tester,
+  ) async {
+    await open(tester);
+    expect((await h.settings.device()).motionEffects, isTrue);
+    await tester.ensureVisible(find.text('Motion effects'));
+    await tester.tap(find.text('Motion effects'));
+    await settle(tester);
+    expect((await h.settings.device()).motionEffects, isFalse);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('the reminder switch asks, schedules, and cancels', (
     tester,
   ) async {

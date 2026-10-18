@@ -112,6 +112,10 @@ class Settings extends Table {
   /// D3). Add new biomes only at the end.
   IntColumn get biome => intEnum<Biome>().withDefault(const Constant(0))();
 
+  /// The glass light follows the phone's motion, and drifts on its own.
+  /// Device-only; off stills the light (V41_PLAN.md D3b).
+  BoolColumn get motionEffects => boolean().withDefault(const Constant(true))();
+
   @override
   Set<Column> get primaryKey => {id};
 }

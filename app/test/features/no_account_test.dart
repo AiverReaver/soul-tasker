@@ -22,6 +22,7 @@ void main() {
     await pumpApp(
       tester,
       h,
+      tall: true,
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
         accountApiProvider.overrideWithValue(accounts),

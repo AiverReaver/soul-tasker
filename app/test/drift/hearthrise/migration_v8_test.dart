@@ -24,7 +24,7 @@ void main() {
     await oldDb.close();
 
     final db = AppDatabase(schema.newConnection());
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
     final row = await SettingsDao(db).device();
     expect(row.onboarded, isTrue);
     expect(row.lastResolvedDay, '2026-10-03');

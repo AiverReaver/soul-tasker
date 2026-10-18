@@ -6,6 +6,7 @@ import 'core/router.dart';
 import 'core/theme.dart';
 import 'data/providers.dart';
 import 'features/shell/atmosphere.dart';
+import 'features/shell/tilt_controller.dart';
 
 class HearthriseApp extends ConsumerStatefulWidget {
   const HearthriseApp({
@@ -38,11 +39,15 @@ class _HearthriseAppState extends ConsumerState<HearthriseApp> {
     return MaterialApp.router(
       title: 'Hearthrise',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(ref.watch(biomeProvider).value ?? Biome.pharloom),
+      theme: buildTheme(ref.watch(biomeProvider) ?? Biome.pharloom),
       themeAnimationDuration: Motion.fade,
       routerConfig: _router,
-      builder: (context, child) =>
-          Atmosphere(isStill: !widget.isAmbient, child: child!),
+      builder: (context, child) => Atmosphere(
+        isStill: !widget.isAmbient,
+        tiltSource: widget.isAmbient ? const SensorsTiltSource() : null,
+        motionEffects: ref.watch(motionEffectsProvider),
+        child: child!,
+      ),
     );
   }
 }
