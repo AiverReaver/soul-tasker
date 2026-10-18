@@ -188,6 +188,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             body: NameListEditor(
               items: _phases,
               keyPrefix: 'phase',
+              help: 'Big goals fall in stages. Two or three is plenty.',
               hint: 'Chapter name',
               removeLabel: 'Remove chapter',
               addLabel: 'Add a chapter',
@@ -212,6 +213,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             body: NameListEditor(
               items: _dailies,
               keyPrefix: 'daily',
+              help: 'Small tasks that come back each morning.',
               hint: 'A small daily task',
               removeLabel: 'Remove daily task',
               addLabel: 'Add a daily task',

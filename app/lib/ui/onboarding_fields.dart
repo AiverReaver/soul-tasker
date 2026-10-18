@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../core/roman.dart';
 import '../core/theme.dart';
 
 /// The underlined one-line input used by onboarding and the bonfire.
@@ -74,7 +75,11 @@ class NameListEditor extends StatelessWidget {
     required this.onRemove,
     required this.onAdd,
     this.autofocusId,
+    this.help,
   });
+
+  /// One line above the rows.
+  final String? help;
 
   final List<NameListItem> items;
   final String keyPrefix;
@@ -98,9 +103,21 @@ class NameListEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (help case final line?)
+          Padding(
+            padding: const EdgeInsets.only(bottom: Space.sm),
+            child: Text(line, style: text.bodyMedium),
+          ),
         for (final (i, item) in items.indexed)
           Row(
             children: [
+              SizedBox(
+                width: 30,
+                child: Text(
+                  romanNumeral(i + 1),
+                  style: text.labelSmall?.copyWith(color: context.palette.silk),
+                ),
+              ),
               Expanded(
                 child: TextFormField(
                   key: ValueKey('$keyPrefix-${item.id}'),
