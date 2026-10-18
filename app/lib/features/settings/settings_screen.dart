@@ -121,9 +121,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           onChanged: dao.setHaptics,
                         ),
                         SettingSwitchRow(
-                          title: 'Motion effects',
-                          value: ref.watch(motionEffectsProvider),
-                          onChanged: dao.setMotionEffects,
+                          title: 'Reduce motion',
+                          value: !ref.watch(motionEffectsProvider),
+                          onChanged: (reduce) => dao.setMotionEffects(!reduce),
                         ),
                         SettingSwitchRow(
                           title: 'Evening reminder',

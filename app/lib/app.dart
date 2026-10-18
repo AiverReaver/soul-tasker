@@ -42,12 +42,22 @@ class _HearthriseAppState extends ConsumerState<HearthriseApp> {
       theme: buildTheme(ref.watch(biomeProvider) ?? Biome.pharloom),
       themeAnimationDuration: Motion.fade,
       routerConfig: _router,
-      builder: (context, child) => Atmosphere(
-        isStill: !widget.isAmbient,
-        tiltSource: widget.isAmbient ? const SensorsTiltSource() : null,
-        motionEffects: ref.watch(motionEffectsProvider),
-        child: child!,
-      ),
+      builder: (context, child) {
+        final motionEffects = ref.watch(motionEffectsProvider);
+        return MediaQuery(
+          // Reduce motion stills every animation that honours the system flag.
+          data: MediaQuery.of(context).copyWith(
+            disableAnimations:
+                !motionEffects || MediaQuery.disableAnimationsOf(context),
+          ),
+          child: Atmosphere(
+            isStill: !widget.isAmbient,
+            tiltSource: widget.isAmbient ? const SensorsTiltSource() : null,
+            motionEffects: motionEffects,
+            child: child!,
+          ),
+        );
+      },
     );
   }
 }

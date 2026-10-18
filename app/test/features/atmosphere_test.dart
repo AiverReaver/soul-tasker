@@ -89,20 +89,19 @@ void main() {
       expect(tilt, Offset.zero);
     });
 
-    testWidgets('a live atmosphere drifts the tilt within -1 to 1', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(home: Atmosphere(child: tiltProbe())),
-      );
-      for (var i = 0; i < 180; i++) {
-        await tester.pump(const Duration(milliseconds: 16));
-        expect(tilt!.dx.abs(), lessThanOrEqualTo(1));
-        expect(tilt!.dy.abs(), lessThanOrEqualTo(1));
-      }
-      expect(tilt, isNot(Offset.zero));
-      await tester.pumpWidget(const SizedBox()); // stop the tickers
-    });
+    testWidgets(
+      'a live atmosphere with no phone motion keeps the light still',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(home: Atmosphere(child: tiltProbe())),
+        );
+        for (var i = 0; i < 180; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          expect(tilt, Offset.zero);
+        }
+        await tester.pumpWidget(const SizedBox()); // stop the tickers
+      },
+    );
   });
 
   group('motion tilt', () {
@@ -142,6 +141,15 @@ void main() {
       await feed(tester, (0.0, 6.3, 7.5), 90);
       await feed(tester, (3.7, 6.3, 7.5), 150);
       expect(tilt!.dx, greaterThan(0.6));
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a listening phone held still leaves the light at rest', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host());
+      await feed(tester, (0.0, 6.3, 7.5), 300);
+      expect(tilt, Offset.zero);
       await tester.pumpWidget(const SizedBox());
     });
 

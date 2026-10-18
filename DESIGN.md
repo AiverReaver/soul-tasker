@@ -68,7 +68,7 @@ Plan: `V41_PLAN.md`. Glass is chrome; needle-cut is content.
 - **Needle-cut stays on:** cards, task rows, fields, segments (mood, strength, reset), chips, panels and the plan banner. Glass never holds long text blocks or lists of rows.
 - **Anatomy** (`GlassSurface`, bottom to top): drop shadow, clip to the shape, backdrop blur with saturation 1.7, fill, child, then `GlassPainter` (key line, inner shadow, inner ring, sheen, rim light, glint).
 - **Tokens** per biome in `HearthPalette`: `glassFill`, `glassFillHi`, `glassLight`, `glassKey`. `glassKey` equals `ink` today but is its own field. The fixed whites in the sheen (14%), inner ring (16%) and faint rim (22%) are shape, not palette, and sit in `palette.dart`.
-- **Tilt:** the light follows `GlassTilt` (theme-like, ambient). Idle drift is the fallback; the accelerometer steers it, with a deadzone, smoothing and a learned neutral pose. It repaints only the painter, never rebuilds. "Motion effects" in Settings turns the drift and the sensor off. Reduced motion holds it still.
+- **Tilt:** the light follows `GlassTilt` (theme-like, ambient). The light rests at centre and moves only when the phone moves: the accelerometer steers it, with a deadzone, smoothing and a learned neutral pose. It repaints only the painter, never rebuilds. "Reduce motion" in Settings turns the sensor and every animation off, like the system setting.
 - **Fallbacks:** high contrast swaps to a flat `shell` fill with no blur or sheen (the key line stays). `blur: 0` skips the filter where glass sits on a known solid fill, such as the hold button on a row.
 - **Press overshoot:** glass presses scale to 1.04 over 350 ms with `easeOutBack`. This is the one exception to "no springs, no overshoot" below, and it applies to glass only.
 

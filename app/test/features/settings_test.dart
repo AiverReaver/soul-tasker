@@ -72,15 +72,20 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Motion effects is on by default and the switch stores it', (
+  testWidgets('Reduce motion is off by default; the switch stills the app', (
     tester,
   ) async {
     await open(tester);
     expect((await h.settings.device()).motionEffects, isTrue);
-    await tester.ensureVisible(find.text('Motion effects'));
-    await tester.tap(find.text('Motion effects'));
+    bool reduced() => MediaQuery.disableAnimationsOf(
+      tester.element(find.byType(Scaffold).first),
+    );
+    expect(reduced(), isFalse);
+    await tester.ensureVisible(find.text('Reduce motion'));
+    await tester.tap(find.text('Reduce motion'));
     await settle(tester);
     expect((await h.settings.device()).motionEffects, isFalse);
+    expect(reduced(), isTrue);
     await tearDownApp(tester, h);
   });
 

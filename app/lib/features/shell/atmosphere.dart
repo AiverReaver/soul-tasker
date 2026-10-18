@@ -7,7 +7,7 @@ import 'tilt_controller.dart';
 
 /// The app's one ambient clock. It drifts the backdrop's motes and steps
 /// the boil of hand-drawn ink, and eases the shared [GlassTilt] along its
-/// idle drift, or along the phone's motion when a [tiltSource] is given. It
+/// phone's motion when a [tiltSource] is given, and holds it at rest otherwise. It
 /// holds still under reduced motion, when [motionEffects] is off and when
 /// [isStill] (tests), so nothing waits on a loop that never ends.
 class Atmosphere extends StatefulWidget {
@@ -62,7 +62,8 @@ class _AtmosphereState extends State<Atmosphere>
 
   void _driftTilt(Duration elapsed) {
     final dt = elapsed - _lastTick;
-    final idle = idleTilt(elapsed);
+    // The light rests at centre and moves only with the phone.
+    const idle = Offset.zero;
     _tilt.value = easeTilt(
       _tilt.value,
       _motion?.step(elapsed, dt, idle) ?? idle,
