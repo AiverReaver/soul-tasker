@@ -9,7 +9,7 @@ import 'ink_path.dart';
 ///
 /// [boilFrame] picks one of three hand-redrawn versions of the same lines;
 /// stepping it every ~140 ms makes the ink boil. [hit] 0..1 burns the whole
-/// figure white, the flash of a landed strike.
+/// figure to the biome's mask colour, the flash of a landed strike.
 class BossArt extends StatelessWidget {
   const BossArt({
     super.key,
@@ -102,9 +102,10 @@ class BossArtPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.scale(size.width / 200, size.height / 180);
     final paths = _frames[boilFrame % 3];
-    // A landed hit burns everything to porcelain, ink included.
+    // A landed hit burns everything to one flat colour, ink included. Mask
+    // is white on dark biomes and shell on light ones, so it shows in both.
     Color burn(Color c, {double alpha = 1}) =>
-        Color.lerp(c, palette.bone, hit)!.withValues(alpha: alpha);
+        Color.lerp(c, palette.mask, hit)!.withValues(alpha: alpha);
     for (final (i, (_, fill, stroke, width)) in _drawing(palette).indexed) {
       if (fill != null) {
         canvas.drawPath(paths[i], Paint()..color = burn(fill));
