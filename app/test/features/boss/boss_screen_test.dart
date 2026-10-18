@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/profile_dao.dart';
+import 'package:hearthrise/features/boss/boss_stage.dart';
 import 'package:hearthrise/features/boss_edit/boss_edit_screen.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -36,6 +37,25 @@ void main() {
     );
     expect(find.text('Boss health'), findsOneWidget);
     expect(find.text('12 / 12'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('name, attempt line and health sit inside one framed panel', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    final panel = find.byKey(const ValueKey('boss-panel'));
+    expect(panel, findsOneWidget);
+    for (final inside in [
+      find.text('The Certification'),
+      find.text('Boss health'),
+      find.byType(BossStage),
+    ]) {
+      expect(
+        find.descendant(of: panel, matching: inside),
+        findsOneWidget,
+      );
+    }
     await tearDownApp(tester, h);
   });
 

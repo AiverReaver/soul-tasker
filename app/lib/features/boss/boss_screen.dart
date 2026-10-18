@@ -16,6 +16,7 @@ import '../../ui/flash_line.dart';
 import '../../ui/glass_alert.dart';
 import '../../ui/glass_circle_button.dart';
 import '../../ui/glass_sheet.dart';
+import '../../ui/needle_frame.dart';
 import '../../ui/shard_meter.dart';
 import '../../ui/stroke_icon.dart';
 import '../../ui/thread_divider.dart';
@@ -198,49 +199,78 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
       children: [
-        BossStage(health: view.health, felled: isFelled),
-        const SizedBox(height: Space.sm),
-        Text(boss.title, style: text.displaySmall),
-        if (boss.defeatMeaning case final meaning?) ...[
-          const SizedBox(height: Space.xs),
-          Text(meaning, style: text.bodySmall),
-        ],
-        const SizedBox(height: Space.sm),
-        Text.rich(
-          TextSpan(
-            style: text.bodyMedium,
-            children: [
-              TextSpan(
-                text: ['Attempt ${boss.attemptNumber}', ?days].join(' · '),
+        NeedleFrame(
+          key: const ValueKey('boss-panel'),
+          edge: p.deep,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [p.raised2, p.shell],
               ),
-              if (lesson != null) ...[
-                const TextSpan(text: ' · Last lesson: '),
-                TextSpan(
-                  text: lesson,
-                  style: text.titleMedium!.copyWith(
-                    fontStyle: FontStyle.italic,
-                    fontSize: text.bodyMedium?.fontSize,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  BossStage(health: view.health, felled: isFelled),
+                  const SizedBox(height: Space.sm),
+                  Text(boss.title, style: text.displaySmall),
+                  if (boss.defeatMeaning case final meaning?) ...[
+                    const SizedBox(height: Space.xs),
+                    Text(meaning, style: text.bodySmall),
+                  ],
+                  const SizedBox(height: Space.sm),
+                  Text.rich(
+                    TextSpan(
+                      style: text.bodyMedium,
+                      children: [
+                        TextSpan(
+                          text: [
+                            'Attempt ${boss.attemptNumber}',
+                            ?days,
+                          ].join(' · '),
+                        ),
+                        if (lesson != null) ...[
+                          const TextSpan(text: ' · Last lesson: '),
+                          TextSpan(
+                            text: lesson,
+                            style: text.titleMedium!.copyWith(
+                              fontStyle: FontStyle.italic,
+                              fontSize: text.bodyMedium?.fontSize,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ],
+                  const SizedBox(height: Space.md),
+                  if (view.hasSegments) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text('Boss health', style: text.labelSmall),
+                        ),
+                        Text(
+                          '${shardsFor(view.health)} / ${ShardMeter.count}',
+                          style: text.bodySmall,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: Space.xs),
+                    ShardMeter(filled: shardsFor(view.health)),
+                  ] else
+                    Text(
+                      'This task is worn down by habit.',
+                      style: text.bodySmall,
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: Space.md),
-        if (view.hasSegments) ...[
-          Row(
-            children: [
-              Expanded(child: Text('Boss health', style: text.labelSmall)),
-              Text(
-                '${shardsFor(view.health)} / ${ShardMeter.count}',
-                style: text.bodySmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: Space.xs),
-          ShardMeter(filled: shardsFor(view.health)),
-        ] else
-          Text('This task is worn down by habit.', style: text.bodySmall),
         const SizedBox(height: Space.sm),
         // Always one child here, so the rows below keep their elements when
         // the hint goes away with the last phase.
