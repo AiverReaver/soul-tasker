@@ -8,6 +8,7 @@ import 'package:hearthrise/ui/dust_vanish.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../support/recording_haptics.dart';
+import '../../support/hold_finders.dart';
 
 const _frame = Duration(milliseconds: 16);
 
@@ -50,7 +51,7 @@ Future<void> _holdFor(WidgetTester tester, Duration duration) async {
 /// Holds the row until the strike has just landed.
 Future<void> _strikeByHold(WidgetTester tester, Weight weight) async {
   final gesture = await tester.startGesture(
-    tester.getCenter(find.text('The task')),
+    tester.getCenter(holdButton('The task')),
   );
   await tester.pump();
   await _holdFor(tester, weight.holdDuration + _frame * 2);
@@ -111,7 +112,7 @@ void main() {
   testWidgets('tap mode sweeps too', (tester) async {
     await tester.pumpWidget(_host(Weight.heavy, tapMode: true));
 
-    await tester.tap(find.text('The task'));
+    await tester.tap(holdButton('The task'));
     await tester.pump(_frame);
     expect(sweep, findsOneWidget);
 
@@ -125,26 +126,6 @@ void main() {
     await _strikeByHold(tester, Weight.heavy);
 
     expect(sweep, findsNothing);
-  });
-
-  testWidgets('a struck row is dimmed to 0.35', (tester) async {
-    await tester.pumpWidget(_host(Weight.heavy, isDone: true));
-
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.byType(AnimatedOpacity),
-    );
-
-    expect(opacity.opacity, 0.35);
-  });
-
-  testWidgets('an open row is fully opaque', (tester) async {
-    await tester.pumpWidget(_host(Weight.heavy));
-
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.byType(AnimatedOpacity),
-    );
-
-    expect(opacity.opacity, 1);
   });
 
   group('with a Tried choice', () {
@@ -205,7 +186,7 @@ void main() {
       await tester.pumpWidget(
         _host(Weight.light, tapMode: true, onTried: () {}),
       );
-      await tester.tap(find.text('The task'));
+      await tester.tap(holdButton('The task'));
       await tester.pumpAndSettle();
       expect(find.text('Tried'), findsOneWidget);
     });

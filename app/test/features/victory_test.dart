@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
 import 'pump.dart';
+import '../support/hold_finders.dart';
 
 Future<String> _oneTaskBoss(Harness h) => h.bosses.saveBoss(
   const BossDraft(
@@ -21,7 +22,7 @@ Future<String> _oneTaskBoss(Harness h) => h.bosses.saveBoss(
 );
 
 Future<void> _strikeAndConfirm(WidgetTester tester) async {
-  await tester.tap(find.text('Sit the exam'));
+  await tester.tap(holdButton('Sit the exam'));
   await settle(tester);
   await tester.tap(find.text('Strike'));
   await settle(tester);
@@ -91,7 +92,7 @@ void main() {
     await h.settings.setTapMode(true);
     await pumpApp(tester, h, location: '/boss/$id');
 
-    await tester.tap(find.text('Sit the exam'));
+    await tester.tap(holdButton('Sit the exam'));
     await settle(tester);
     await tester.tap(find.text('Strike'));
     await settle(tester);

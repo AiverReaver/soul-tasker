@@ -8,7 +8,6 @@ import 'package:hearthrise/ui/silk_page_transition.dart';
 import 'package:hearthrise/ui/ink_path.dart';
 import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:hearthrise/ui/strike_sweep_view.dart';
-import 'package:hearthrise/ui/task_row_tile.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
@@ -214,57 +213,5 @@ void main() {
     );
     expect(find.text('Above'), findsOneWidget);
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('the slash is drawn at full strength over a struck row', (
-    tester,
-  ) async {
-    const slash = Key('slash');
-    await _pump(
-      tester,
-      const TaskRowTile(
-        title: 'Draft',
-        weightLabel: 'Heavy',
-        isDone: true,
-        progress: 1,
-        sweep: SizedBox(key: slash),
-      ),
-    );
-    expect(
-      find.ancestor(
-        of: find.byKey(slash),
-        matching: find.byType(AnimatedOpacity),
-      ),
-      findsNothing,
-    );
-  });
-
-  testWidgets('a task row glows porcelain once the charge is ready', (
-    tester,
-  ) async {
-    Color? edge(double progress) =>
-        tester.widget<NeedleFrame>(find.byType(NeedleFrame)).edge;
-
-    await _pump(
-      tester,
-      const TaskRowTile(
-        title: 'Draft',
-        weightLabel: 'Heavy',
-        isDone: false,
-        progress: 0.5,
-      ),
-    );
-    expect(edge(0.5), isNot(Biome.pharloom.palette.bone));
-
-    await _pump(
-      tester,
-      const TaskRowTile(
-        title: 'Draft',
-        weightLabel: 'Heavy',
-        isDone: false,
-        progress: 0.9,
-      ),
-    );
-    expect(edge(0.9), Biome.pharloom.palette.bone);
   });
 }

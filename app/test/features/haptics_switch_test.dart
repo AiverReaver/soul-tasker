@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
 import 'pump.dart';
+import '../support/hold_finders.dart';
 
 Future<String> _seedBossTier(Harness h) => h.bosses.saveBoss(
   const BossDraft(
@@ -54,7 +55,7 @@ void main() {
     await h.settings.setTapMode(true);
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    await tester.tap(find.text('Read chapter 4'));
+    await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
 
     expect(sent, ['HapticFeedbackType.heavyImpact']);
@@ -69,7 +70,7 @@ void main() {
     await h.settings.setHaptics(false);
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    await tester.tap(find.text('Read chapter 4'));
+    await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
     await tester.tap(find.text('Strike'));
     await settle(tester);
@@ -88,7 +89,7 @@ void main() {
     await pumpApp(tester, h, location: '/boss/$bossId');
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.text('Summit push')),
+      tester.getCenter(holdButton('Summit push')),
     );
     await tester.pump();
     await tester.pump(Weight.bossTier.holdDuration * 0.5);

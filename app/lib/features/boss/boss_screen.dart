@@ -132,6 +132,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
       tapMode: tapMode,
       onMessage: _say,
       canCommit: view.boss.status == BossStatus.active,
+      bossName: view.boss.title,
     );
 
     return ListView(

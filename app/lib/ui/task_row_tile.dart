@@ -3,49 +3,60 @@ import 'package:material_ui/material_ui.dart';
 import '../core/theme.dart';
 import 'diamond_pip.dart';
 import 'needle_frame.dart';
+import 'stroke_icon.dart';
 
-/// A task row: ember fill that grows with [progress], title, weight label and
-/// an optional [sweep] overlay. Pure presentation; hold logic lives in
-/// `features/strike/hold_to_strike.dart`.
+/// Where a foe row is in a strike (D8). `charge` runs while the button is
+/// held; `hit`, `shatter` and `settle` follow the strike timeline.
+enum RowPhase { idle, charge, hit, shatter, settle }
+
+/// A foe row: weight pips, title, a meta line, then the hold button in
+/// [trailing]. A struck row swaps the button for a silk check, wears the
+/// struck colours and draws an ink line through its title. Pure
+/// presentation; hold logic lives in `features/strike/hold_to_strike.dart`.
 class TaskRowTile extends StatelessWidget {
   const TaskRowTile({
     super.key,
     required this.title,
-    required this.weightLabel,
+    required this.pips,
+    required this.meta,
     required this.isDone,
-    required this.progress,
+    this.phase = RowPhase.idle,
     this.sweep,
     this.trailing,
+    this.menu,
     this.deadline,
   });
 
   final String title;
-  final String weightLabel;
+
+  /// One diamond per weight step.
+  final int pips;
+
+  /// "{boss} · +N embers", or "Struck · +N embers" once struck.
+  final String meta;
   final bool isDone;
+  final RowPhase phase;
 
-  /// Hold progress, 0..1.
-  final double progress;
-
-  /// Drawn over the fill while a strike lands; null when idle.
+  /// Drawn over the row while a strike lands; null when idle.
   final Widget? sweep;
+
+  /// The hold button.
   final Widget? trailing;
+
+  /// A row menu, left of the button.
+  final Widget? menu;
 
   /// The commitment's chip, when the task is promised today.
   final Widget? deadline;
 
-  /// Past this much of the hold the charge is full: the row glints white.
-  static const readyAt = 0.85;
-
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final isReady = !isDone && progress >= readyAt;
-    // The slash sits outside the done-row fade so the cut lands at full
-    // strength, and its flecks may fly past the row's edge.
-    return Stack(
+    // The slash sits outside the row so the cut lands at full strength, and
+    // its flecks may fly past the row's edge.
+    final stack = Stack(
       clipBehavior: Clip.none,
       children: [
-        _row(context, text, isReady),
+        _row(context),
         if (sweep case final sweep?)
           Positioned.fill(
             top: 4,
@@ -54,74 +65,108 @@ class TaskRowTile extends StatelessWidget {
           ),
       ],
     );
+    return isDone
+        ? Semantics(
+            label: '$title, struck',
+            excludeSemantics: true,
+            child: stack,
+          )
+        : stack;
   }
 
-  Widget _row(BuildContext context, TextTheme text, bool isReady) {
+  Widget _row(BuildContext context) {
     final p = context.palette;
-    return AnimatedOpacity(
-      opacity: isDone ? 0.35 : 1,
-      duration: motionOf(context, kSlowFade),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Cut.md),
-            boxShadow: isReady
-                ? [
-                    BoxShadow(
-                      color: p.bone.withValues(alpha: 0.45),
-                      blurRadius: 22,
-                    ),
-                  ]
-                : null,
-          ),
-          child: NeedleFrame(
-            tier: Cut.md,
-            edge: isReady ? p.bone : null,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: kMinTarget),
-              child: Stack(
-                children: [
-                  // Silk fill grows across the row during the hold.
-                  Positioned.fill(
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: isDone ? 1 : progress,
-                      child: ColoredBox(
-                        color: p.silk.withValues(alpha: isDone ? 0.08 : 0.25),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      right: trailing == null ? 16 : 0,
-                      top: trailing == null ? 14 : 0,
-                      bottom: trailing == null ? 14 : 0,
-                    ),
-                    child: Row(
+    final text = Theme.of(context).textTheme;
+    final isHit = phase == RowPhase.hit;
+    final ink = isHit ? p.ink : null;
+    final titleStyle = text.bodyLarge!.copyWith(
+      fontSize: 16,
+      height: 22 / 16,
+      fontWeight: FontWeight.w500,
+      color: ink ?? (isDone ? p.ash : p.bone),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: NeedleFrame(
+        tier: Cut.md,
+        edge: isDone
+            ? p.struckEdge
+            : phase == RowPhase.charge
+            ? p.silk
+            : null,
+        fill: isHit
+            ? p.bone
+            : isDone
+            ? p.struckBg
+            : null,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.only(left: Space.md, right: Space.sm),
+            child: Row(
+              spacing: 14,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 4,
+                  children: [
+                    for (var i = 0; i < pips; i++)
+                      DiamondPip(color: isDone ? p.dim : p.silk),
+                  ],
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: Space.sm),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DiamondPip(color: isDone ? p.dim : p.silk),
-                        const SizedBox(width: Space.md),
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: text.bodyMedium?.copyWith(
-                              decoration: isDone
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              decorationColor: p.silk,
-                            ),
+                        Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Text(title, style: titleStyle),
+                            if (isDone)
+                              Positioned.fill(
+                                child: Center(
+                                  child: ColoredBox(
+                                    key: const ValueKey('row-ink-line'),
+                                    color: p.ink,
+                                    child: const SizedBox(
+                                      height: 1.5,
+                                      width: double.infinity,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        Text(
+                          meta,
+                          style: text.bodySmall!.copyWith(
+                            fontSize: 13,
+                            height: 18 / 13,
+                            color: ink ?? p.ash,
                           ),
                         ),
-                        ?deadline,
-                        Text(weightLabel, style: text.bodySmall),
-                        ?trailing,
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+                ?deadline,
+                ?menu,
+                if (isDone)
+                  SizedBox.square(
+                    dimension: 48,
+                    child: Center(
+                      child: StrokeIcon(
+                        key: const ValueKey('row-check'),
+                        path: StrokeIcons.check,
+                        color: p.silk,
+                      ),
+                    ),
+                  )
+                else
+                  ?trailing,
+              ],
             ),
           ),
         ),

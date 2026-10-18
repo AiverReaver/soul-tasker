@@ -127,7 +127,12 @@ class _TodayViewState extends ConsumerState<TodayView> {
             child: Text(boss.boss.title.toUpperCase(), style: text.labelSmall),
           ),
           for (final t in tasks)
-            TaskRow(view: t, tapMode: widget.tapMode, onMessage: _say),
+            TaskRow(
+              view: t,
+              tapMode: widget.tapMode,
+              onMessage: _say,
+              bossName: boss.boss.title,
+            ),
         ],
       ],
     );

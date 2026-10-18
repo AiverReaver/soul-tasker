@@ -217,7 +217,12 @@ void main() {
 
     // The deadlines pass between ticks; the strike settles them first.
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
-    await tester.ensureVisible(find.byTooltip('Actions for A T5'));
+    final tip = find.byTooltip('Actions for A T5');
+    if (tip.evaluate().isEmpty) {
+      await tester.scrollUntilVisible(tip, 100);
+    } else {
+      await tester.ensureVisible(tip);
+    }
     await settle(tester);
     await tester.tap(find.byTooltip('Actions for A T5'));
     await settle(tester);

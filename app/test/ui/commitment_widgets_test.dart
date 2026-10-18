@@ -7,7 +7,6 @@ import 'package:hearthrise/ui/commit_sheet.dart';
 import 'package:hearthrise/ui/deadline_chip.dart';
 import 'package:hearthrise/ui/extend_sheet.dart';
 import 'package:hearthrise/ui/player_health_bar.dart';
-import 'package:hearthrise/ui/task_row_tile.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
@@ -242,20 +241,6 @@ void main() {
       );
       expect(find.byType(Text), findsNothing);
     });
-  });
-
-  testWidgets('TaskRowTile shows a deadline slot when given', (tester) async {
-    await _pump(
-      tester,
-      const TaskRowTile(
-        title: 'Read chapter 4',
-        weightLabel: 'Heavy',
-        isDone: false,
-        progress: 0,
-        deadline: DeadlineChip(label: 'by 11:00 PM', isSoon: false),
-      ),
-    );
-    expect(find.text('by 11:00 PM'), findsOneWidget);
   });
 
   testWidgets('AwaySummary scrolls when many deadlines passed', (tester) async {

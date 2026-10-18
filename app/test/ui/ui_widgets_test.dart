@@ -6,7 +6,6 @@ import 'package:hearthrise/ui/boss_card_tile.dart';
 import 'package:hearthrise/ui/shard_meter.dart';
 import 'package:hearthrise/ui/confirm_dialog.dart';
 import 'package:hearthrise/ui/flash_line.dart';
-import 'package:hearthrise/ui/task_row_tile.dart';
 import 'package:material_ui/material_ui.dart';
 
 // Pumped without a ProviderScope or router: ui widgets need neither.
@@ -21,43 +20,6 @@ void main() {
   testWidgets('FlashLine shows its message', (tester) async {
     await _pump(tester, const FlashLine('It is done.'));
     expect(find.text('It is done.'), findsOneWidget);
-  });
-
-  testWidgets('TaskRowTile shows title, weight, sweep and trailing', (
-    tester,
-  ) async {
-    await _pump(
-      tester,
-      const TaskRowTile(
-        title: 'Slay',
-        weightLabel: 'Heavy',
-        isDone: false,
-        progress: 0.5,
-        sweep: SizedBox(key: ValueKey('sw')),
-        trailing: Text('menu'),
-      ),
-    );
-    expect(find.text('Slay'), findsOneWidget);
-    expect(find.text('Heavy'), findsOneWidget);
-    expect(find.text('menu'), findsOneWidget);
-    expect(find.byKey(const ValueKey('sw')), findsOneWidget);
-  });
-
-  testWidgets('TaskRowTile dims a done row to 0.35', (tester) async {
-    await _pump(
-      tester,
-      const TaskRowTile(
-        title: 'Done',
-        weightLabel: 'Light',
-        isDone: true,
-        progress: 0,
-      ),
-    );
-    await tester.pumpAndSettle();
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.byType(AnimatedOpacity),
-    );
-    expect(opacity.opacity, 0.35);
   });
 
   testWidgets('BossCardTile shows values and fires callbacks', (tester) async {

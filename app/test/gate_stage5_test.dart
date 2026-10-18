@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'data/harness.dart';
 import 'features/pump.dart';
 import 'support/fake_reminders.dart';
+import 'support/hold_finders.dart';
 
 // The Stage 5 gate, scripted (STAGE5_PLAN.md step 11): a new install goes
 // through onboarding to a saved boss, falls twice with lessons, drains the
@@ -103,11 +104,11 @@ void main() {
       onboarded: null,
       reminders: reminders,
     );
-    await tester.tap(find.text('Phase task 1'));
+    await tester.tap(holdButton('Phase task 1'));
     await settle(tester);
     await tester.tap(find.text('Strike'));
     await settle(tester);
-    await tester.tap(find.text('Phase task 2'));
+    await tester.tap(holdButton('Phase task 2'));
     await settle(tester);
     await tester.tap(find.text('Strike'));
     await settle(tester);

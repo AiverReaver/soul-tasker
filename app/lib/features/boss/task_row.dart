@@ -27,6 +27,7 @@ class TaskRow extends ConsumerWidget {
     required this.tapMode,
     required this.onMessage,
     this.canCommit = true,
+    this.bossName,
   });
 
   final TaskView view;
@@ -34,6 +35,9 @@ class TaskRow extends ConsumerWidget {
   /// False for a waiting or defeated boss (Stage 4 plan D11).
   final bool canCommit;
   final bool tapMode;
+
+  /// Opens the row's meta line; omit where the boss is obvious.
+  final String? bossName;
 
   /// Shows a quiet one-line message on the host screen.
   final ValueChanged<String> onMessage;
@@ -113,13 +117,14 @@ class TaskRow extends ConsumerWidget {
           : task.title,
       weight: task.weight,
       isDone: view.isStruck,
+      bossName: bossName,
       tapMode: tapMode,
       onStrike: () => _strike(context, ref),
       onTried: () => _act(context, ref, _Action.tried),
       deadline: label == null
           ? null
           : DeadlineChip(label: label.text, isSoon: label.isSoon),
-      trailing: PopupMenuButton<_Action>(
+      menu: PopupMenuButton<_Action>(
         tooltip: 'Actions for ${task.title}',
         iconColor: context.palette.ash,
         onSelected: (a) => _act(context, ref, a),

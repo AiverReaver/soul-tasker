@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../data/harness.dart';
 import '../support/fake_sounds.dart';
 import 'pump.dart';
+import '../support/hold_finders.dart';
 
 Future<String> _oneTaskBoss(Harness h) => h.bosses.saveBoss(
   const BossDraft(
@@ -39,7 +40,7 @@ void main() {
         overrides: [player.asOverride],
       );
 
-      await tester.tap(find.text('Sit the exam'));
+      await tester.tap(holdButton('Sit the exam'));
       await settle(tester);
       await tester.tap(find.text('Strike'));
       await settle(tester);

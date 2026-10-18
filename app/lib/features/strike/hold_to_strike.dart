@@ -6,6 +6,7 @@ import '../../core/theme.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/dust_vanish.dart';
+import '../../ui/hold_button.dart';
 import '../../ui/strike_choice_dialog.dart';
 import '../../ui/strike_sweep_view.dart';
 import '../../ui/task_row_tile.dart';
@@ -22,8 +23,9 @@ class HoldToStrike extends ConsumerStatefulWidget {
     required this.onStrike,
     this.onTried,
     this.tapMode = false,
-    this.trailing,
+    this.menu,
     this.deadline,
+    this.bossName,
   });
 
   final String title;
@@ -36,8 +38,11 @@ class HoldToStrike extends ConsumerStatefulWidget {
   final VoidCallback? onTried;
   final bool tapMode;
 
-  /// Shown after the weight label, e.g. the task's action menu.
-  final Widget? trailing;
+  /// Shown left of the hold button, e.g. the task's action menu.
+  final Widget? menu;
+
+  /// Opens the meta line: "{bossName} · +N embers".
+  final String? bossName;
 
   /// The commitment's chip, when the task is promised today.
   final Widget? deadline;
@@ -48,6 +53,9 @@ class HoldToStrike extends ConsumerStatefulWidget {
 
 class _HoldToStrikeState extends ConsumerState<HoldToStrike>
     with TickerProviderStateMixin {
+  /// The charge is full past this much of the hold: the button's edge turns bone.
+  static const readyAt = 0.8;
+
   static const _rollbackDuration = Motion.quick;
 
   /// The landing sweep (§7.2); its length is set per strike.
@@ -169,22 +177,63 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
     if (_progress.status != AnimationStatus.completed) _progress.reverse();
   }
 
+  /// How long the landing sweep has run.
+  Duration get _strikeClock => _sweep.isAnimating
+      ? (_sweep.duration ?? Duration.zero) * _sweep.value
+      : Duration.zero;
+
+  RowPhase get _phase {
+    if (_sweep.isAnimating) {
+      return switch (strikeBeatAt(_strikeClock)) {
+        StrikeBeat.hit => RowPhase.hit,
+        StrikeBeat.shatter => RowPhase.shatter,
+        StrikeBeat.settle => RowPhase.settle,
+        StrikeBeat.idle => RowPhase.idle,
+      };
+    }
+    return !widget.isDone && _progress.value > 0
+        ? RowPhase.charge
+        : RowPhase.idle;
+  }
+
+  Widget _button(BuildContext context) {
+    final label = widget.tapMode
+        ? 'Complete ${widget.title}'
+        : 'Hold to strike: ${widget.title}';
+    final button = HoldButton(
+      progress: _progress.value,
+      isReady: !widget.isDone && _progress.value >= readyAt,
+      semanticLabel: label,
+    );
+    if (widget.tapMode) {
+      return GestureDetector(onTap: _land, child: button);
+    }
+    return Listener(
+      onPointerDown: (e) => _start(e.position),
+      onPointerMove: (e) => _onMove(e.position),
+      onPointerUp: (_) => _cancel(),
+      onPointerCancel: (_) => _cancel(),
+      child: button,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final content = AnimatedBuilder(
+    final weight = widget.weight;
+    final embers = '+${weight.embers} embers';
+    final lead = widget.isDone ? 'Struck' : widget.bossName;
+    return AnimatedBuilder(
       animation: Listenable.merge([_progress, _sweep, _dust]),
       // The shatter throws the row; a light strike throws it less.
       builder: (context, _) => Transform.translate(
         key: kStrikeShakeKey,
-        offset: _sweep.isAnimating
-            ? strikeShake(_sweep.value) *
-                  (widget.weight == Weight.light ? 0.6 : 1)
-            : Offset.zero,
+        offset: rowShakeAt(_strikeClock) * (weight == Weight.light ? 0.6 : 1),
         child: TaskRowTile(
           title: widget.title,
-          weightLabel: widget.weight.label,
+          pips: weight.index + 1,
+          meta: lead == null ? embers : '$lead · $embers',
           isDone: widget.isDone,
-          progress: _progress.value,
+          phase: _phase,
           sweep: _sweep.isAnimating || _dust.isAnimating
               ? Stack(
                   clipBehavior: Clip.none,
@@ -203,35 +252,16 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
                         child: StrikeSweepView(
                           key: kStrikeSweepKey,
                           progress: _sweep.value,
-                          isBossTier: widget.weight == Weight.bossTier,
+                          isBossTier: weight == Weight.bossTier,
                         ),
                       ),
                   ],
                 )
               : null,
-          trailing: widget.trailing,
+          menu: widget.menu,
           deadline: widget.deadline,
+          trailing: _button(context),
         ),
-      ),
-    );
-
-    if (widget.isDone) return content;
-    if (widget.tapMode) {
-      return Semantics(
-        button: true,
-        label: 'Complete ${widget.title}',
-        child: GestureDetector(onTap: _land, child: content),
-      );
-    }
-    return Semantics(
-      button: true,
-      label: 'Hold to complete ${widget.title}',
-      child: Listener(
-        onPointerDown: (e) => _start(e.position),
-        onPointerMove: (e) => _onMove(e.position),
-        onPointerUp: (_) => _cancel(),
-        onPointerCancel: (_) => _cancel(),
-        child: content,
       ),
     );
   }

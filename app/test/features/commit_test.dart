@@ -3,7 +3,8 @@ import 'package:hearthrise/core/deadlines.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/commitment_dao.dart';
 import 'package:hearthrise/data/enums.dart';
-import 'package:material_ui/material_ui.dart' show Offset, Scrollable;
+import 'package:material_ui/material_ui.dart'
+    show Offset, Scrollable, ScrollableState;
 
 import '../data/harness.dart';
 import 'pump.dart';
@@ -23,7 +24,12 @@ void main() {
   }
 
   Future<void> menu(WidgetTester tester, String task, String item) async {
-    await tester.ensureVisible(find.byTooltip('Actions for $task'));
+    final tip = find.byTooltip('Actions for $task');
+    if (tip.evaluate().isEmpty) {
+      await tester.scrollUntilVisible(tip, 100);
+    } else {
+      await tester.ensureVisible(tip);
+    }
     await settle(tester);
     await tester.tap(find.byTooltip('Actions for $task'));
     await settle(tester);
@@ -114,6 +120,12 @@ void main() {
 
     await menu(tester, 'Read chapter 4', 'Mark as tried');
 
+    // The taller rows scrolled the list to reach the menu; the bar is above.
+    tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .jumpTo(0);
+    await settle(tester);
     expect(find.bySemanticsLabel('Health 9 of 10'), findsOneWidget);
     await tearDownApp(tester, h);
   });
