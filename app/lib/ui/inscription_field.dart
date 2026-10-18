@@ -23,6 +23,12 @@ class InscriptionField extends StatelessWidget {
         TextField(
           controller: controller,
           maxLength: kInscriptionMax,
+          buildCounter: (
+            _, {
+            required currentLength,
+            required isFocused,
+            maxLength,
+          }) => Text('$currentLength / $maxLength', style: text.bodySmall),
           style: text.bodyMedium,
           cursorColor: context.palette.silk,
           decoration: InputDecoration(

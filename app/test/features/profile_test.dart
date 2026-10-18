@@ -114,6 +114,12 @@ void main() {
     expect(find.textContaining('Attempt 1. Lesson 1.'), findsOneWidget);
     expect(find.textContaining('Attempt 2. Lesson 2.'), findsOneWidget);
     expect(find.text('Relic of The Certification'), findsOneWidget);
+    expect(find.byType(GlassCircleButton), findsOneWidget); // back
+    expect(find.text('What the falls taught you'), findsOneWidget);
+    expect(find.text('0 / 120'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Patience.');
+    await tester.pump();
+    expect(find.text('9 / 120'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
