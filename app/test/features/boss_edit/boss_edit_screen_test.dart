@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/ui/glass_circle_button.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:hearthrise/ui/phase_panel.dart';
+import 'package:hearthrise/ui/thread_divider.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/harness.dart';
@@ -36,7 +38,41 @@ void main() {
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.byType(PhasePanel, skipOffstage: false), findsNWidgets(2));
     expect(find.text('Read chapter 4'), findsOneWidget);
-    expect(find.text('Delete boss', skipOffstage: false), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Delete boss'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Delete boss'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('serif header over a thread, serif section heads, framed date', (
+    tester,
+  ) async {
+    final view = await h.seed();
+    await pumpApp(
+      tester,
+      h,
+      location: '/boss/${view.boss.id}/edit',
+      tall: true,
+    );
+    expect(
+      tester.widget<Text>(find.text('Edit boss')).style?.fontFamily,
+      'CormorantGaramond',
+    );
+    expect(find.byType(ThreadDivider), findsWidgets);
+    final chapters = tester.widget<Text>(find.text('Chapters'));
+    expect(chapters.style?.fontFamily, 'CormorantGaramond');
+    expect(find.text('Hold the grip to reorder'), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.text('Set a target date'),
+        matching: find.byType(NeedleFrame),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('I'), findsOneWidget); // the first chapter's numeral
     await tearDownApp(tester, h);
   });
 
@@ -50,7 +86,11 @@ void main() {
       location: '/boss/${view.boss.id}/edit',
       tall: true,
     );
-    await tester.ensureVisible(find.text('Add a chapter'));
+    await tester.scrollUntilVisible(
+      find.text('Add a chapter'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Add a chapter'));
     await settle(tester);
     expect(find.byType(PhasePanel, skipOffstage: false), findsNWidgets(3));

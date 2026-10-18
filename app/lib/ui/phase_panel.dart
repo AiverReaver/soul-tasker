@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../core/roman.dart';
 import '../core/theme.dart';
 import 'needle_frame.dart';
 
@@ -58,11 +59,18 @@ class PhasePanel extends StatelessWidget {
                       child: Icon(Icons.drag_handle, color: p.ash),
                     ),
                   ),
+                  SizedBox(
+                    width: 26,
+                    child: Text(
+                      romanNumeral(index + 1),
+                      style: text.labelSmall?.copyWith(color: p.silk),
+                    ),
+                  ),
                   Expanded(
                     child: TextFormField(
                       initialValue: name,
                       maxLength: 60,
-                      style: text.bodyLarge,
+                      style: text.titleMedium?.copyWith(fontSize: 20),
                       cursorColor: p.silk,
                       decoration: InputDecoration(
                         hintText: 'Chapter name',

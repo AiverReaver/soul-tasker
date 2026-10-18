@@ -12,7 +12,9 @@ import '../../ui/glass_pill_button.dart';
 import '../../ui/needle_text_field.dart';
 import '../../ui/phase_panel.dart';
 import '../../ui/setting_choice_row.dart';
+import '../../ui/needle_frame.dart';
 import '../../ui/stroke_icon.dart';
+import '../../ui/thread_divider.dart';
 import '../boss/task_row.dart' show confirm;
 import 'task_edit_sheet.dart';
 
@@ -187,7 +189,10 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
                   Expanded(
                     child: Text(
                       widget.bossId == null ? 'A new boss' : 'Edit boss',
-                      style: text.titleLarge,
+                      style: text.titleMedium?.copyWith(
+                        fontSize: 26,
+                        height: 30 / 26,
+                      ),
                     ),
                   ),
                   GlassPillButton(
@@ -196,6 +201,10 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
                   ),
                 ],
               ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: ThreadDivider(),
             ),
             Expanded(
               child: draft == null
@@ -240,7 +249,23 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           onChanged: (r) => _update((d) => d.copyWith(resetOnFail: r)),
         ),
         const SizedBox(height: Space.lg),
-        Text('CHAPTERS', style: text.labelSmall),
+        const ThreadDivider(),
+        const SizedBox(height: Space.md),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Chapters', style: _serifHead(text)),
+            Flexible(
+              child: Text(
+                'Hold the grip to reorder',
+                textAlign: TextAlign.end,
+                style: text.bodySmall,
+              ),
+            ),
+          ],
+        ),
         ReorderableListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -287,7 +312,12 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           child: const Text('Add a chapter'),
         ),
         const SizedBox(height: Space.lg),
-        Text('BEYOND THE CHAPTERS', style: text.labelSmall),
+        Text('Beyond the chapters', style: _serifHead(text)),
+        const SizedBox(height: Space.xs),
+        Text(
+          'Tasks that belong to the boss but no chapter, like daily habits.',
+          style: text.bodySmall,
+        ),
         for (final t in draft.standalone)
           _TaskLine(task: t, onTap: () => _editTask(t, null)),
         TextButton(
@@ -310,6 +340,9 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     );
   }
 
+  static TextStyle? _serifHead(TextTheme text) =>
+      text.titleMedium?.copyWith(fontSize: 22, height: 28 / 22);
+
   static PhaseFoe _foe(TaskDraft t) => PhaseFoe(
     title: t.title,
     note:
@@ -318,26 +351,49 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
 
   Widget _dateRow(BuildContext context, BossDraft draft) {
     final date = draft.targetDate;
-    return Row(
-      children: [
-        Expanded(
-          child: TextButton(
-            style: TextButton.styleFrom(alignment: Alignment.centerLeft),
-            onPressed: _pickDate,
-            child: Text(
-              date == null
-                  ? 'Set a target date'
-                  : 'Target: ${MaterialLocalizations.of(context).formatMediumDate(date)}',
+    final p = context.palette;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: Space.md),
+      child: NeedleFrame(
+        tier: Cut.md,
+        child: Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: _pickDate,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 52),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Space.md),
+                    child: Row(
+                      spacing: Space.sm + 4,
+                      children: [
+                        Icon(Icons.event_outlined, size: 20, color: p.silk),
+                        Expanded(
+                          child: Text(
+                            date == null
+                                ? 'Set a target date'
+                                : 'Target: ${MaterialLocalizations.of(context).formatMediumDate(date)}',
+                            style: text.bodyMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+            if (date != null)
+              IconButton(
+                tooltip: 'Clear target date',
+                icon: Icon(Icons.close, color: p.ash),
+                onPressed: () =>
+                    _update((d) => d.copyWith(clearTargetDate: true)),
+              ),
+          ],
         ),
-        if (date != null)
-          IconButton(
-            tooltip: 'Clear target date',
-            icon: Icon(Icons.close, color: context.palette.ash),
-            onPressed: () => _update((d) => d.copyWith(clearTargetDate: true)),
-          ),
-      ],
+      ),
     );
   }
 }
