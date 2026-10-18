@@ -12,8 +12,8 @@ import '../../ui/accuracy_line.dart';
 import '../../ui/flask_pips.dart';
 import '../../ui/hall_of_relics.dart';
 import '../../ui/glass_circle_button.dart';
-import '../../ui/level_badge.dart';
-import '../../ui/level_line.dart';
+import '../../ui/profile_level.dart';
+import '../../ui/thread_divider.dart';
 import '../../ui/player_health_bar.dart';
 import '../../ui/stroke_icon.dart';
 
@@ -47,23 +47,32 @@ class ProfileScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: Space.lg),
-                  LevelBadge(
-                    level: profile.level.level,
-                    embers: profile.banked,
-                    percentToNext: _share(profile.level, 100),
-                    bars: _share(profile.level, 5),
-                    isLarge: true,
-                  ),
-                  const SizedBox(height: Space.md),
-                  LevelLine(
+                  ProfileLevel(
                     level: profile.level.level,
                     toNext: profile.level.toNext,
+                    percentToNext: _share(profile.level, 100),
+                    bars: _share(profile.level, 5),
                   ),
-                  const SizedBox(height: Space.md),
-                  Text(
-                    '${profile.banked} '
-                    '${profile.banked == 1 ? 'ember' : 'embers'} banked',
-                    style: text.bodyLarge,
+                  const SizedBox(height: Space.lg),
+                  const ThreadDivider(),
+                  const SizedBox(height: Space.lg),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      StrokeIcon(
+                        path: StrokeIcons.flame,
+                        color: context.palette.silk,
+                        size: 16,
+                        strokeWidth: 1.8,
+                      ),
+                      Text(
+                        '${profile.banked} '
+                        '${profile.banked == 1 ? 'ember' : 'embers'} banked',
+                        style: text.bodyLarge!.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: Space.md),
                   Row(
@@ -85,7 +94,7 @@ class ProfileScreen extends ConsumerWidget {
                     weekMade: profile.week.made,
                   ),
                   const SizedBox(height: Space.xl),
-                  Text('HALL OF RELICS', style: text.labelSmall),
+                  Text('Hall of relics', style: text.titleMedium),
                   const SizedBox(height: Space.sm),
                   HallOfRelics(
                     entries: [

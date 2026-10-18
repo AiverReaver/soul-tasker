@@ -5,7 +5,9 @@ import 'package:hearthrise/data/commitment_dao.dart';
 import 'package:hearthrise/data/ember_dao.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/glass_circle_button.dart';
-import 'package:hearthrise/ui/level_badge.dart';
+import 'package:hearthrise/ui/profile_level.dart';
+import 'package:hearthrise/ui/stroke_icon.dart';
+import 'package:hearthrise/ui/thread_divider.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -59,8 +61,18 @@ void main() {
     await EmberDao(h.db, h.clock.call).bank();
     await pumpApp(tester, h, location: '/profile');
 
-    expect(find.byType(LevelBadge), findsOneWidget);
-    expect(tester.widget<LevelBadge>(find.byType(LevelBadge)).isLarge, isTrue);
+    expect(find.byType(ProfileLevel), findsOneWidget);
+    expect(find.byType(ThreadDivider), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Hall of relics')).style?.fontFamily,
+      'CormorantGaramond',
+    );
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is StrokeIcon && w.path == StrokeIcons.flame,
+      ),
+      findsOneWidget,
+    );
     expect(find.bySemanticsLabel('Health 10 of 10'), findsOneWidget);
     expect(find.text('Level 1'), findsOneWidget);
     expect(find.text('7 embers to the next'), findsOneWidget);

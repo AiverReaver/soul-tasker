@@ -36,7 +36,7 @@ void main() {
     await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Profile'));
     await settle(tester);
-    expect(find.text('HALL OF RELICS'), findsOneWidget);
+    expect(find.text('Hall of relics'), findsOneWidget);
     await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(find.text('BONFIRE'), findsOneWidget);
