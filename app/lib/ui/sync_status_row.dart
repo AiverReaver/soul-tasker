@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import 'needle_frame.dart';
 
 /// The "Back up and sync" block in Settings (Stage 7 plan D1, step 9):
 /// an offer to sign in, or the account, when it last synced, and the ways
@@ -55,22 +54,17 @@ class SyncStatusRow extends StatelessWidget {
   }
 
   Widget _button(String label, VoidCallback onTap) => TextButton(
-    style: TextButton.styleFrom(minimumSize: _minTarget),
+    style: TextButton.styleFrom(
+      minimumSize: _minTarget,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      alignment: Alignment.centerLeft,
+    ),
     onPressed: isBusy ? null : onTap,
     child: Text(label),
   );
 
   @override
-  Widget build(BuildContext context) => NeedleFrame(
-    tier: Cut.md,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Space.md,
-        vertical: Space.sm,
-      ),
-      child: _body(context),
-    ),
-  );
+  Widget build(BuildContext context) => _body(context);
 
   Widget _body(BuildContext context) {
     final text = Theme.of(context).textTheme;

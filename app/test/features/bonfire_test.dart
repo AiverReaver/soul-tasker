@@ -8,6 +8,9 @@ import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/providers.dart';
 import 'package:hearthrise/ui/ember_button.dart';
 import 'package:hearthrise/ui/pick_toggle_row.dart';
+import 'package:hearthrise/core/theme.dart';
+import 'package:hearthrise/ui/glass_circle_button.dart';
+import 'package:hearthrise/ui/thread_divider.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -53,6 +56,23 @@ void main() {
     // The day summary, ember tally, health bar and accuracy line are gone.
     expect(find.text('Struck 1'), findsNothing);
     expect(find.textContaining('kept'), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('reference layout: back button, centred title, full-width rest', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/bonfire', tall: true);
+    expect(find.byType(GlassCircleButton), findsOneWidget);
+    final width = tester.view.physicalSize.width / tester.view.devicePixelRatio;
+    final title = tester.getCenter(find.text('Rest a while.'));
+    expect(title.dx, closeTo(width / 2, 1));
+    expect(tester.getSize(restButton()).width, greaterThan(width - 60));
+    expect(find.byType(ThreadDivider), findsOneWidget);
+    final subtitle = tester.widget<Text>(
+      find.text('Night 1 at the hearth. Tell it how the day went.'),
+    );
+    expect(subtitle.style?.color, Biome.pharloom.palette.ash);
     await tearDownApp(tester, h);
   });
 

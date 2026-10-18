@@ -3,6 +3,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/database.dart' show Task;
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/glass_action_row.dart';
+import 'package:hearthrise/ui/ember_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/harness.dart';
@@ -37,6 +38,18 @@ void main() {
     }
     expect(find.text('Strikes at'), findsOneWidget);
     expect(find.text('The Certification'), findsWidgets);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('reference layout: eyebrow, stacked Strikes at, coral Add', (
+    tester,
+  ) async {
+    await open(tester);
+    expect(find.text('Today’s foes'), findsWidgets);
+    expect(find.widgetWithText(EmberButton, 'Add to today'), findsOneWidget);
+    final label = tester.getRect(find.text('Strikes at'));
+    final row = tester.getRect(find.text('The Certification').last);
+    expect(row.top, greaterThan(label.bottom));
     await tearDownApp(tester, h);
   });
 
@@ -93,7 +106,7 @@ void main() {
     await open(tester);
     await tester.tap(find.text('Strikes at'));
     await settle(tester);
-    final pick = find.widgetWithText(GlassActionRow, 'The Habit');
+    final pick = find.widgetWithText(GlassActionRow, 'The Habit').last;
     expect(pick, findsOneWidget);
     await tester.tap(pick);
     await settle(tester);

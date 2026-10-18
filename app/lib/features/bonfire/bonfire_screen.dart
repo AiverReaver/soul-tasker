@@ -13,7 +13,10 @@ import '../../ui/check_in_card.dart';
 import '../../ui/ember_button.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/flask_pips.dart';
+import '../../ui/glass_circle_button.dart';
 import '../../ui/glass_sheet.dart';
+import '../../ui/stroke_icon.dart';
+import '../../ui/thread_divider.dart';
 import '../../ui/mood_choice.dart';
 import '../../ui/needle_text_field.dart';
 import '../../ui/tomorrow_pick_sheet.dart';
@@ -153,32 +156,58 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     final checkIn = ref.watch(checkInDueProvider).value;
 
     return Scaffold(
-      appBar: AppBar(title: Text('BONFIRE', style: text.labelSmall)),
       body: SafeArea(
         child: status == null || summary == null
             ? const SizedBox.shrink()
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+            : Column(
                 children: [
-                  if (isRested) ...[
-                    Text('You have rested.', style: text.titleMedium),
-                    FlashLine(_flash),
-                    const SizedBox(height: Space.md),
-                  ],
-                  if (checkIn != null && !_isCheckInDone && !isFallen) ...[
-                    CheckInCard(
-                      onAnswer: _checkIn,
-                      onDismiss: () => _checkIn(null),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      Space.sm,
+                      20,
+                      Space.md,
                     ),
-                    const SizedBox(height: Space.md),
-                  ],
-                  if (_checkInLine != null) FlashLine(_checkInLine),
-                  if (isFallen)
-                    ..._fallen(text)
-                  else if (isRested)
-                    _tomorrow()
-                  else
-                    ..._plan(text, status.flasks, summary.strikes),
+                    child: Row(
+                      spacing: Space.sm + 4,
+                      children: [
+                        GlassCircleButton(
+                          icon: StrokeIcons.back,
+                          semanticLabel: 'Back to bosses',
+                          onTap: () => context.go('/'),
+                        ),
+                        Text('BONFIRE', style: text.labelSmall),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+                      children: [
+                        if (isRested) ...[
+                          Text('You have rested.', style: text.titleMedium),
+                          FlashLine(_flash),
+                          const SizedBox(height: Space.md),
+                        ],
+                        if (checkIn != null &&
+                            !_isCheckInDone &&
+                            !isFallen) ...[
+                          CheckInCard(
+                            onAnswer: _checkIn,
+                            onDismiss: () => _checkIn(null),
+                          ),
+                          const SizedBox(height: Space.md),
+                        ],
+                        if (_checkInLine != null) FlashLine(_checkInLine),
+                        if (isFallen)
+                          ..._fallen(text)
+                        else if (isRested)
+                          _tomorrow()
+                        else
+                          ..._plan(text, status.flasks, summary.strikes),
+                      ],
+                    ),
+                  ),
                 ],
               ),
       ),
@@ -223,12 +252,19 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     final titles = [for (final p in picks) p.task.title];
     final settings = ref.watch(settingsProvider).value;
     return [
-      Text('Rest a while.', style: text.displayMedium?.copyWith(fontSize: 44)),
+      Text(
+        'Rest a while.',
+        textAlign: TextAlign.center,
+        style: text.displayMedium?.copyWith(fontSize: 44),
+      ),
       const SizedBox(height: Space.sm),
       Text(
         'Night $night at the hearth. Tell it how the day went.',
-        style: text.bodyMedium,
+        textAlign: TextAlign.center,
+        style: text.bodyMedium?.copyWith(color: context.palette.ash),
       ),
+      const SizedBox(height: Space.lg),
+      const ThreadDivider(),
       const SizedBox(height: Space.lg),
       Text('How did today go?', style: text.titleMedium),
       const SizedBox(height: Space.sm),
@@ -239,29 +275,44 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
         onChanged: _pickMood,
       ),
       const SizedBox(height: Space.lg),
-      Text('Flasks restored', style: text.titleMedium),
-      const SizedBox(height: Space.xs),
-      Text('$flasks of $kFlaskCap · ready for tomorrow', style: text.bodySmall),
-      const SizedBox(height: Space.sm),
-      FlaskPips(count: flasks, cap: kFlaskCap),
+      Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: [
+                Text(
+                  'Flasks restored',
+                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '$flasks of $kFlaskCap · ready for tomorrow',
+                  style: text.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          FlaskPips(count: flasks, cap: kFlaskCap),
+        ],
+      ),
       const SizedBox(height: Space.lg),
       NeedleTextField(
         controller: _lesson,
         caption: 'One thing for tomorrow',
+        isPlainCaption: true,
         hint: 'Write before noon',
         maxLength: 120,
       ),
       const SizedBox(height: Space.md),
       TomorrowRow(titles: titles, onTap: _openTomorrow, max: kMaxPicks),
       const SizedBox(height: Space.lg),
-      Align(
-        alignment: Alignment.centerRight,
-        child: EmberButton(label: 'Rest at the hearth', onPressed: _rest),
-      ),
+      EmberButton(label: 'Rest at the hearth', onPressed: _rest),
       if (settings != null && settings.reminderEnabled) ...[
         const SizedBox(height: Space.sm),
         Text(
           'One gentle reminder tomorrow at ${formatClock(settings.reminderMinutes)}.',
+          textAlign: TextAlign.center,
           style: text.bodySmall,
         ),
       ],

@@ -11,6 +11,7 @@ import '../../ui/choice_dialog.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/glass_circle_button.dart';
 import '../../ui/stroke_icon.dart';
+import '../../ui/thread_divider.dart';
 import '../../ui/setting_choice_row.dart';
 import '../../ui/setting_switch_row.dart';
 import '../../ui/setting_value_row.dart';
@@ -105,6 +106,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Text('SETTINGS', style: text.labelSmall),
                       ],
                     ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: ThreadDivider(),
                   ),
                   Expanded(
                     child: ListView(

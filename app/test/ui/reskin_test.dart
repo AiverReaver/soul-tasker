@@ -97,7 +97,7 @@ void main() {
     expect(got, CheckInAnswer.never);
   });
 
-  testWidgets('SyncStatusRow sits in a needle frame', (tester) async {
+  testWidgets('SyncStatusRow is unboxed', (tester) async {
     await tester.pumpWidget(
       glassHost(
         SyncStatusRow(
@@ -113,7 +113,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(NeedleFrame), findsOneWidget);
+    expect(find.byType(NeedleFrame), findsNothing);
   });
 
   testWidgets('system pickers take the palette', (tester) async {

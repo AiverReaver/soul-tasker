@@ -5,6 +5,7 @@ import 'package:hearthrise/ui/glass_circle_button.dart';
 import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:hearthrise/ui/glass_alert.dart';
 import 'package:hearthrise/ui/needle_frame.dart';
+import 'package:hearthrise/ui/thread_divider.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -34,6 +35,22 @@ void main() {
     expect(find.byType(GlassCircleButton), findsWidgets);
     expect(find.byType(GlassSwitch), findsNWidgets(4));
     expect(find.byType(Switch), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a thread under the header, and Back up and sync unboxed', (
+    tester,
+  ) async {
+    await open(tester);
+    expect(find.byType(ThreadDivider), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Back up and sync'), 200);
+    expect(
+      find.ancestor(
+        of: find.text('Back up and sync'),
+        matching: find.byType(NeedleFrame),
+      ),
+      findsNothing,
+    );
     await tearDownApp(tester, h);
   });
 

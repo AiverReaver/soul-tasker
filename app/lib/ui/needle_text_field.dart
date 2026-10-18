@@ -13,6 +13,7 @@ class NeedleTextField extends StatelessWidget {
     this.hint,
     this.autofocus = false,
     this.maxLength = 80,
+    this.isPlainCaption = false,
     this.onChanged,
   });
 
@@ -21,6 +22,9 @@ class NeedleTextField extends StatelessWidget {
   final String? hint;
   final bool autofocus;
   final int maxLength;
+
+  /// A 15 px semibold caption (Bonfire, New foe) instead of the small label.
+  final bool isPlainCaption;
   final ValueChanged<String>? onChanged;
 
   @override
@@ -31,7 +35,12 @@ class NeedleTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: Space.xs + 2,
       children: [
-        Text(caption, style: text.labelSmall),
+        Text(
+          caption,
+          style: isPlainCaption
+              ? text.bodyMedium!.copyWith(fontWeight: FontWeight.w600)
+              : text.labelSmall,
+        ),
         NeedleFrame(
           tier: Cut.md,
           child: Padding(

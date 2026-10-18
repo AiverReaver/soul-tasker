@@ -6,11 +6,13 @@ import '../../data/boss_draft.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/ember_button.dart';
 import '../../ui/glass_action_row.dart';
 import '../../ui/glass_sheet.dart';
 import '../../ui/needle_frame.dart';
 import '../../ui/needle_text_field.dart';
 import '../../ui/strength_segments.dart';
+import '../../ui/stroke_icon.dart';
 
 /// Opens "A new foe": name it, pick its strength and the boss it strikes at,
 /// then "Add to today" saves it as a standalone task on that boss, through
@@ -86,6 +88,7 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
     final p = context.palette;
     final text = Theme.of(context).textTheme;
     return GlassSheet(
+      label: 'Today’s foes',
       title: 'A new foe',
       child: Padding(
         padding: EdgeInsets.only(
@@ -98,6 +101,7 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
             NeedleTextField(
               controller: _name,
               caption: 'Name the foe',
+              isPlainCaption: true,
               hint: 'What will you do?',
               autofocus: true,
             ),
@@ -123,34 +127,47 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _pickBoss,
-              child: NeedleFrame(
-                tier: Cut.md,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: kMinTarget),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: Space.md),
-                    child: Row(
-                      children: [
-                        Text('Strikes at', style: text.labelSmall),
-                        const SizedBox(width: Space.md),
-                        Expanded(
-                          child: Text(
-                            _boss.boss.title,
-                            textAlign: TextAlign.end,
-                            style: text.bodyMedium!.copyWith(color: p.bone),
-                          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: Space.sm,
+                children: [
+                  Text('Strikes at', style: text.labelSmall),
+                  NeedleFrame(
+                    tier: Cut.md,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 56),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Space.md,
                         ),
-                        Text(
-                          ' ›',
-                          style: TextStyle(color: p.ash, fontSize: 22),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _boss.boss.title,
+                                style: text.bodyLarge!.copyWith(
+                                  color: p.bone,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '›',
+                              style: TextStyle(color: p.ash, fontSize: 22),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-            GlassActionRow(label: 'Add to today', onTap: _add),
+            EmberButton(
+              label: 'Add to today',
+              icon: StrokeIcons.strike,
+              onPressed: _add,
+            ),
           ],
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/ui/diamond_pip.dart';
 import 'package:hearthrise/ui/needle_frame.dart';
+import 'package:hearthrise/ui/needle_text_field.dart';
 import 'package:hearthrise/ui/shard_meter.dart';
 import 'package:hearthrise/ui/thread_divider.dart';
 import 'package:material_ui/material_ui.dart';
@@ -22,6 +23,26 @@ void main() {
       (Cut.md, 6.0),
       (Cut.sm, 4.0),
     ]) {
+      testWidgets('NeedleTextField caption is a 15 px semibold line', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildTheme(),
+            home: Scaffold(
+              body: NeedleTextField(
+                controller: TextEditingController(),
+                caption: 'Name the foe',
+                isPlainCaption: true,
+              ),
+            ),
+          ),
+        );
+        final style = tester.widget<Text>(find.text('Name the foe')).style;
+        expect(style?.fontSize, 15);
+        expect(style?.fontWeight, FontWeight.w600);
+      });
+
       testWidgets('tier $radius clips to a $radius px radius', (tester) async {
         await _pump(tester, NeedleFrame(tier: tier, child: const Text('x')));
         final clip = tester.widget<ClipRRect>(find.byType(ClipRRect));
