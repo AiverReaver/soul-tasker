@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme.dart';
 import '../../core/clock.dart';
+import '../../core/days_left.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
@@ -40,13 +41,6 @@ class BossCard extends ConsumerWidget {
       }
     }
     return out.toString();
-  }
-
-  String? _daysLeft(DateTime now) {
-    final target = view.boss.targetDate;
-    if (target == null || !target.isAfter(now)) return null;
-    final days = (target.difference(now).inHours / 24).ceil();
-    return days == 1 ? '1 day left' : '$days days left';
   }
 
   Future<void> _actions(BuildContext context, WidgetRef ref) async {
@@ -100,7 +94,7 @@ class BossCard extends ConsumerWidget {
         subtitle: [
           _progress,
           'Attempt ${boss.attemptNumber}',
-          ?_daysLeft(ref.read(clockProvider)()),
+          ?daysLeftLabel(boss.targetDate, ref.read(clockProvider)()),
         ].join(' · '),
         health: view.health,
         boilFrame: Atmosphere.boilFrameOf(context),

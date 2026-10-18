@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
+import '../support/boss_actions.dart';
 import 'pump.dart';
 import '../support/hold_finders.dart';
 
@@ -54,10 +55,7 @@ void main() {
     final id = await _oneTaskBoss(h);
     await pumpApp(tester, h, location: '/boss/$id');
 
-    await tester.tap(find.byTooltip('Boss actions'));
-    await settle(tester);
-    await tester.tap(find.text('Declare victory'));
-    await settle(tester);
+    await tapBossAction(tester, 'Declare victory');
     await tester.tap(find.text('Defeated'));
     await settle(tester);
 

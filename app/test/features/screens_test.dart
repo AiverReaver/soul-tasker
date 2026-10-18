@@ -7,6 +7,7 @@ import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
+import '../support/boss_actions.dart';
 import 'pump.dart';
 
 void main() {
@@ -131,19 +132,19 @@ void main() {
     final h = Harness();
     final view = await h.seed();
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
-    expect(find.text('Attempt 1.'), findsOneWidget);
+    expect(find.textContaining('Attempt 1'), findsOneWidget);
 
-    await tester.scrollUntilVisible(find.text('This attempt failed'), 200);
-    await tester.tap(find.text('This attempt failed'));
+    await tapBossAction(tester, 'This attempt failed');
     await settle(tester);
     await tester.enterText(find.byType(TextField), 'Rushed the second phase.');
     await tester.tap(find.text('Rise'));
     await settle(tester);
-    // The attempt line sits at the top; scroll back to it.
-    await tester.scrollUntilVisible(find.textContaining('Attempt 2.'), -200);
 
     expect(
-      find.text('Attempt 2. Last time: Rushed the second phase.'),
+      find.textContaining(
+        'Attempt 2 · Last lesson: Rushed the second phase.',
+        findRichText: true,
+      ),
       findsOneWidget,
     );
     await tearDownApp(tester, h);

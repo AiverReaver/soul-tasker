@@ -103,6 +103,7 @@ void main() {
       location: '/boss/$bossId',
       onboarded: null,
       reminders: reminders,
+      tall: true,
     );
     await tester.tap(holdButton('Phase task 1'));
     await settle(tester);

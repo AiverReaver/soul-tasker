@@ -27,7 +27,10 @@ void main() {
     await pumpApp(tester, second, location: '/boss/${view.boss.id}');
 
     expect(
-      find.text('Attempt 2. Last time: Rushed the second phase.'),
+      find.textContaining(
+        'Attempt 2 · Last lesson: Rushed the second phase.',
+        findRichText: true,
+      ),
       findsOneWidget,
     );
     final after = await second.reload(view.boss.id);

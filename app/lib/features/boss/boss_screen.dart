@@ -8,18 +8,18 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../fallen/fallen_screen.dart';
-import '../../ui/shard_meter.dart';
+import '../../core/clock.dart';
+import '../../core/days_left.dart';
+import '../../ui/boss_actions_sheet.dart';
 import '../../ui/flash_line.dart';
+import '../../ui/glass_circle_button.dart';
+import '../../ui/glass_sheet.dart';
+import '../../ui/shard_meter.dart';
+import '../../ui/stroke_icon.dart';
+import '../../ui/thread_divider.dart';
 import 'boss_stage.dart';
 import 'rule_of_three_sheet.dart';
 import 'task_row.dart';
-
-/// "Attempt N." or "Attempt N. Last time: `lesson`" (§5.4).
-String attemptLine(BossView view) => view.lastLesson == null
-    ? 'Attempt ${view.boss.attemptNumber}.'
-    : 'Attempt ${view.boss.attemptNumber}. Last time: ${view.lastLesson}';
-
-enum _Menu { edit, pin, status, victory }
 
 class BossScreen extends ConsumerStatefulWidget {
   const BossScreen({super.key, required this.bossId});
@@ -59,36 +59,57 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     }
   }
 
-  Future<void> _onMenu(_Menu item, BossView view) async {
-    final dao = ref.read(bossDaoProvider);
+  Future<void> _openActions(BossView view) async {
     final boss = view.boss;
-    switch (item) {
-      case _Menu.edit:
+    final action = await showGlassSheet<BossAction>(
+      context,
+      (_) => BossActionsSheet(
+        bossName: boss.title,
+        isActive: boss.status == BossStatus.active,
+        isWaiting: boss.status == BossStatus.waiting,
+        isPinned: boss.isPinned,
+      ),
+    );
+    if (action == null || !mounted) return;
+    final dao = ref.read(bossDaoProvider);
+    switch (action) {
+      case BossAction.leave:
+        await dao.setStatus(boss.id, BossStatus.waiting);
+        if (mounted) context.go('/');
+      case BossAction.resume:
+        await dao.setStatus(boss.id, BossStatus.active);
+      case BossAction.edit:
         context.push('/boss/${boss.id}/edit');
-      case _Menu.pin:
+      case BossAction.pin:
         await dao.setPinned(boss.id, isPinned: !boss.isPinned);
-      case _Menu.status:
-        await dao.setStatus(
-          boss.id,
-          boss.status == BossStatus.active
-              ? BossStatus.waiting
-              : BossStatus.active,
-        );
-      case _Menu.victory:
+      case BossAction.victory:
         await confirmDefeat(context, ref, boss.id);
+      case BossAction.failed:
+        await _fall();
     }
   }
+
+  void _back() => context.canPop() ? context.pop() : context.go('/');
 
   @override
   Widget build(BuildContext context) {
     final boss = ref.watch(bossDetailProvider(widget.bossId));
     final tapMode = ref.watch(settingsProvider).value?.tapMode ?? false;
     return Scaffold(
-      appBar: AppBar(actions: [if (boss.value case final view?) _menu(view)]),
       body: SafeArea(
         child: switch (boss) {
-          AsyncData(value: final view?) => _body(context, view, tapMode),
-          AsyncData() => const Center(child: Text('This boss is gone.')),
+          AsyncData(value: final view?) => Column(
+            children: [
+              _header(view),
+              Expanded(child: _body(context, view, tapMode)),
+            ],
+          ),
+          AsyncData() => Column(
+            children: [
+              _header(null),
+              const Expanded(child: Center(child: Text('This boss is gone.'))),
+            ],
+          ),
           AsyncError() => const Center(
             child: Text('Could not load this boss.'),
           ),
@@ -98,87 +119,158 @@ class _BossScreenState extends ConsumerState<BossScreen> {
     );
   }
 
-  Widget _menu(BossView view) {
-    final boss = view.boss;
-    return PopupMenuButton<_Menu>(
-      tooltip: 'Boss actions',
-      onSelected: (item) => _onMenu(item, view),
-      itemBuilder: (_) => [
-        const PopupMenuItem(value: _Menu.edit, child: Text('Edit')),
-        PopupMenuItem(
-          value: _Menu.pin,
-          child: Text(boss.isPinned ? 'Unpin' : 'Pin'),
+  Widget _header(BossView? view) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.sm),
+    child: Row(
+      children: [
+        GlassCircleButton(
+          icon: StrokeIcons.back,
+          semanticLabel: 'Back',
+          onTap: _back,
         ),
-        if (boss.status != BossStatus.defeated) ...[
-          PopupMenuItem(
-            value: _Menu.status,
+        Expanded(
+          child: Center(
             child: Text(
-              boss.status == BossStatus.active ? 'Set waiting' : 'Set active',
+              (view == null ? null : _phaseLabel(view)) ?? '',
+              style: Theme.of(context).textTheme.labelSmall,
             ),
           ),
-          const PopupMenuItem(
-            value: _Menu.victory,
-            child: Text('Declare victory'),
+        ),
+        if (view != null)
+          GlassCircleButton(
+            icon: StrokeIcons.more,
+            semanticLabel: 'Boss actions',
+            onTap: () => _openActions(view),
+          )
+        else
+          const SizedBox(width: 48),
+      ],
+    ),
+  );
+
+  Widget _body(BuildContext context, BossView view, bool tapMode) {
+    final text = Theme.of(context).textTheme;
+    final p = context.palette;
+    final boss = view.boss;
+    Widget row(TaskView t) => TaskRow(
+      view: t,
+      tapMode: tapMode,
+      onMessage: _say,
+      canCommit: boss.status == BossStatus.active,
+      bossName: boss.title,
+    );
+
+    final current = view.currentPhase;
+    // The boss kneels between phases: an earlier phase is done and the
+    // next has not been touched yet.
+    final isFelled =
+        current != null &&
+        view.phases.indexOf(current) > 0 &&
+        view.phases.any((ph) => ph != current && ph.isDone) &&
+        !current.tasks.any((t) => t.isStruck && !t.isDaily);
+    final days = daysLeftLabel(boss.targetDate, ref.read(clockProvider)());
+    final lesson = view.lastLesson;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+      children: [
+        BossStage(health: view.health, felled: isFelled),
+        const SizedBox(height: Space.sm),
+        Text(boss.title, style: text.displaySmall),
+        if (boss.defeatMeaning case final meaning?) ...[
+          const SizedBox(height: Space.xs),
+          Text(meaning, style: text.bodySmall),
+        ],
+        const SizedBox(height: Space.sm),
+        Text.rich(
+          TextSpan(
+            style: text.bodyMedium,
+            children: [
+              TextSpan(
+                text: ['Attempt ${boss.attemptNumber}', ?days].join(' · '),
+              ),
+              if (lesson != null) ...[
+                const TextSpan(text: ' · Last lesson: '),
+                TextSpan(
+                  text: lesson,
+                  style: text.titleMedium!.copyWith(
+                    fontStyle: FontStyle.italic,
+                    fontSize: text.bodyMedium?.fontSize,
+                  ),
+                ),
+              ],
+            ],
           ),
+        ),
+        const SizedBox(height: Space.md),
+        if (view.hasSegments) ...[
+          Row(
+            children: [
+              Expanded(child: Text('Boss health', style: text.labelSmall)),
+              Text(
+                '${shardsFor(view.health)} / ${ShardMeter.count}',
+                style: text.bodySmall,
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.xs),
+          ShardMeter(filled: shardsFor(view.health)),
+        ] else
+          Text('This foe is worn down by habit.', style: text.bodySmall),
+        const SizedBox(height: Space.sm),
+        // Always one child here, so the rows below keep their elements when
+        // the hint goes away with the last phase.
+        if (view.hasSegments && current != null)
+          Text(
+            isFelled
+                ? '${boss.title} kneels. Phase '
+                      '${romanNumeral(view.phases.indexOf(current) + 1)} awaits.'
+                : 'Each strike takes shards from ${_withThe(boss.title)}.',
+            style: text.bodySmall?.copyWith(color: p.ash),
+          )
+        else
+          const SizedBox.shrink(),
+        FlashLine(_flash),
+        for (final ph in view.phases) ...[
+          if (ph == current)
+            _currentHeading(context, ph)
+          else
+            _header2(context, ph.phase.name, isDone: ph.isDone),
+          for (final t in ph.tasks) row(t),
+        ],
+        if (view.standalone.isNotEmpty) ...[
+          _header2(context, 'Beyond the phases'),
+          for (final t in view.standalone) row(t),
         ],
       ],
     );
   }
 
-  Widget _body(BuildContext context, BossView view, bool tapMode) {
-    final text = Theme.of(context).textTheme;
-    Widget row(TaskView t) => TaskRow(
-      view: t,
-      tapMode: tapMode,
-      onMessage: _say,
-      canCommit: view.boss.status == BossStatus.active,
-      bossName: view.boss.title,
-    );
+  /// "the Certification" for "The Certification", "the Habit" for "Habit".
+  static String _withThe(String title) =>
+      title.startsWith('The ') ? 'the ${title.substring(4)}' : 'the $title';
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
-      children: [
-        // Always one child here, so the rows below keep their elements when
-        // the label goes away with the last phase.
-        if (_phaseLabel(view) case final label?)
-          Text(label, style: text.labelSmall)
-        else
-          const SizedBox.shrink(),
-        BossStage(health: view.health),
-        const SizedBox(height: Space.sm),
-        Text(view.boss.title, style: text.displaySmall),
-        if (view.boss.defeatMeaning case final meaning?) ...[
-          const SizedBox(height: Space.xs),
-          Text(meaning, style: text.bodySmall),
-        ],
-        const SizedBox(height: 20),
-        if (view.hasSegments)
-          ShardMeter(filled: shardsFor(view.health))
-        else
-          Text('This foe is worn down by habit.', style: text.bodySmall),
-        const SizedBox(height: Space.md),
-        Text(attemptLine(view), style: text.bodyMedium),
-        FlashLine(_flash),
-        for (final p in view.phases) ...[
-          _header(context, p.phase.name, isDone: p.isDone),
-          for (final t in p.tasks) row(t),
-        ],
-        if (view.standalone.isNotEmpty) ...[
-          _header(context, 'Beyond the phases'),
-          for (final t in view.standalone) row(t),
-        ],
-        const SizedBox(height: Space.xl),
-        if (view.boss.status == BossStatus.active)
-          OutlinedButton(
-            onPressed: _fall,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: context.palette.text,
-              side: BorderSide(color: context.palette.dim),
-              minimumSize: const Size.fromHeight(kMinTarget),
-            ),
-            child: const Text('This attempt failed'),
+  Widget _currentHeading(BuildContext context, PhaseView ph) {
+    final text = Theme.of(context).textTheme;
+    final struck = ph.tasks.where((t) => t.isStruck).length;
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            ph.phase.name,
+            style: text.titleMedium!.copyWith(fontSize: 22, height: 26 / 22),
           ),
-      ],
+          const SizedBox(height: Space.xs),
+          Text(
+            '$struck of ${ph.tasks.length} struck · hold to strike',
+            style: text.bodySmall,
+          ),
+          const SizedBox(height: Space.sm),
+          const ThreadDivider(),
+        ],
+      ),
     );
   }
 
@@ -193,7 +285,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         'of ${romanNumeral(fighting.length)}';
   }
 
-  Widget _header(BuildContext context, String name, {bool isDone = false}) {
+  Widget _header2(BuildContext context, String name, {bool isDone = false}) {
     final text = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 6),

@@ -7,13 +7,13 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
+import '../support/boss_actions.dart';
 import 'pump.dart';
 
 const _heavy = 'HapticFeedbackType.heavyImpact';
 
 Future<void> _declareFall(WidgetTester tester) async {
-  await tester.scrollUntilVisible(find.text('This attempt failed'), 200);
-  await tester.tap(find.text('This attempt failed'));
+  await tapBossAction(tester, 'This attempt failed', settleAfter: false);
 }
 
 /// Lowest opacity among the fade transitions around the fallen text.

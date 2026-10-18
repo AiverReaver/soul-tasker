@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../data/harness.dart';
 import '../support/fake_sounds.dart';
+import '../support/boss_actions.dart';
 import 'pump.dart';
 import '../support/hold_finders.dart';
 
@@ -65,8 +66,7 @@ void main() {
         overrides: [player.asOverride],
       );
 
-      await tester.scrollUntilVisible(find.text('This attempt failed'), 200);
-      await tester.tap(find.text('This attempt failed'));
+      await tapBossAction(tester, 'This attempt failed');
       await settle(tester);
 
       expect(player.calls, isOn ? ['play:fallen'] : isEmpty);
