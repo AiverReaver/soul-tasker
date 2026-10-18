@@ -1,0 +1,69 @@
+import 'package:material_ui/material_ui.dart';
+
+import 'ink_path.dart';
+
+/// Glyph paths on the design's 24 px grid, as SVG path data.
+abstract final class StrokeIcons {
+  static const back = 'M15 5 8 12l7 7';
+  static const more =
+      'M5.2 10.4 7 12.2 5.2 14 3.4 12.2zM12 10.4l1.8 1.8L12 14l-1.8-1.8z'
+      'M18.8 10.4l1.8 1.8-1.8 1.8-1.8-1.8z';
+  static const strike = 'M4 20 16 8M18.5 3 21 5.5 18.5 8 16 5.5z';
+}
+
+/// A path drawn as a square-capped, round-joined stroke (1.6 px on the 24 px
+/// grid), or filled when [filled]. Scales with [size].
+class StrokeIcon extends StatelessWidget {
+  const StrokeIcon({
+    super.key,
+    required this.path,
+    required this.color,
+    this.size = 22,
+    this.strokeWidth = 1.6,
+    this.filled = false,
+  });
+
+  final String path;
+  final Color color;
+  final double size;
+  final double strokeWidth;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    size: Size.square(size),
+    painter: _StrokeIconPainter(path, color, strokeWidth, filled),
+  );
+}
+
+class _StrokeIconPainter extends CustomPainter {
+  _StrokeIconPainter(this.d, this.color, this.width, this.filled);
+
+  final String d;
+  final Color color;
+  final double width;
+  final bool filled;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final k = size.width / 24;
+    final paint = Paint()
+      ..color = color
+      ..style = filled ? PaintingStyle.fill : PaintingStyle.stroke
+      ..strokeWidth = width * k
+      ..strokeCap = StrokeCap.square
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(
+      inkPath(d)
+          .transform((Matrix4.identity()..scaleByDouble(k, k, 1, 1)).storage),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_StrokeIconPainter old) =>
+      old.d != d ||
+      old.color != color ||
+      old.width != width ||
+      old.filled != filled;
+}

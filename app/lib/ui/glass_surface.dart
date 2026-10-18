@@ -38,6 +38,8 @@ class GlassSurface extends StatelessWidget {
     this.isTinted = false,
     this.blur = 16,
     this.glintSize,
+    this.edge,
+    this.edgeWidth = 2,
   });
 
   final Widget child;
@@ -51,6 +53,12 @@ class GlassSurface extends StatelessWidget {
 
   /// The glint's size; defaults to the shorter side, at most 88.
   final double? glintSize;
+
+  /// The key line's colour; defaults to the palette's `glassKey`.
+  final Color? edge;
+
+  /// The key line's width in px.
+  final double edgeWidth;
 
   static const pressDuration = Duration(milliseconds: 350);
 
@@ -105,7 +113,8 @@ class GlassSurface extends StatelessWidget {
                   child: CustomPaint(
                     painter: GlassPainter(
                       border: border,
-                      keyColor: p.glassKey,
+                      keyColor: edge ?? p.glassKey,
+                      edgeWidth: edgeWidth,
                       lightColor: p.glassLight,
                       tilt: light,
                       glintSize: glintSize,
@@ -175,6 +184,7 @@ class GlassPainter extends CustomPainter {
     required this.tilt,
     this.glintSize,
     this.isFlat = false,
+    this.edgeWidth = 2,
   }) : super(repaint: tilt);
 
   final ShapeBorder border;
@@ -182,6 +192,7 @@ class GlassPainter extends CustomPainter {
   final Color lightColor;
   final ValueListenable<Offset> tilt;
   final double? glintSize;
+  final double edgeWidth;
 
   /// High contrast: the key line only.
   final bool isFlat;
@@ -198,7 +209,7 @@ class GlassPainter extends CustomPainter {
       path,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
+        ..strokeWidth = edgeWidth * 2
         ..color = keyColor,
     );
     if (!isFlat) {
@@ -314,5 +325,6 @@ class GlassPainter extends CustomPainter {
       old.keyColor != keyColor ||
       old.lightColor != lightColor ||
       old.glintSize != glintSize ||
+      old.edgeWidth != edgeWidth ||
       old.isFlat != isFlat;
 }
