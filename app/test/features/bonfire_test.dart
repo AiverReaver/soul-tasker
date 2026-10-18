@@ -30,7 +30,7 @@ void main() {
   testWidgets('a fourth pick is blocked with a quiet line', (tester) async {
     final h = Harness();
     await h.seed();
-    await pumpApp(tester, h, location: '/bonfire');
+    await pumpApp(tester, h, location: '/bonfire', tall: true);
 
     for (final title in [
       'Read chapter 4',

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/enums.dart';
-import 'package:hearthrise/ui/hearth_nav_bar.dart';
+import 'package:hearthrise/ui/glass_tab_bar.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -63,27 +63,27 @@ void main() {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
-    expect(find.byType(HearthNavBar), findsOneWidget);
+    expect(find.byType(GlassTabBar), findsOneWidget);
 
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Today’s foes'), findsOneWidget);
-    expect(find.byType(HearthNavBar), findsOneWidget);
-    await tester.tap(find.text('Bosses'));
+    expect(find.byType(GlassTabBar), findsOneWidget);
+    await tester.tap(find.text('Home'));
     await settle(tester);
     expect(find.text('Today’s foes'), findsNothing);
 
-    await tester.tap(find.text('Relics'));
+    await tester.tap(find.text('Profile'));
     await settle(tester);
     expect(find.text('HALL OF RELICS'), findsOneWidget);
-    expect(find.byType(HearthNavBar), findsOneWidget);
+    expect(find.byType(GlassTabBar), findsOneWidget);
 
     await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(find.text('BONFIRE'), findsOneWidget);
-    expect(find.byType(HearthNavBar), findsOneWidget);
+    expect(find.byType(GlassTabBar), findsOneWidget);
 
-    await tester.tap(find.text('Bosses'));
+    await tester.tap(find.text('Home'));
     await settle(tester);
     expect(find.text('Name a new boss'), findsOneWidget);
     await tearDownApp(tester, h);
@@ -94,7 +94,7 @@ void main() {
   ) async {
     final h = Harness();
     await pumpApp(tester, h, location: '/bonfire', tall: true);
-    final bar = tester.widget<HearthNavBar>(find.byType(HearthNavBar));
+    final bar = tester.widget<GlassTabBar>(find.byType(GlassTabBar));
     expect(bar.selected, 2);
     await tearDownApp(tester, h);
   });

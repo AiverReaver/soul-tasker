@@ -25,26 +25,30 @@ class GlassTabBar extends StatelessWidget {
   static const clearance = 100.0;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(
-      21,
-      0,
-      21,
-      19 + MediaQuery.paddingOf(context).bottom,
-    ),
-    child: GlassSurface(
-      key: const ValueKey('nav-bar'),
-      shape: const GlassShape.stadium(),
-      child: SizedBox(
-        height: 62,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Row(
-            spacing: 2,
-            children: [
-              for (final (i, label) in labels.indexed)
-                Expanded(child: _tab(context, i, label)),
-            ],
+  Widget build(BuildContext context) => MediaQuery.withClampedTextScaling(
+    // The pill is a fixed 62 px, so its labels never grow.
+    maxScaleFactor: 1.0,
+    child: Padding(
+      padding: EdgeInsets.fromLTRB(
+        21,
+        0,
+        21,
+        19 + MediaQuery.paddingOf(context).bottom,
+      ),
+      child: GlassSurface(
+        key: const ValueKey('nav-bar'),
+        shape: const GlassShape.stadium(),
+        child: SizedBox(
+          height: 62,
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              spacing: 2,
+              children: [
+                for (final (i, label) in labels.indexed)
+                  Expanded(child: _tab(context, i, label)),
+              ],
+            ),
           ),
         ),
       ),
