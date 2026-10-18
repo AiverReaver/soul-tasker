@@ -6,6 +6,9 @@ const glassSheen = Color(0x24FFFFFF);
 const glassRing = Color(0x29FFFFFF);
 const glassRim = Color(0x38FFFFFF);
 
+/// The warm white of the glint arc and dot, the same in every biome.
+const glassGlint = Color(0xFFFFF8EC);
+
 /// The design's 22 colour tokens plus four glass tokens. One instance per [Biome]; widgets read the
 /// active one with `context.palette`.
 @immutable

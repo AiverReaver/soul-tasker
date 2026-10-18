@@ -118,7 +118,8 @@ void main() {
       expect(a.copyWith(glassFill: const Color(0x11FFFFFF)), isNot(a));
     });
 
-    test('the fixed whites are 14%, 16% and 22%', () {
+    test('the fixed whites are 14%, 16% and 22%, and the glint is warm', () {
+      expect(glassGlint, const Color(0xFFFFF8EC));
       expect(glassSheen, white(0.14));
       expect(glassRing, white(0.16));
       expect(glassRim, white(0.22));
