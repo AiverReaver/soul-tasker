@@ -10,6 +10,7 @@ import '../../data/providers.dart';
 import '../../core/clock.dart';
 import '../../ui/bonfire_card.dart';
 import '../../ui/all_bosses_row.dart';
+import '../boss_edit/new_foe_sheet.dart';
 import '../../ui/home_header.dart';
 import '../today/today_view.dart';
 import 'boss_card.dart';
@@ -114,12 +115,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  // shortcut: no add-foe sheet yet; adding goes through the pinned (else the
-  // first active) boss's editor. Replace when the sheet is designed.
   void _newFoe(List<BossView> bosses) {
-    final active = bosses.where((b) => b.boss.status == BossStatus.active);
-    final target =
-        active.where((b) => b.boss.isPinned).firstOrNull ?? active.firstOrNull;
-    context.push(target == null ? '/boss/new' : '/boss/${target.boss.id}/edit');
+    final active = bosses
+        .where((b) => b.boss.status == BossStatus.active)
+        .toList();
+    if (active.isEmpty) {
+      context.push('/boss/new');
+      return;
+    }
+    showNewFoeSheet(context, ref, bosses: active);
   }
 }
