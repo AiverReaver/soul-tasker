@@ -295,6 +295,10 @@ Tests first, in `test/core/palette_test.dart`:
 Code: add the fields to `HearthPalette`, its five consts, `copyWith`, `lerp`, plus the three fixed whites (D1).
 Done when: `palette_test.dart` and `no_raw_colors_test.dart` pass.
 
+**Step A1b. Glass system board.** Design only, no app code, so no automated test.
+Added to the end of the v4.1 canvas as row "Glass system" (`Glass.dc.html` plus one board per biome). It shows each glass part (circle, pill, switch, hold ring, tab bar, action rows, sheet, alert, tint and focus), the four tokens per biome, the seven layers, and the usage rules. A3 and A4 build to this board.
+Done when: manual check on the canvas in Pharloom and Choral, text readable and each part matches its shipped screen.
+
 **Step A2. Shared tilt.**
 Tests first, `test/features/shell/atmosphere_test.dart` (extend):
 - With `isStill`, `GlassTilt.of` stays `Offset.zero` after 10 s of pumping.
@@ -542,7 +546,7 @@ Done when (phase C): every screen test passes, along with the full suite.
 
 ## 7. Order and size
 
-A1 → A2 → A3 → A4 → B1 → B2 → B3 → B4 → C1 → C2 … C18 → D1 → D2.
+A1 → A1b → A2 → A3 → A4 → B1 → B2 → B3 → B4 → C1 → C2 … C18 → D1 → D2.
 
 - Phase A blocks everything. Phase B needs A4's `HoldButton` and `GlassSheet`.
 - C1, C2 and C4 come first because they carry the hold rows. C16 changes how `TaskRow` opens its actions, so it goes right after C4. After that, C3, C5 to C15, C17 and C18 do not depend on each other and can be done in any order, or split across sessions. They touch separate files, apart from shared `lib/ui/` parts, which already exist after phase A.
