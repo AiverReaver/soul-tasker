@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
+import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/database.dart' show Task;
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/action_row.dart';
@@ -118,4 +119,22 @@ void main() {
     expect(titles, contains('Stretch'));
     await tearDownApp(tester, h);
   });
+
+  testWidgets(
+    'with The Day around it is the default boss, and tasks are daily',
+    (tester) async {
+      await h.bosses.ensureDayBoss();
+      await open(tester);
+      expect(find.text('The Day'), findsWidgets);
+      await tester.enterText(find.byType(TextField), 'Water plants');
+      await tester.tap(find.text('Add to today'));
+      await settle(tester);
+
+      final day = await h.reload(dayBossId);
+      final task = day.standalone.single.task;
+      expect(task.title, 'Water plants');
+      expect(task.recurrence, Recurrence.daily);
+      await tearDownApp(tester, h);
+    },
+  );
 }

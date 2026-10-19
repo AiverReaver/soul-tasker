@@ -83,6 +83,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         isActive: boss.status == BossStatus.active,
         isWaiting: boss.status == BossStatus.waiting,
         isPinned: boss.isPinned,
+        isDay: view.isDay,
       ),
     );
     if (action == null || !mounted) return;

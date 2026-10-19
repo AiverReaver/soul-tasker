@@ -1,4 +1,5 @@
 import 'database.dart';
+import 'day_boss.dart';
 import 'enums.dart';
 
 // Derived state for one boss (STAGE1_PLAN.md §6.2). Pure functions over rows,
@@ -41,13 +42,19 @@ class BossView {
   final List<TaskView> standalone;
   final String? lastLesson;
 
-  /// Health bar segments: one-time phase tasks, in order (D1).
-  List<TaskView> get segments => [
-    for (final p in phases) ...p.tasks.where((t) => t.isSegment),
-  ];
+  bool get isDay => boss.id == dayBossId;
+
+  /// Health bar segments: one-time phase tasks, in order (D1). The Day has
+  /// no phases: every task of today is a segment.
+  List<TaskView> get segments => isDay
+      ? allTasks
+      : [for (final p in phases) ...p.tasks.where((t) => t.isSegment)];
 
   bool get hasSegments => segments.isNotEmpty;
-  bool get isVanquished => hasSegments && segments.every((t) => t.isStruck);
+
+  /// The Day refills each morning, so it is never vanquished.
+  bool get isVanquished =>
+      !isDay && hasSegments && segments.every((t) => t.isStruck);
 
   /// Remaining health, 0..1.
   double get health {

@@ -4,6 +4,7 @@ import '../core/clock.dart';
 import '../core/ids.dart';
 import 'boss_draft.dart';
 import 'boss_view.dart';
+import 'day_boss.dart';
 import 'database.dart';
 import 'enums.dart';
 import 'relic_dao.dart';
@@ -224,12 +225,49 @@ class BossDao {
     return id;
   }
 
+  /// Makes The Day if it is missing; leaves an existing one as it is.
+  Future<void> ensureDayBoss() {
+    final now = _clock();
+    return _db
+        .into(_db.bosses)
+        .insert(
+          BossesCompanion.insert(
+            id: dayBossId,
+            title: 'The Day',
+            status: BossStatus.active,
+            resetOnFail: ResetOnFail.nothing,
+            createdAt: now,
+            updatedAt: now,
+          ),
+          mode: InsertMode.insertOrIgnore,
+        );
+  }
+
+  /// A quick task: a daily task on The Day, light unless [weight] says more. Returns its id.
+  Future<String> addQuickTask(String title, {Weight weight = Weight.light}) =>
+      _db.transaction(() async {
+        await ensureDayBoss();
+        final count = await (_db.select(
+          _db.tasks,
+        )..where((t) => t.bossId.equals(dayBossId))).get();
+        return _upsertTask(
+          dayBossId,
+          null,
+          TaskDraft(title: title, weight: weight, recurrence: Recurrence.daily),
+          count.length,
+          _clock(),
+        );
+      });
+
   /// Waiting or defeated cancels the boss's open commitments, so they never
   /// expire while it rests (Stage 4 plan D11). Defeat is final: it writes the
   /// relic in the same transaction, and a defeated boss cannot move again
   /// (Stage 5 plan D2).
   Future<void> setStatus(String bossId, BossStatus status) =>
       _db.transaction(() async {
+        if (bossId == dayBossId && status != BossStatus.active) {
+          throw StateError('The Day always stays active.');
+        }
         final current = await (_db.select(
           _db.bosses,
         )..where((b) => b.id.equals(bossId))).getSingle();
@@ -279,8 +317,10 @@ class BossDao {
     [Outcome.fallen.index, Outcome.fallen.index],
   );
 
-  Future<void> deleteBoss(String bossId) =>
-      (_db.delete(_db.bosses)..where((b) => b.id.equals(bossId))).go();
+  Future<void> deleteBoss(String bossId) async {
+    if (bossId == dayBossId) return;
+    await (_db.delete(_db.bosses)..where((b) => b.id.equals(bossId))).go();
+  }
 
   /// Deletes a task. Its attempts stay, with the task reference cleared (D10).
   Future<void> deleteTask(String taskId) =>

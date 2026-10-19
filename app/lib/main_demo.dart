@@ -103,6 +103,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final db = AppDatabase.open();
   await _seed(db);
+  await BossDao(db, DateTime.now).ensureDayBoss();
   runApp(
     ProviderScope(
       overrides: [databaseProvider.overrideWithValue(db)],

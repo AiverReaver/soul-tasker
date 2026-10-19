@@ -28,9 +28,12 @@ Future<void> showNewFoeSheet(
   );
   if (result == null) return;
   final (boss, task) = result;
-  await ref
-      .read(bossDaoProvider)
-      .saveBoss(BossDraft.fromView(boss).withTask(task, null));
+  final dao = ref.read(bossDaoProvider);
+  if (boss.isDay) {
+    await dao.addQuickTask(task.title, weight: task.weight);
+    return;
+  }
+  await dao.saveBoss(BossDraft.fromView(boss).withTask(task, null));
 }
 
 class NewFoeSheet extends StatefulWidget {
@@ -46,6 +49,7 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
   final _name = TextEditingController();
   Weight _weight = Weight.light;
   late BossView _boss =
+      widget.bosses.where((b) => b.isDay).firstOrNull ??
       widget.bosses.where((b) => b.boss.isPinned).firstOrNull ??
       widget.bosses.first;
 
