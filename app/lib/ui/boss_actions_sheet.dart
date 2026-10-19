@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import 'glass_action_row.dart';
+import 'action_row.dart';
 import 'glass_sheet.dart';
 
 /// What the Boss actions sheet can ask for.
@@ -25,7 +25,7 @@ class BossActionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget row(String label, BossAction action) => GlassActionRow(
+    Widget row(String label, BossAction action) => ActionRow(
       label: label,
       onTap: () => Navigator.pop(context, action),
     );

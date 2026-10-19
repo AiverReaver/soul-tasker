@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import 'glass_action_row.dart';
+import 'action_row.dart';
 import 'glass_sheet.dart';
 
 /// What the Foe actions sheet can ask for.
@@ -46,10 +46,8 @@ class FoeActionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget row(String label, FoeAction action) => GlassActionRow(
-      label: label,
-      onTap: () => Navigator.pop(context, action),
-    );
+    Widget row(String label, FoeAction action) =>
+        ActionRow(label: label, onTap: () => Navigator.pop(context, action));
     return GlassSheet(
       label: 'Task actions',
       title: title,

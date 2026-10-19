@@ -7,7 +7,7 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/ember_button.dart';
-import '../../ui/glass_action_row.dart';
+import '../../ui/action_row.dart';
 import '../../ui/glass_sheet.dart';
 import '../../ui/needle_frame.dart';
 import '../../ui/needle_text_field.dart';
@@ -66,7 +66,7 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
           spacing: 10,
           children: [
             for (final b in widget.bosses)
-              GlassActionRow(
+              ActionRow(
                 label: b.boss.title,
                 onTap: () => Navigator.pop(sheet, b),
               ),

@@ -5,6 +5,7 @@ import 'package:hearthrise/features/boss/boss_stage.dart';
 import 'package:hearthrise/features/shell/atmosphere.dart';
 import 'package:hearthrise/features/shell/tilt_controller.dart';
 import 'package:hearthrise/ui/boss_art.dart';
+import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'shell/tilt_controller_test.dart' show FakeTiltSource;
@@ -35,6 +36,21 @@ void main() {
     final first = frame;
     await tester.pump(const Duration(milliseconds: 150));
     expect(frame, isNot(first));
+    await tester.pumpWidget(const SizedBox()); // stop the ticker
+  });
+
+  testWidgets('the ambient clock changes at most 30 times a second', (
+    tester,
+  ) async {
+    await tester.pumpWidget(MaterialApp(home: Atmosphere(child: probe())));
+    final seen = <double>{};
+    for (var i = 0; i < 60; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      seen.add(
+        tester.widget<PharloomBackdrop>(find.byType(PharloomBackdrop)).drift,
+      );
+    }
+    expect(seen.length, lessThanOrEqualTo(32));
     await tester.pumpWidget(const SizedBox()); // stop the ticker
   });
 

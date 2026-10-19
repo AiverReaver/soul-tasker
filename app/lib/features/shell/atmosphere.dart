@@ -30,6 +30,10 @@ class Atmosphere extends StatefulWidget {
 
   static const loop = Duration(seconds: 42);
 
+  /// The motes and the ink boil move at this rate, not at the display's:
+  /// every glass surface repaints with them, and 60 Hz made phones hot.
+  static const clockHz = 30;
+
   /// How long ink holds one drawing before the next hand takes over.
   static const boilStep = Duration(milliseconds: 140);
 
@@ -54,6 +58,7 @@ class _AtmosphereState extends State<Atmosphere>
     vsync: this,
     duration: Atmosphere.loop,
   );
+  late final _slow = ValueNotifier<double>(0);
   final _tilt = ValueNotifier(Offset.zero);
   late final Ticker _tiltTicker = createTicker(_driftTilt);
   Duration _lastTick = Duration.zero;
@@ -75,7 +80,13 @@ class _AtmosphereState extends State<Atmosphere>
   @override
   void initState() {
     super.initState();
+    _clock.addListener(_throttle);
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _throttle() {
+    final steps = Atmosphere.loop.inSeconds * Atmosphere.clockHz;
+    _slow.value = (_clock.value * steps).round() / steps;
   }
 
   @override
@@ -118,6 +129,7 @@ class _AtmosphereState extends State<Atmosphere>
       _clock
         ..stop()
         ..value = 0;
+      _slow.value = 0;
       _tiltTicker.stop();
       _tilt.value = Offset.zero;
     } else if (!_clock.isAnimating) {
@@ -134,6 +146,7 @@ class _AtmosphereState extends State<Atmosphere>
     _tiltTicker.dispose();
     _tilt.dispose();
     _clock.dispose();
+    _slow.dispose();
     super.dispose();
   }
 
@@ -141,17 +154,17 @@ class _AtmosphereState extends State<Atmosphere>
   Widget build(BuildContext context) => GlassTilt(
     notifier: _tilt,
     child: _Clock(
-      notifier: _clock,
+      notifier: _slow,
       child: AnimatedBuilder(
-        animation: _clock,
+        animation: _slow,
         builder: (context, child) =>
-            PharloomBackdrop(drift: _clock.value, child: child!),
+            PharloomBackdrop(drift: _slow.value, child: child!),
         child: widget.child,
       ),
     ),
   );
 }
 
-class _Clock extends InheritedNotifier<AnimationController> {
+class _Clock extends InheritedNotifier<ValueNotifier<double>> {
   const _Clock({required super.notifier, required super.child});
 }

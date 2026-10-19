@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/ui/diamond_pip.dart';
-import 'package:hearthrise/ui/glass_action_row.dart';
+import 'package:hearthrise/ui/action_row.dart';
 import 'package:hearthrise/ui/mood_choice.dart';
 import 'package:hearthrise/ui/pick_toggle_row.dart';
 import 'package:hearthrise/ui/tomorrow_pick_sheet.dart';
@@ -173,7 +173,7 @@ void main() {
       // Called directly: the test font wraps the sheet taller than the screen.
       tester.widget<PickToggleRow>(find.byType(PickToggleRow).last).onTap();
       expect(toggled, 'b');
-      tester.widget<GlassActionRow>(find.byType(GlassActionRow)).onTap();
+      tester.widget<ActionRow>(find.byType(ActionRow)).onTap();
       expect(set, 1);
     });
   });

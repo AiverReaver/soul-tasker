@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/boss_draft.dart';
 import '../../data/enums.dart';
-import '../../ui/glass_action_row.dart';
+import '../../ui/action_row.dart';
 import '../../ui/glass_sheet.dart';
 import '../../ui/needle_text_field.dart';
 import '../../ui/setting_switch_row.dart';
@@ -138,9 +138,9 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
               onChanged: (v) => setState(() => _phase = v ?? _beyond),
             ),
             if (_title.text.trim().isNotEmpty)
-              GlassActionRow(label: 'Done', onTap: _save),
+              ActionRow(label: 'Done', onTap: _save),
             if (!widget.isNew)
-              GlassActionRow(
+              ActionRow(
                 label: 'Delete',
                 onTap: () =>
                     Navigator.pop(context, TaskEditResult.delete(widget.task)),

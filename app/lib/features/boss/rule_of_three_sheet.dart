@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/providers.dart';
-import '../../ui/glass_action_row.dart';
+import '../../ui/action_row.dart';
 import '../../ui/glass_sheet.dart';
 import '../../ui/needle_text_field.dart';
 
@@ -58,19 +58,19 @@ class _RuleOfThreeSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 10,
         children: [
-          GlassActionRow(
+          ActionRow(
             label: 'Change the approach',
             onTap: () => Navigator.pop(context, _Choice.change),
           ),
-          GlassActionRow(
+          ActionRow(
             label: 'Split into smaller tasks',
             onTap: () => Navigator.pop(context, _Choice.split),
           ),
-          GlassActionRow(
+          ActionRow(
             label: 'Rest first',
             onTap: () => Navigator.pop(context, _Choice.rest),
           ),
-          GlassActionRow(
+          ActionRow(
             label: 'Keep going',
             onTap: () => Navigator.pop(context, _Choice.keepGoing),
           ),
@@ -132,7 +132,7 @@ class _SplitSheetState extends State<_SplitSheet> {
               child: const Text('Add another'),
             ),
           if (_titles.length >= _min)
-            GlassActionRow(
+            ActionRow(
               label: 'Split',
               onTap: () => Navigator.pop(context, _titles),
             ),

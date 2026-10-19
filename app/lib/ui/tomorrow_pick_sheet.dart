@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import 'glass_action_row.dart';
+import 'action_row.dart';
 import 'glass_sheet.dart';
 import 'pick_toggle_row.dart';
 
@@ -71,7 +71,7 @@ class TomorrowPickSheet extends StatelessWidget {
               isSelected: picked.contains(o.id),
               onTap: () => onToggle(o.id),
             ),
-          GlassActionRow(label: 'Set tomorrow', onTap: onSet),
+          ActionRow(label: 'Set tomorrow', onTap: onSet),
         ],
       ),
     );

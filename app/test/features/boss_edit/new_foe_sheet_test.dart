@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/database.dart' show Task;
 import 'package:hearthrise/data/enums.dart';
-import 'package:hearthrise/ui/glass_action_row.dart';
+import 'package:hearthrise/ui/action_row.dart';
 import 'package:hearthrise/ui/ember_button.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -106,7 +106,7 @@ void main() {
     await open(tester);
     await tester.tap(find.text('Strikes at'));
     await settle(tester);
-    final pick = find.widgetWithText(GlassActionRow, 'The Habit').last;
+    final pick = find.widgetWithText(ActionRow, 'The Habit').last;
     expect(pick, findsOneWidget);
     await tester.tap(pick);
     await settle(tester);
