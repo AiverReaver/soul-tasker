@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
+import 'package:hearthrise/ui/glass_surface.dart';
 import 'package:hearthrise/ui/strike_result_sheet.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -40,6 +41,34 @@ void main() {
     );
     expect(find.text('Done in full. Promise kept.'), findsOneWidget);
     expect(find.text('Part done. Effort still earns embers.'), findsOneWidget);
+  });
+
+  testWidgets('the two choices are plain rows, not glass', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: const Scaffold(body: StrikeResultSheet(title: 'Run 3 km')),
+      ),
+    );
+    for (final label in ['Clean strike', 'A real try']) {
+      final tap = find.ancestor(
+        of: find.text(label),
+        matching: find.byType(GestureDetector),
+      );
+      expect(
+        find.descendant(of: tap.first, matching: find.byType(GlassSurface)),
+        findsNothing,
+        reason: label,
+      );
+      expect(
+        find.ancestor(
+          of: find.text(label),
+          matching: find.byType(GlassSurface),
+        ),
+        findsOneWidget,
+        reason: 'only the sheet itself is glass around $label',
+      );
+    }
   });
 
   testWidgets('Clean strike pops true', (tester) async {

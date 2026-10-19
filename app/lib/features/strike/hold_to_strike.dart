@@ -199,6 +199,13 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
         : RowPhase.idle;
   }
 
+  /// The design's charge tremble: 1 px left, then right, every 70 ms.
+  Offset get _tremble {
+    if (_progress.status != AnimationStatus.forward) return Offset.zero;
+    final ms = _progress.value * widget.weight.holdDuration.inMilliseconds;
+    return Offset((ms ~/ 70).isEven ? -1 : 1, 0);
+  }
+
   Widget _button(BuildContext context) {
     final label = widget.tapMode
         ? 'Complete ${widget.title}'
@@ -230,7 +237,9 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
       // The shatter throws the row; a light strike throws it less.
       builder: (context, _) => Transform.translate(
         key: kStrikeShakeKey,
-        offset: rowShakeAt(_strikeClock) * (weight == Weight.light ? 0.6 : 1),
+        offset:
+            rowShakeAt(_strikeClock) * (weight == Weight.light ? 0.6 : 1) +
+            _tremble,
         child: TaskRowTile(
           title: widget.title,
           pips: weight.index + 1,

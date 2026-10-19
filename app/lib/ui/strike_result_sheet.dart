@@ -2,8 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
 import 'glass_sheet.dart';
-import 'glass_surface.dart';
-import 'glass_tap_target.dart';
+import 'needle_frame.dart';
 
 /// Asks how a landed strike went, after the beats have played. Pops true for
 /// a clean strike, false for a real try; Cancel or a tap outside pops null.
@@ -53,32 +52,45 @@ class _Choice extends StatelessWidget {
   final bool isTinted;
 
   @override
-  Widget build(BuildContext context) => GlassTapTarget(
-    semanticLabel: label,
-    onTap: onTap,
-    child: GlassSurface(
-      shape: const GlassShape.stadium(),
-      isTinted: isTinted,
-      child: SizedBox(
-        height: 68,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: context.palette.bone,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Semantics(
+      button: true,
+      label: label,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: NeedleFrame(
+          tier: Cut.md,
+          edge: isTinted ? p.silk : null,
+          fill: isTinted ? p.silk : null,
+          child: SizedBox(
+            height: 68,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isTinted ? p.onSilk : p.bone,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  note,
+                  style: TextStyle(
+                    color: isTinted ? p.onSilk : p.ash,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              note,
-              style: TextStyle(color: context.palette.ash, fontSize: 13),
-            ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

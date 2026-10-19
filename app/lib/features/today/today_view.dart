@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -18,15 +20,22 @@ import '../boss/task_row.dart';
 
 /// The day's tasks for one boss, in Today order (plan §8.3): open daily
 /// tasks, then the current phase, then standalone; struck dailies last.
-List<TaskView> todayTasks(BossView view) {
+/// A task in [lingering] was struck a moment ago: it keeps its open slot
+/// while its strike animation plays.
+List<TaskView> todayTasks(BossView view, {Set<String> lingering = const {}}) {
+  bool isOpen(TaskView t) => !t.isStruck || lingering.contains(t.task.id);
   final daily = view.allTasks.where((t) => t.isDaily);
   return [
-    ...daily.where((t) => !t.isStruck),
-    ...?view.currentPhase?.tasks.where((t) => !t.isDaily && !t.isStruck),
-    ...view.standalone.where((t) => !t.isDaily && !t.isStruck),
-    ...daily.where((t) => t.isStruck),
+    ...daily.where(isOpen),
+    ...?view.currentPhase?.tasks.where((t) => !t.isDaily && isOpen(t)),
+    ...view.standalone.where((t) => !t.isDaily && isOpen(t)),
+    ...daily.where((t) => !isOpen(t)),
   ];
 }
+
+/// How long a freshly struck row keeps its slot: the strike's beats and the
+/// dust that follows.
+const strikeLinger = Duration(milliseconds: 1500);
 
 /// Today: tasks from every active boss, grouped by boss, with a filter.
 class TodayView extends ConsumerStatefulWidget {
@@ -55,6 +64,39 @@ class TodayView extends ConsumerStatefulWidget {
 class _TodayViewState extends ConsumerState<TodayView> {
   String? _filter;
   String? _flash;
+  final _lingering = <String>{};
+  final _timers = <Timer>[];
+
+  @override
+  void didUpdateWidget(TodayView old) {
+    super.didUpdateWidget(old);
+    final wasOpen = {
+      for (final b in old.bosses)
+        for (final t in b.allTasks)
+          if (!t.isStruck) t.task.id,
+    };
+    for (final b in widget.bosses) {
+      for (final t in b.allTasks) {
+        if (t.isStruck && wasOpen.contains(t.task.id)) {
+          final id = t.task.id;
+          _lingering.add(id);
+          _timers.add(
+            Timer(strikeLinger, () {
+              if (mounted) setState(() => _lingering.remove(id));
+            }),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final t in _timers) {
+      t.cancel();
+    }
+    super.dispose();
+  }
 
   void _say(String message) {
     if (mounted) setState(() => _flash = message);
@@ -72,7 +114,8 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final struck = ref.watch(daySummaryProvider).value?.strikes ?? 0;
     final groups = [
       for (final b in active)
-        if (_filter == null || _filter == b.boss.id) (b, todayTasks(b)),
+        if (_filter == null || _filter == b.boss.id)
+          (b, todayTasks(b, lingering: _lingering)),
     ].where((g) => g.$2.isNotEmpty).toList();
 
     final open = [
@@ -114,6 +157,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
           ),
         if (active.length > 1)
           FilterChips<String>(
+            padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
             labels: {
               null: 'All',
               for (final b in active) b.boss.id: b.boss.title,
@@ -183,6 +227,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
                 ),
                 for (final t in tasks)
                   TaskRow(
+                    key: ValueKey(t.task.id),
                     view: t,
                     tapMode: widget.tapMode,
                     onMessage: _say,
