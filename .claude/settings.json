@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(sleep:*)",
+      "Bash(flutter test:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter build ios:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter devices:*)",
+      "Bash(dart format:*)",
+      "Bash(dart run build_runner:*)",
+      "Bash(xcrun simctl:*)",
+      "Bash(sips:*)",
+      "Bash(./shot.sh:*)",
+      "Bash(../docs/ui-tour/shot.sh:*)",
+      "Bash(docs/ui-tour/shot.sh:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git worktree list:*)"
+    ]
+  }
+}
