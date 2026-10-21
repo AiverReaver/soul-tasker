@@ -1,3 +1,5 @@
 tags:
   # Needs the real server: run it with tool/gate_stage7.sh.
   sync-gate:
+  # Pixel goldens, macOS-rendered: flutter test --tags golden.
+  golden:
