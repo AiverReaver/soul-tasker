@@ -26,6 +26,7 @@ class TaskRowTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.deadline,
+    this.compact = false,
   });
 
   final String title;
@@ -49,6 +50,9 @@ class TaskRowTile extends StatelessWidget {
 
   /// The commitment's chip, when the task is promised today.
   final Widget? deadline;
+
+  /// Grouped lists: 52 high, the meta (just the embers) on the title line.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +90,30 @@ class TaskRowTile extends StatelessWidget {
       fontWeight: FontWeight.w500,
       color: ink ?? (isDone ? p.ash : p.bone),
     );
+    final titleLine = Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        Text(title, style: titleStyle),
+        if (isDone)
+          Positioned.fill(
+            child: Center(
+              child: ColoredBox(
+                key: const ValueKey('row-ink-line'),
+                color: p.ink,
+                child: const SizedBox(height: 1.5, width: double.infinity),
+              ),
+            ),
+          ),
+      ],
+    );
+    final metaLine = Text(
+      meta,
+      style: text.bodySmall!.copyWith(
+        fontSize: 13,
+        height: 18 / 13,
+        color: ink ?? p.ash,
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: _TapRegion(
@@ -103,7 +131,7 @@ class TaskRowTile extends StatelessWidget {
               ? p.struckBg
               : null,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 64),
+            constraints: BoxConstraints(minHeight: compact ? 52 : 64),
             child: Padding(
               padding: const EdgeInsets.only(left: Space.md, right: Space.sm),
               child: Row(
@@ -119,39 +147,21 @@ class TaskRowTile extends StatelessWidget {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: Space.sm),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              Text(title, style: titleStyle),
-                              if (isDone)
-                                Positioned.fill(
-                                  child: Center(
-                                    child: ColoredBox(
-                                      key: const ValueKey('row-ink-line'),
-                                      color: p.ink,
-                                      child: const SizedBox(
-                                        height: 1.5,
-                                        width: double.infinity,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          Text(
-                            meta,
-                            style: text.bodySmall!.copyWith(
-                              fontSize: 13,
-                              height: 18 / 13,
-                              color: ink ?? p.ash,
-                            ),
-                          ),
-                        ],
+                      padding: EdgeInsets.symmetric(
+                        vertical: compact ? 0 : Space.sm,
                       ),
+                      child: compact
+                          ? Row(
+                              spacing: 8,
+                              children: [
+                                Flexible(child: titleLine),
+                                metaLine,
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [titleLine, metaLine],
+                            ),
                     ),
                   ),
                   ?deadline,

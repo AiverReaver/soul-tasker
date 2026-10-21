@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/roman.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
@@ -15,22 +16,56 @@ import '../../ui/flash_line.dart';
 import '../../ui/plan_banner.dart';
 import '../../ui/thread_divider.dart';
 import '../../ui/player_health_bar.dart';
+import '../../ui/task_group_header.dart';
 import '../../core/commitment_resolver.dart';
 import '../boss/task_row.dart';
 
-/// The day's tasks for one boss, in Today order (plan §8.3): open daily
-/// tasks, then the current phase, then standalone; struck dailies last.
-/// A task in [lingering] was struck a moment ago: it keeps its open slot
-/// while its strike animation plays.
-List<TaskView> todayTasks(BossView view, {Set<String> lingering = const {}}) {
+/// One run of rows under a label: a boss's dailies, its current chapter, or
+/// its tasks beyond the chapters.
+class TodayGroup {
+  const TodayGroup(this.label, this.tasks, this.count);
+
+  final String label;
+  final List<TaskView> tasks;
+
+  /// "N of M" struck, over every task of the group.
+  final String count;
+}
+
+/// The day's groups for one boss, in Today order (plan §8.3): dailies, then
+/// the current chapter, then standalone. Open rows lead each group; struck
+/// dailies stay at its foot. A task in [lingering] was struck a moment ago:
+/// it keeps its open slot while its strike animation plays.
+List<TodayGroup> todayGroups(
+  BossView view, {
+  Set<String> lingering = const {},
+}) {
   bool isOpen(TaskView t) => !t.isStruck || lingering.contains(t.task.id);
-  final daily = view.allTasks.where((t) => t.isDaily);
+  TodayGroup? group(String label, List<TaskView> all) {
+    final shown = [
+      ...all.where(isOpen),
+      ...all.where((t) => !isOpen(t) && t.isDaily),
+    ];
+    if (shown.isEmpty) return null;
+    return TodayGroup(
+      label,
+      shown,
+      '${all.where((t) => t.isStruck).length} of ${all.length}',
+    );
+  }
+
+  final title = view.boss.title;
+  final current = view.currentPhase;
   return [
-    ...daily.where(isOpen),
-    ...?view.currentPhase?.tasks.where((t) => !t.isDaily && isOpen(t)),
-    ...view.standalone.where((t) => !t.isDaily && isOpen(t)),
-    ...daily.where((t) => !isOpen(t)),
-  ];
+    group('$title · daily', view.allTasks.where((t) => t.isDaily).toList()),
+    if (current != null)
+      group(
+        '$title · Chapter ${romanNumeral(view.currentPhaseNumber!)} · '
+        '${current.phase.name}',
+        current.tasks.where((t) => !t.isDaily).toList(),
+      ),
+    group(title, view.standalone.where((t) => !t.isDaily).toList()),
+  ].nonNulls.toList();
 }
 
 /// How long a freshly struck row keeps its slot: the strike's beats and the
@@ -115,12 +150,11 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id)
-          (b, todayTasks(b, lingering: _lingering)),
-    ].where((g) => g.$2.isNotEmpty).toList();
+          ...todayGroups(b, lingering: _lingering),
+    ];
 
-    final open = [
-      for (final (_, tasks) in groups) ...tasks.where((t) => !t.isStruck),
-    ].length;
+    final open = [for (final g in groups) ...g.tasks.where((t) => !t.isStruck)]
+        .length;
     final isHome = widget.onNewFoe != null;
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -200,38 +234,20 @@ class _TodayViewState extends ConsumerState<TodayView> {
               style: text.bodyLarge,
             ),
           ),
-        for (final (boss, tasks) in groups)
+        for (final g in groups)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20, bottom: 6),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          boss.boss.title.toUpperCase(),
-                          style: text.labelSmall,
-                        ),
-                      ),
-                      if (!isHome)
-                        Text(
-                          '${tasks.where((t) => t.isStruck).length} of '
-                          '${tasks.length} struck',
-                          style: text.bodySmall,
-                        ),
-                    ],
-                  ),
-                ),
-                for (final t in tasks)
+                TaskGroupHeader(label: g.label, count: g.count),
+                for (final t in g.tasks)
                   TaskRow(
                     key: ValueKey(t.task.id),
                     view: t,
                     tapMode: widget.tapMode,
                     onMessage: _say,
-                    bossName: boss.boss.title,
+                    compact: true,
                   ),
               ],
             ),

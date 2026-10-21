@@ -26,6 +26,7 @@ class HoldToStrike extends ConsumerStatefulWidget {
     this.onOpenActions,
     this.deadline,
     this.bossName,
+    this.compact = false,
   });
 
   final String title;
@@ -43,6 +44,9 @@ class HoldToStrike extends ConsumerStatefulWidget {
 
   /// Opens the meta line: "{bossName} · +N embers".
   final String? bossName;
+
+  /// A row inside a group label: the meta is just "+N" or "Struck".
+  final bool compact;
 
   /// The commitment's chip, when the task is promised today.
   final Widget? deadline;
@@ -230,7 +234,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   @override
   Widget build(BuildContext context) {
     final weight = widget.weight;
-    final embers = '+${weight.embers} embers';
+    final embers = '+${weight.embers}${widget.compact ? '' : ' embers'}';
     final lead = widget.isDone ? 'Struck' : widget.bossName;
     return AnimatedBuilder(
       animation: Listenable.merge([_progress, _sweep, _dust]),
@@ -243,8 +247,13 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
         child: TaskRowTile(
           title: widget.title,
           pips: weight.index + 1,
-          meta: lead == null ? embers : '$lead · $embers',
+          meta: widget.compact
+              ? (lead ?? embers)
+              : lead == null
+              ? embers
+              : '$lead · $embers',
           isDone: widget.isDone,
+          compact: widget.compact,
           phase: _phase,
           sweep: _sweep.isAnimating || _dust.isAnimating
               ? Stack(

@@ -52,7 +52,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('rows are grouped under each boss with "n of m struck"', (
+  testWidgets('rows are grouped by boss and chapter with "n of m"', (
     tester,
   ) async {
     final h = Harness();
@@ -62,8 +62,11 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
 
-    expect(find.text('THE CERTIFICATION'), findsOneWidget);
-    expect(find.text('1 of 4 struck'), findsOneWidget);
+    // One label per run: dailies, the current chapter, the rest.
+    expect(find.text('THE CERTIFICATION · DAILY'), findsOneWidget);
+    expect(find.text('1 of 1'), findsOneWidget);
+    expect(find.text('THE CERTIFICATION · CHAPTER I · LEARN'), findsOneWidget);
+    expect(find.text('0 of 2'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }

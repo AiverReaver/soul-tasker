@@ -48,6 +48,28 @@ void main() {
     expect(find.byKey(const ValueKey('row-ink-line')), findsNothing);
   });
 
+  testWidgets('compact: 52 inside the edge, the meta shares the title line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      glassHost(
+        TaskRowTile(
+          title: 'Write 500 words',
+          pips: 1,
+          meta: '+3',
+          isDone: false,
+          compact: true,
+          trailing: const SizedBox.square(key: ValueKey('btn'), dimension: 44),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(NeedleFrame)).height, 54);
+    expect(
+      tester.getCenter(find.text('+3')).dy,
+      tester.getCenter(find.text('Write 500 words')).dy,
+    );
+  });
+
   testWidgets('one pip per weight step', (tester) async {
     await tester.pumpWidget(glassHost(_tile(pips: 3)));
     expect(find.byType(DiamondPip), findsNWidgets(3));

@@ -28,6 +28,7 @@ class TaskRow extends ConsumerWidget {
     required this.onMessage,
     this.canCommit = true,
     this.bossName,
+    this.compact = false,
   });
 
   final TaskView view;
@@ -38,6 +39,9 @@ class TaskRow extends ConsumerWidget {
 
   /// Opens the row's meta line; omit where the boss is obvious.
   final String? bossName;
+
+  /// Under a group label that already names the boss and chapter.
+  final bool compact;
 
   /// Shows a quiet one-line message on the host screen.
   final ValueChanged<String> onMessage;
@@ -135,12 +139,13 @@ class TaskRow extends ConsumerWidget {
         now.isBefore(promise.deadline);
     return HoldToStrike(
       key: ValueKey(task.id),
-      title: task.recurrence == Recurrence.daily
+      title: task.recurrence == Recurrence.daily && !compact
           ? '${task.title} · daily'
           : task.title,
       weight: task.weight,
       isDone: view.isStruck,
       bossName: bossName,
+      compact: compact,
       tapMode: tapMode,
       onStrike: () => _strike(context, ref),
       onTried: () => _act(context, ref, _Action.tried),

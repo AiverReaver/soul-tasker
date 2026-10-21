@@ -56,8 +56,8 @@ void main() {
     expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Walk · daily'), findsOneWidget);
-    expect(find.text('Flashcards · daily'), findsOneWidget);
+    expect(find.text('Walk'), findsOneWidget);
+    expect(find.text('Flashcards'), findsOneWidget);
     expect(reminders.calls, contains('schedule:1260'));
     // Leave the app view; keep the database for the rest of the script.
     await tester.pumpWidget(const SizedBox());

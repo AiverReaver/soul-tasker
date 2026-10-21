@@ -189,7 +189,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Book the room'), findsOneWidget);
-    expect(find.text('Walk · daily'), findsOneWidget);
+    expect(find.text('Walk'), findsOneWidget);
     await tearDownApp(tester, h2);
   });
 }
