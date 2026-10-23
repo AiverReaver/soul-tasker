@@ -71,7 +71,8 @@ class FallenScreen extends StatefulWidget {
   }) {
     haptics.heavy();
     sounds?.fallen();
-    return Navigator.of(context).push<String>(
+    // The root navigator, so it covers the tab bar from inside a tab too.
+    return Navigator.of(context, rootNavigator: true).push<String>(
       PageRouteBuilder(
         opaque: false,
         transitionDuration: motionOf(context, _dimIn),

@@ -279,4 +279,35 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.testTextInput.isVisible, isFalse);
   });
+
+  testWidgets('opened inside a tab, it covers the whole app, tab bar too', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Scaffold(
+          body: Navigator(
+            onGenerateRoute: (_) => MaterialPageRoute<void>(
+              builder: (context) => TextButton(
+                onPressed: () =>
+                    FallenScreen.show(context, Haptics(() => false)),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+          bottomNavigationBar: const Text('tab bar'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(
+      find.ancestor(
+        of: find.byType(FallenScreen),
+        matching: find.byType(Navigator),
+      ),
+      findsOneWidget,
+    );
+  });
 }
