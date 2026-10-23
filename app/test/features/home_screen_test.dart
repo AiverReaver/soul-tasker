@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/glass_sheet.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
 import 'package:hearthrise/ui/hold_button.dart';
 import 'package:material_ui/material_ui.dart';
@@ -131,6 +132,78 @@ void main() {
     await tester.tap(find.text('All bosses · 1 active'));
     await settle(tester);
     expect(find.text('Name a new boss'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the struck count skips bosses set aside and follows the chip', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    final habit = await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
+    await h.attempts.strike(taskNamed(await h.reload(habit), 'Walk').task.id);
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('1 of 5 struck'), findsOneWidget);
+
+    await tester.tap(find.text(view.boss.title).first);
+    await settle(tester);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
+
+    await tester.tap(find.text('All'));
+    await settle(tester);
+    await h.bosses.setStatus(habit, BossStatus.waiting);
+    await settle(tester);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a struck one-time task stays in its group count on Home and '
+      'Today alike', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('1 of 4 struck'), findsOneWidget);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+    expect(find.text('1 of 4 struck · hold to strike'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('long-press a boss: a glass sheet over the tab bar; The Day '
+      'offers no status change', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.bosses.ensureDayBoss();
+    await pumpApp(tester, h, location: '/bosses', tall: true);
+
+    await tester.longPress(find.text('The Day'));
+    await settle(tester);
+    expect(find.byType(GlassSheet), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.byType(GlassSheet),
+        matching: find.byType(Navigator),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Pin'), findsOneWidget);
+    expect(find.text('Set waiting'), findsNothing);
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+
+    await tester.longPress(find.text(view.boss.title));
+    await settle(tester);
+    await tester.tap(find.text('Set waiting'));
+    await settle(tester);
+    expect((await h.reload(view.boss.id)).boss.status, BossStatus.waiting);
     await tearDownApp(tester, h);
   });
 }

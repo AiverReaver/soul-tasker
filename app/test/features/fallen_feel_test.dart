@@ -242,4 +242,72 @@ void main() {
     );
     expect(find.byType(SnappingThread), findsOneWidget);
   });
+
+  testWidgets('with the keyboard up the screen scrolls, Rise is reachable '
+      'and return closes the keyboard', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final popped = await _openFromButton(tester);
+
+    await tester.showKeyboard(find.byType(TextField));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.textInputAction, TextInputAction.done);
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isFalse);
+
+    await tester.ensureVisible(find.widgetWithText(EmberButton, 'Rise'));
+    await tester.tap(find.widgetWithText(EmberButton, 'Rise'));
+    await tester.pumpAndSettle();
+    expect(popped, ['']);
+  });
+
+  testWidgets('tapping outside the lesson field closes the keyboard', (
+    tester,
+  ) async {
+    await _openFromButton(tester);
+    await tester.showKeyboard(find.byType(TextField));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.text('Fallen.'));
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isFalse);
+  });
+
+  testWidgets('opened inside a tab, it covers the whole app, tab bar too', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Scaffold(
+          body: Navigator(
+            onGenerateRoute: (_) => MaterialPageRoute<void>(
+              builder: (context) => TextButton(
+                onPressed: () =>
+                    FallenScreen.show(context, Haptics(() => false)),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+          bottomNavigationBar: const Text('tab bar'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    expect(
+      find.ancestor(
+        of: find.byType(FallenScreen),
+        matching: find.byType(Navigator),
+      ),
+      findsOneWidget,
+    );
+  });
 }

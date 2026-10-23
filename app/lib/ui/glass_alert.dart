@@ -45,51 +45,61 @@ class GlassAlert extends StatelessWidget {
       namesRoute: true,
       explicitChildNodes: true,
       label: title ?? body,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: maxWidth),
-            child: GlassSurface(
-              shape: GlassShape.rounded(34),
-              blur: 24,
-              glintSize: 68,
-              child: ColoredBox(
-                color: p.shell.withValues(alpha: .62),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
-                      child: Column(
-                        spacing: 14,
-                        children: [
-                          if (label != null)
-                            Text(label!.toUpperCase(), style: text.labelSmall),
-                          if (title != null) ...[
-                            Text(
-                              title!,
-                              textAlign: TextAlign.center,
-                              style: text.titleMedium!.copyWith(
-                                fontSize: 30,
-                                height: 34 / 30,
-                              ),
-                            ),
-                            const ThreadDivider(),
-                          ],
-                          content ??
+      // A dialog route may sit under no Material, whose default text style
+      // is the debug double underline.
+      child: DefaultTextStyle(
+        style: text.bodyMedium!,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: maxWidth),
+              child: GlassSurface(
+                shape: GlassShape.rounded(34),
+                blur: 24,
+                glintSize: 68,
+                child: ColoredBox(
+                  color: p.shell.withValues(alpha: .62),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+                        child: Column(
+                          spacing: 14,
+                          children: [
+                            if (label != null)
                               Text(
-                                body!,
-                                textAlign: TextAlign.center,
-                                style: text.bodyMedium!.copyWith(color: p.ash),
+                                label!.toUpperCase(),
+                                style: text.labelSmall,
                               ),
-                        ],
+                            if (title != null) ...[
+                              Text(
+                                title!,
+                                textAlign: TextAlign.center,
+                                style: text.titleMedium!.copyWith(
+                                  fontSize: 30,
+                                  height: 34 / 30,
+                                ),
+                              ),
+                              const ThreadDivider(),
+                            ],
+                            content ??
+                                Text(
+                                  body!,
+                                  textAlign: TextAlign.center,
+                                  style: text.bodyMedium!.copyWith(
+                                    color: p.ash,
+                                  ),
+                                ),
+                          ],
+                        ),
                       ),
-                    ),
-                    for (final (i, action) in actions.indexed)
-                      _row(context, i, action),
-                  ],
+                      for (final (i, action) in actions.indexed)
+                        _row(context, i, action),
+                    ],
+                  ),
                 ),
               ),
             ),

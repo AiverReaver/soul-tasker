@@ -2,13 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/theme.dart';
 import '../../core/clock.dart';
 import '../../core/days_left.dart';
 import '../../data/boss_view.dart';
+import '../../data/day_boss.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/boss_card_actions_sheet.dart';
 import '../../ui/boss_card_tile.dart';
+import '../../ui/glass_sheet.dart';
 import '../../ui/pinned_boss_panel.dart';
 import '../shell/atmosphere.dart';
 
@@ -46,43 +48,30 @@ class BossCard extends ConsumerWidget {
   Future<void> _actions(BuildContext context, WidgetRef ref) async {
     final boss = view.boss;
     final dao = ref.read(bossDaoProvider);
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: context.palette.shell,
-      builder: (sheet) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              minTileHeight: kMinTarget,
-              title: Text(boss.isPinned ? 'Unpin' : 'Pin'),
-              onTap: () {
-                Navigator.pop(sheet);
-                dao.setPinned(boss.id, isPinned: !boss.isPinned);
-              },
-            ),
-            if (boss.status != BossStatus.defeated)
-              ListTile(
-                minTileHeight: kMinTarget,
-                title: Text(
-                  boss.status == BossStatus.active
-                      ? 'Set waiting'
-                      : 'Set active',
-                ),
-                onTap: () {
-                  Navigator.pop(sheet);
-                  dao.setStatus(
-                    boss.id,
-                    boss.status == BossStatus.active
-                        ? BossStatus.waiting
-                        : BossStatus.active,
-                  );
-                },
-              ),
-          ],
-        ),
+    final isActive = boss.status == BossStatus.active;
+    final choice = await showGlassSheet<BossCardAction>(
+      context,
+      (_) => BossCardActionsSheet(
+        title: boss.title,
+        isPinned: boss.isPinned,
+        // The Day always stays active; a won boss stays won.
+        statusLabel: boss.id == dayBossId || boss.status == BossStatus.defeated
+            ? null
+            : isActive
+            ? 'Set waiting'
+            : 'Set active',
       ),
     );
+    switch (choice) {
+      case BossCardAction.pin:
+        await dao.setPinned(boss.id, isPinned: !boss.isPinned);
+      case BossCardAction.status:
+        await dao.setStatus(
+          boss.id,
+          isActive ? BossStatus.waiting : BossStatus.active,
+        );
+      case null:
+    }
   }
 
   @override
