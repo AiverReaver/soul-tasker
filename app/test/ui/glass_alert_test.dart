@@ -1,6 +1,7 @@
 import 'dart:ui' show SemanticsRole;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/ui/glass_alert.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -73,5 +74,32 @@ void main() {
     await tester.pumpAndSettle();
     expect(done, isTrue);
     expect(result, isNull);
+  });
+
+  testWidgets('every line is plain text, even with no Material above it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: const GlassAlert(
+          title: 'Mark this boss as defeated?',
+          body: 'It moves to your relics.',
+          actions: ['Not yet', 'Defeated'],
+        ),
+      ),
+    );
+    for (final label in ['Not yet', 'Defeated', 'It moves to your relics.']) {
+      final style = tester
+          .widget<RichText>(
+            find.descendant(
+              of: find.text(label),
+              matching: find.byType(RichText),
+            ),
+          )
+          .text
+          .style;
+      expect(style?.decoration, TextDecoration.none, reason: label);
+    }
   });
 }
