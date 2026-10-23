@@ -5,24 +5,34 @@ import '../core/theme.dart';
 /// Shards lit for a boss with [health] left (0..1), in twelfths.
 int shardsFor(double health) => (health * ShardMeter.count).round();
 
-/// Boss health as 12 skewed shards; [filled] of them are lit.
+/// Boss health as 12 skewed shards (or [total]); [filled] of them are lit.
 class ShardMeter extends StatelessWidget {
-  const ShardMeter({super.key, required this.filled, this.height = 10});
+  const ShardMeter({
+    super.key,
+    required this.filled,
+    this.total = count,
+    this.height = 10,
+    this.semanticLabel,
+  });
 
   static const count = 12;
 
   final int filled;
+  final int total;
   final double height;
+
+  /// Read instead of "Boss health N of 12".
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
     return Semantics(
-      label: 'Boss health $filled of $count',
+      label: semanticLabel ?? 'Boss health $filled of $total',
       excludeSemantics: true,
       child: Row(
         children: [
-          for (var i = 0; i < count; i++) ...[
+          for (var i = 0; i < total; i++) ...[
             if (i > 0) const SizedBox(width: 3),
             Expanded(
               child: Transform(
