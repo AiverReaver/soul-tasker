@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/glass_sheet.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
 import 'package:hearthrise/ui/hold_button.dart';
 import 'package:material_ui/material_ui.dart';
@@ -173,6 +174,36 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('1 of 4 struck · hold to strike'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('long-press a boss: a glass sheet over the tab bar; The Day '
+      'offers no status change', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.bosses.ensureDayBoss();
+    await pumpApp(tester, h, location: '/bosses', tall: true);
+
+    await tester.longPress(find.text('The Day'));
+    await settle(tester);
+    expect(find.byType(GlassSheet), findsOneWidget);
+    expect(
+      find.ancestor(
+        of: find.byType(GlassSheet),
+        matching: find.byType(Navigator),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Pin'), findsOneWidget);
+    expect(find.text('Set waiting'), findsNothing);
+    await tester.tap(find.text('Cancel'));
+    await settle(tester);
+
+    await tester.longPress(find.text(view.boss.title));
+    await settle(tester);
+    await tester.tap(find.text('Set waiting'));
+    await settle(tester);
+    expect((await h.reload(view.boss.id)).boss.status, BossStatus.waiting);
     await tearDownApp(tester, h);
   });
 }
