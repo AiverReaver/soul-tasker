@@ -41,7 +41,7 @@ class TodayGroup {
   final int total;
 
   /// "N of M" struck, over every task of the group.
-  String get count => '$struck of $total';
+  String get count => total == 0 ? 'No tasks yet' : '$struck of $total';
 }
 
 /// The day's groups for one boss, in Today order (plan §8.3): dailies, then
@@ -69,6 +69,10 @@ List<TodayGroup> todayGroups(
   }
 
   final title = view.boss.title;
+  // An empty Day keeps a bare label: on Home it is the way to its screen.
+  if (view.isDay && view.allTasks.isEmpty) {
+    return [TodayGroup(title, const [], 0, 0, bossId: view.boss.id)];
+  }
   final current = view.currentPhase;
   return [
     group('$title · daily', view.allTasks.where((t) => t.isDaily).toList()),
