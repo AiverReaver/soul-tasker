@@ -101,7 +101,11 @@ void main() {
     final frame = tester.widget<NeedleFrame>(find.byType(NeedleFrame));
     expect(frame.fill, p.struckBg);
     expect(frame.edge, p.struckEdge);
-    expect(find.byKey(const ValueKey('row-ink-line')), findsOneWidget);
+    // Struck through on every line of the title, so a wrapped title is
+    // crossed out in full.
+    final title = tester.widget<Text>(find.text('Write 500 words'));
+    expect(title.style?.decoration, TextDecoration.lineThrough);
+    expect(title.style?.decorationColor, p.ink);
     expect(find.byKey(const ValueKey('row-check')), findsOneWidget);
     expect(find.text('Struck · +3 embers'), findsOneWidget);
     expect(find.byKey(const ValueKey('btn')), findsNothing);

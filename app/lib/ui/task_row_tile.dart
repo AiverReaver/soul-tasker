@@ -90,21 +90,17 @@ class TaskRowTile extends StatelessWidget {
       fontWeight: FontWeight.w500,
       color: ink ?? (isDone ? p.ash : p.bone),
     );
-    final titleLine = Stack(
-      alignment: Alignment.centerLeft,
-      children: [
-        Text(title, style: titleStyle),
-        if (isDone)
-          Positioned.fill(
-            child: Center(
-              child: ColoredBox(
-                key: const ValueKey('row-ink-line'),
-                color: p.ink,
-                child: const SizedBox(height: 1.5, width: double.infinity),
-              ),
-            ),
-          ),
-      ],
+    // Line-through, not an overlay, so every line of a wrapped title is
+    // crossed out.
+    final titleLine = Text(
+      title,
+      style: isDone
+          ? titleStyle.copyWith(
+              decoration: TextDecoration.lineThrough,
+              decorationColor: p.ink,
+              decorationThickness: 1.5,
+            )
+          : titleStyle,
     );
     final metaLine = Text(
       meta,
