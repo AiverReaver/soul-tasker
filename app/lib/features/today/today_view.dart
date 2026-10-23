@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/roman.dart';
@@ -23,9 +24,16 @@ import '../boss/task_row.dart';
 /// One run of rows under a label: a boss's dailies, its current chapter, or
 /// its tasks beyond the chapters.
 class TodayGroup {
-  const TodayGroup(this.label, this.tasks, this.struck, this.total);
+  const TodayGroup(
+    this.label,
+    this.tasks,
+    this.struck,
+    this.total, {
+    required this.bossId,
+  });
 
   final String label;
+  final String bossId;
   final List<TaskView> tasks;
 
   /// Struck and all tasks of the group, shown rows or not.
@@ -56,6 +64,7 @@ List<TodayGroup> todayGroups(
       shown,
       all.where((t) => t.isStruck).length,
       all.length,
+      bossId: view.boss.id,
     );
   }
 
@@ -145,9 +154,13 @@ class _TodayViewState extends ConsumerState<TodayView> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final active = widget.bosses
-        .where((b) => b.boss.status == BossStatus.active)
-        .toList();
+    // The Day leads: its chip and its group come first.
+    final active = [
+      for (final b in widget.bosses)
+        if (b.boss.status == BossStatus.active && b.isDay) b,
+      for (final b in widget.bosses)
+        if (b.boss.status == BossStatus.active && !b.isDay) b,
+    ];
     final tally = ref.watch(emberTallyProvider).value;
     final health = ref.watch(healthProvider).value;
     final picks = ref.watch(todayPicksProvider).value ?? const [];
@@ -251,7 +264,11 @@ class _TodayViewState extends ConsumerState<TodayView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TaskGroupHeader(label: g.label, count: g.count),
+                TaskGroupHeader(
+                  label: g.label,
+                  count: g.count,
+                  onTap: () => context.push('/boss/${g.bossId}'),
+                ),
                 for (final t in g.tasks)
                   TaskRow(
                     key: ValueKey(t.task.id),

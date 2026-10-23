@@ -5,7 +5,9 @@ import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/flash_line.dart';
 import 'package:hearthrise/ui/glass_sheet.dart';
+import 'package:hearthrise/ui/day_panel.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
+import 'package:hearthrise/ui/task_group_header.dart';
 import 'package:hearthrise/ui/hold_button.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -241,6 +243,30 @@ void main() {
     await settle(tester);
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('The Day'), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('The Day leads Home: first chip, first group, and its label '
+      'opens its screen', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await h.bosses.ensureDayBoss();
+    await h.bosses.addQuickTask('Call the bank');
+    await pumpApp(tester, h, tall: true);
+
+    final chips = tester.getTopLeft(find.text('The Day').first);
+    expect(
+      chips.dx,
+      lessThan(tester.getTopLeft(find.text('The Certification').first).dx),
+    );
+    final headers = tester.widgetList<TaskGroupHeader>(
+      find.byType(TaskGroupHeader),
+    );
+    expect(headers.first.label, 'The Day · daily');
+
+    await tester.tap(find.text('THE DAY · DAILY'));
+    await settle(tester);
+    expect(find.byType(DayPanel), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }
