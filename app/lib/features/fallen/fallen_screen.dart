@@ -206,80 +206,95 @@ class _FallenScreenState extends State<FallenScreen>
     final text = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: context.palette.voidfall,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Fallen.',
-                textAlign: TextAlign.center,
-                style: text.displayMedium?.copyWith(
-                  fontSize: 60,
-                  letterSpacing: 8,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                switch (widget.story) {
-                  final st? =>
-                    'Attempt ${st.attempt} ends. ${_the(st.bossTitle)} remains, '
-                        'and so do you.',
-                  null => 'Rest, then rise.',
-                },
-                textAlign: TextAlign.center,
-                style: text.bodySmall,
-              ),
-              if (widget.story case final st?) ..._story(st, text),
-              if (widget.record case final r?) ..._numbers(r, text),
-              const SizedBox(height: 56),
-              Text('What did this teach you?', style: text.titleMedium),
-              const SizedBox(height: 12),
-              NeedleFrame(
-                tier: Cut.md,
-                edge: context.palette.deep,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Space.md),
-                  child: TextField(
-                    controller: _lesson,
-                    maxLength: 120,
-                    minLines: 3,
-                    maxLines: 4,
-                    style: text.bodyMedium,
-                    cursorColor: context.palette.silk,
-                    decoration: InputDecoration(
-                      hintText: 'One line.',
-                      hintStyle: TextStyle(color: context.palette.ash),
-                      border: InputBorder.none,
+      // Scrolls so the keyboard never hides Rise; a tap outside closes it.
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, box) => SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: box.maxHeight),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Fallen.',
+                      textAlign: TextAlign.center,
+                      style: text.displayMedium?.copyWith(
+                        fontSize: 60,
+                        letterSpacing: 8,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      switch (widget.story) {
+                        final st? =>
+                          'Attempt ${st.attempt} ends. ${_the(st.bossTitle)} remains, '
+                              'and so do you.',
+                        null => 'Rest, then rise.',
+                      },
+                      textAlign: TextAlign.center,
+                      style: text.bodySmall,
+                    ),
+                    if (widget.story case final st?) ..._story(st, text),
+                    if (widget.record case final r?) ..._numbers(r, text),
+                    const SizedBox(height: 56),
+                    Text('What did this teach you?', style: text.titleMedium),
+                    const SizedBox(height: 12),
+                    NeedleFrame(
+                      tier: Cut.md,
+                      edge: context.palette.deep,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Space.md,
+                        ),
+                        child: TextField(
+                          controller: _lesson,
+                          maxLength: 120,
+                          minLines: 3,
+                          maxLines: 4,
+                          textInputAction: TextInputAction.done,
+                          style: text.bodyMedium,
+                          cursorColor: context.palette.silk,
+                          decoration: InputDecoration(
+                            hintText: 'One line.',
+                            hintStyle: TextStyle(color: context.palette.ash),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (widget.story case final st?)
+                      Padding(
+                        padding: const EdgeInsets.only(top: Space.sm),
+                        child: Text(
+                          'You will see it at the start of attempt '
+                          '${st.attempt + 1}.',
+                          style: text.bodySmall,
+                        ),
+                      ),
+                    const SizedBox(height: 32),
+                    EmberButton(
+                      label: 'Rise',
+                      onPressed: () =>
+                          Navigator.pop(context, _lesson.text.trim()),
+                    ),
+                    const SizedBox(height: Space.sm),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Rest first. Write it tomorrow.',
+                        style: TextStyle(color: context.palette.ash),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              if (widget.story case final st?)
-                Padding(
-                  padding: const EdgeInsets.only(top: Space.sm),
-                  child: Text(
-                    'You will see it at the start of attempt '
-                    '${st.attempt + 1}.',
-                    style: text.bodySmall,
-                  ),
-                ),
-              const SizedBox(height: 32),
-              EmberButton(
-                label: 'Rise',
-                onPressed: () => Navigator.pop(context, _lesson.text.trim()),
-              ),
-              const SizedBox(height: Space.sm),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Rest first. Write it tomorrow.',
-                  style: TextStyle(color: context.palette.ash),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
