@@ -11,7 +11,9 @@ import '../../data/providers.dart';
 import '../fallen/fallen_screen.dart';
 import '../../core/clock.dart';
 import '../../core/days_left.dart';
+import '../../ui/action_row.dart';
 import '../../ui/boss_actions_sheet.dart';
+import '../../ui/day_panel.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/glass_alert.dart';
 import '../../ui/glass_circle_button.dart';
@@ -20,6 +22,7 @@ import '../../ui/needle_frame.dart';
 import '../../ui/shard_meter.dart';
 import '../../ui/stroke_icon.dart';
 import '../../ui/thread_divider.dart';
+import '../boss_edit/new_foe_sheet.dart';
 import 'boss_stage.dart';
 import 'rule_of_three_sheet.dart';
 import 'task_row.dart';
@@ -158,7 +161,12 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         Expanded(
           child: Center(
             child: Text(
-              (view == null ? null : _phaseLabel(view)) ?? '',
+              switch (view) {
+                    null => null,
+                    final v when v.isDay => 'The default boss',
+                    final v => _phaseLabel(v),
+                  } ??
+                  '',
               style: Theme.of(context).textTheme.labelSmall,
             ),
           ),
@@ -187,6 +195,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
       bossName: boss.title,
     );
 
+    if (view.isDay) return _dayBody(context, view, row);
     final current = view.currentPhase;
     // The boss kneels between phases: an earlier phase is done and the
     // next has not been touched yet.
@@ -298,6 +307,49 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           _header2(context, 'Beyond the chapters'),
           for (final t in view.standalone) row(t),
         ],
+      ],
+    );
+  }
+
+  /// The Day (v4.2 DayBoss board): its panel, today's tasks and a quick add.
+  /// No stage, chapters or hint: it never ends in victory or a fall.
+  Widget _dayBody(
+    BuildContext context,
+    BossView view,
+    Widget Function(TaskView) row,
+  ) {
+    final text = Theme.of(context).textTheme;
+    final tasks = view.allTasks;
+    final struck = tasks.where((t) => t.isStruck).length;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+      children: [
+        DayPanel(open: tasks.length - struck, total: tasks.length),
+        FlashLine(_flash),
+        if (tasks.isNotEmpty) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(
+                  'Today’s tasks',
+                  style: text.titleMedium!.copyWith(fontSize: 22),
+                ),
+              ),
+              Text('$struck of ${tasks.length} struck', style: text.bodySmall),
+            ],
+          ),
+          const SizedBox(height: Space.sm),
+          const ThreadDivider(),
+          const SizedBox(height: Space.sm),
+          for (final t in tasks) row(t),
+        ],
+        const SizedBox(height: Space.sm),
+        ActionRow(
+          label: 'Add a quick task',
+          onTap: () => showNewFoeSheet(context, ref, bosses: [view]),
+        ),
       ],
     );
   }

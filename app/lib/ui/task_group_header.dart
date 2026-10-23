@@ -6,12 +6,19 @@ import '../core/theme.dart';
 
 /// The label above a run of task rows: "THE CERTIFICATION · CHAPTER II ·
 /// LEARN", a hairline, then "N of M" struck. The rows below leave out the
-/// boss and chapter because this says them once.
+/// boss and chapter because this says them once. With [onTap], the label
+/// opens its boss.
 class TaskGroupHeader extends StatelessWidget {
-  const TaskGroupHeader({super.key, required this.label, required this.count});
+  const TaskGroupHeader({
+    super.key,
+    required this.label,
+    required this.count,
+    this.onTap,
+  });
 
   final String label;
   final String count;
+  final VoidCallback? onTap;
 
   static const _gap = 10.0;
 
@@ -38,7 +45,14 @@ class TaskGroupHeader extends StatelessWidget {
               constraints: BoxConstraints(
                 maxWidth: math.max(0, box.maxWidth - countWidth - 2 * _gap),
               ),
-              child: Text(label.toUpperCase(), style: text.labelSmall),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onTap,
+                child: Semantics(
+                  button: onTap != null,
+                  child: Text(label.toUpperCase(), style: text.labelSmall),
+                ),
+              ),
             ),
             Expanded(
               child: ColoredBox(

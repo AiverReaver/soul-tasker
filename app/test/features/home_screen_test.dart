@@ -1,10 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
+import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/flash_line.dart';
 import 'package:hearthrise/ui/glass_sheet.dart';
+import 'package:hearthrise/ui/day_panel.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
+import 'package:hearthrise/ui/task_group_header.dart';
 import 'package:hearthrise/ui/hold_button.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -183,9 +186,16 @@ void main() {
     final h = Harness();
     final view = await h.seed();
     await h.bosses.ensureDayBoss();
-    await pumpApp(tester, h, location: '/bosses', tall: true);
+    await h.bosses.setPinned(dayBossId, isPinned: true);
+    await pumpApp(tester, h, tall: true);
 
-    await tester.longPress(find.text('The Day'));
+    // The Day is reached on Home only: its pinned panel.
+    await tester.longPress(
+      find.descendant(
+        of: find.byKey(const Key('pinned-boss-panel')),
+        matching: find.text('The Day'),
+      ),
+    );
     await settle(tester);
     expect(find.byType(GlassSheet), findsOneWidget);
     expect(
@@ -195,11 +205,13 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('Pin'), findsOneWidget);
+    expect(find.text('Unpin'), findsOneWidget);
     expect(find.text('Set waiting'), findsNothing);
     await tester.tap(find.text('Cancel'));
     await settle(tester);
 
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
     await tester.longPress(find.text(view.boss.title));
     await settle(tester);
     await tester.tap(find.text('Set waiting'));
@@ -215,6 +227,46 @@ void main() {
     await h.seed();
     await pumpApp(tester, h, tall: true);
     expect(tester.getTopLeft(find.byType(FlashLine)).dx, 20);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('The Day is left out of All bosses and its active count', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    await h.bosses.ensureDayBoss();
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
+
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
+    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('The Day'), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('The Day leads Home: first chip, first group, and its label '
+      'opens its screen', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await h.bosses.ensureDayBoss();
+    await h.bosses.addQuickTask('Call the bank');
+    await pumpApp(tester, h, tall: true);
+
+    final chips = tester.getTopLeft(find.text('The Day').first);
+    expect(
+      chips.dx,
+      lessThan(tester.getTopLeft(find.text('The Certification').first).dx),
+    );
+    final headers = tester.widgetList<TaskGroupHeader>(
+      find.byType(TaskGroupHeader),
+    );
+    expect(headers.first.label, 'The Day · daily');
+
+    await tester.tap(find.text('THE DAY · DAILY'));
+    await settle(tester);
+    expect(find.byType(DayPanel), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }
