@@ -1,0 +1,218 @@
+<title>Hearthrise Field Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="hearth.css">
+<style>
+/* Field guide in the app's own Pharloom night: void ground, bone serif display, silk accent. Single dark look by choice. */
+:root { color-scheme: dark; --pg: #09060C; --pg2: #130E17; --edge: #3A2F3E; --tx: #E6DDCB; --mut: #A79BA6; --hd: #F4EBDD; --ac: #E8566D; --deep: #7A2638;
+  --serif: "Cormorant Garamond", Georgia, serif; --sans: "Hanken Grotesk", system-ui, sans-serif; }
+html { background: var(--pg); }
+body { background: var(--pg); color: var(--tx); font: 400 16px/1.6 var(--sans); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
+a { color: var(--ac); }
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow: auto; padding-top: 24px; font-size: 14px; }
+nav.toc b { display: block; font: 600 12px/1.4 var(--sans); letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); margin-bottom: 10px; }
+nav.toc a { display: block; color: var(--mut); text-decoration: none; padding: 4px 0 4px 12px; border-left: 1px solid var(--edge); }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--hd); border-left-color: var(--ac); outline: none; }
+header.hero { padding: 56px 0 24px; border-bottom: 1px solid var(--edge); }
+.eyebrow { font: 600 12px/1.4 var(--sans); letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); }
+h1 { font: 500 56px/1.05 var(--serif); color: var(--hd); margin: 10px 0 14px; letter-spacing: 1px; text-wrap: balance; }
+h2 { font: 500 34px/1.15 var(--serif); color: var(--hd); margin: 0 0 8px; letter-spacing: .5px; text-wrap: balance; }
+h3 { font: 500 23px/1.3 var(--serif); color: var(--hd); margin: 28px 0 6px; }
+p { margin: 0 0 12px; max-width: 68ch; }
+.lead { font-size: 18px; color: var(--tx); max-width: 62ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--mut); font-size: 14px; margin-top: 16px; }
+section.ch { padding: 48px 0 8px; border-bottom: 1px solid var(--edge); scroll-margin-top: 16px; }
+.thread { margin: 14px 0 22px; max-width: 320px; }
+.thread::before, .thread::after { background: var(--ac); } .thread > i { background: var(--ac); }
+.steps { display: grid; gap: 28px; margin-top: 18px; }
+.step { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: start; padding-top: 22px; border-top: 1px dashed var(--edge); }
+.step:first-child { border-top: 0; padding-top: 0; }
+.step.wide { grid-template-columns: minmax(0, 1fr); } .step.wide .shots { justify-content: flex-start; max-width: none; }
+.step h3 { margin-top: 0; }
+.step ul { margin: 6px 0 12px; padding-left: 20px; max-width: 64ch; } .step li { margin: 4px 0; }
+.shots { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; max-width: 560px; }
+figure { margin: 0; width: 170px; }
+figure button { all: unset; cursor: zoom-in; display: block; border-radius: 22px; overflow: hidden; outline: 1px solid var(--edge); background: #000; aspect-ratio: 393/852; width: 100%; }
+figure button:focus-visible { outline: 2px solid var(--hd); outline-offset: 2px; }
+figure img { width: 100%; height: 100%; object-fit: cover; display: block; }
+figcaption { font-size: 12.5px; line-height: 1.4; color: var(--mut); margin-top: 6px; }
+figcaption code { font-size: 11px; color: var(--mut); }
+.k { display: inline-block; font: 600 13px/1.5 var(--sans); padding: 0 7px; border: 1px solid var(--edge); border-radius: 4px; color: var(--hd); background: var(--pg2); }
+.note { border: 1px solid var(--edge); border-left: 3px solid var(--ac); background: var(--pg2); padding: 12px 16px; border-radius: 6px; max-width: 68ch; font-size: 15px; margin: 10px 0 14px; }
+table { border-collapse: collapse; font-size: 14.5px; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--edge); vertical-align: top; }
+th { color: var(--mut); font-weight: 600; font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; }
+.tbl { overflow-x: auto; max-width: 100%; }
+ol.issues { padding-left: 22px; max-width: 72ch; } ol.issues li { margin: 6px 0; }
+.sev { font: 600 11px/1 var(--sans); letter-spacing: 1px; text-transform: uppercase; padding: 3px 6px; border-radius: 3px; margin-right: 6px; border: 1px solid var(--edge); color: var(--mut); }
+.sev.bug { color: #F4EBDD; border-color: var(--ac); background: rgba(232,86,109,.18); }
+.sev.block { color: #09060C; background: var(--ac); border-color: var(--ac); }
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 96vh; }
+dialog::backdrop { background: rgba(5,3,7,.88); }
+dialog img { display: block; max-height: 92vh; max-width: 92vw; border-radius: 28px; }
+dialog p { color: var(--tx); text-align: center; margin: 10px auto 0; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { position: static; max-height: none; border-bottom: 1px solid var(--edge); padding-bottom: 16px; }
+  nav.toc .links { display: flex; flex-wrap: wrap; gap: 4px 14px; } nav.toc a { border: 0; padding: 2px 0; }
+  .step { grid-template-columns: minmax(0, 1fr); }
+  .shots { justify-content: flex-start; }
+  h1 { font-size: 42px; }
+}
+@media (max-width: 420px) { figure { width: calc(50% - 6px); } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Chapters"><b>Chapters</b><div class="links" id="toc"></div></nav>
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Hearthrise 0.7.0 · iPhone · walked on 19 Oct 2026</div>
+      <h1>Hearthrise Field Guide</h1>
+      <p class="lead">Every screen, sheet, dialog and setting in the app, in the order you meet them. Each step shows real screenshots from a fresh install on an iPhone 16 simulator. Tap any screenshot to see it full size.</p>
+      <div class="meta"><span>155 screenshots here (217 taken)</span><span>343 of 424 UI checklist items seen</span><span>54 issues noted (last chapter)</span></div>
+    </header>
+    <div id="chapters"></div>
+  </main>
+</div>
+<dialog id="lb"><p id="lbcap"></p></dialog>
+
+<script>
+// [id, caption] screenshots; chapters hold steps of {h, p (html), list?, shots}
+const C = [
+{ id: 'start', t: 'First launch and onboarding', intro: 'A fresh install opens straight into a five-step welcome. There is no tab bar until you finish or skip it. Swiping between steps is turned off; use Next and Skip.', steps: [
+  { h: 'Step 1 · Failing is fine', p: 'The first page explains the idea: every fall becomes a lesson and nothing you earn is taken away. The five diamonds at the top show where you are. <span class="k">Next</span> moves on, <span class="k">Skip</span> jumps to step 5.', shots: [['000_launch','Step 1 of 5']] },
+  { h: 'Step 2 · Name your first boss', p: 'A boss is a goal worth a fight. Type its name in <b>The boss</b> (up to 80 characters) and, if you like, one line on what beating it means. Next stays grey until the boss has a name.', shots: [['001_onboard_step2','Empty: Next is disabled'],['002_onboard_step2_filled','Filled in']] },
+  { h: 'Step 3 · Break it into chapters', p: 'Big goals fall in stages. Two chapter names are filled in for you; rename them, remove one with ✕, or tap <b>Add a chapter</b> (up to three). Chapters are the stages of the boss fight.', shots: [['003_onboard_step3','Two suggested chapters'],['004_onboard_step3_added','Three chapters: the Add link hides']] },
+  { h: 'Step 4 · What will you do every day?', p: 'Add up to three small daily tasks. They come back each morning and are saved as Light tasks outside any chapter.', shots: [['005_onboard_step4','One empty row'],['006_onboard_step4_filled','Two dailies added']] },
+  { h: 'Step 5 · One last thing', p: 'Turn on the <b>Evening reminder</b> and pick its time (default 9:00 PM). The time opens the standard iOS-style clock picker; switch between the keyboard and the dial with the small icon at the bottom left. <span class="k">Begin</span> saves your boss and asks iOS for notification permission if the reminder is on. <span class="k">Skip</span> here finishes without saving a boss.', shots: [['007_onboard_step5','Reminder off'],['008_onboard_reminder_on','Reminder on'],['009_onboard_time_picker','Time picker, keyboard'],['010_onboard_time_dial','Time picker, dial'],['011_onboard_time_set','8:00 PM set']] },
+  { h: 'If you skip', p: 'Skipping from an early step lands on step 5 with Begin greyed out, because no boss has a name yet. Skip again to start with an empty Home that holds only the built-in boss <b>The Day</b>.', shots: [['180_fresh2_page1','Second fresh install'],['181_skip_to_page5','Begin disabled after Skip'],['182_home_empty','Empty Home']] },
+]},
+{ id: 'home', t: 'Home', intro: 'Home is the first tab. It shows today\'s tasks from every active boss, grouped by boss.', steps: [
+  { h: 'The header', list: ['<b>Hearthrise</b> label, then two glass buttons: your <b>profile</b> (diamond figure) and <b>settings</b> (sliders).','Today\'s date and a greeting: <i>Morning.</i> from 5 to 11, <i>Afternoon.</i> from 12 to 16, <i>Evening.</i> otherwise.','On the right: the flame and number are embers you have banked, the five short bars fill as you near the next level, and the diamond shows your level.'], shots: [['013_home_first','Home after onboarding'],['166_morning_home','Morning.'],['148_afternoon_home','Afternoon.']] },
+  { h: 'All bosses, filters and the task list', list: ['<b>All bosses · N active</b> opens the list of every boss (it counts The Day).','Filter chips appear when two or more bosses are active. Tap one to see only that boss\'s tasks; <b>All</b> shows everything.','<b>Today\'s tasks</b> shows how many are struck. The <b>+</b> adds a quick task (see Quick tasks).','Each group starts with the boss name in capitals, then its task rows. A row shows weight diamonds on the left (1 Light, 2 Heavy, 3 Boss-tier), the title (with · daily for dailies), the boss and the embers it is worth, and the round <b>hold button</b> on the right.','With nothing due today it reads <i>Nothing stands in your way today.</i>; once all are struck it reads <i>All tasks struck. Rest at the bonfire</i>.'], shots: [['057_home_chip_filter','Filtered to one boss'],['066_home_all_after','Struck rows sink to the bottom'],['182_home_empty','Nothing due']] },
+  { h: 'The pinned boss panel', p: 'Pin a boss (long-press its card, or Pin in the boss ⋯ menu) and it sits at the top of Home with its art, chapter, attempt, days left, boss health shards and an <b>Enter the fight</b> button. Long-press the panel to unpin or set the boss waiting. With a boss pinned, the <b>Today</b> tab opens that boss directly.', shots: [['073_home_pinned_panel','Pinned Run a 10K'],['192_home_pinned_theday','Pinned The Day'],['076_panel_longpress','Long-press menu']] },
+  { h: 'The tab bar', p: 'The floating glass bar holds <b>Home</b>, <b>Today</b>, <b>Bonfire</b> and <b>Profile</b>. It appears only on those four screens; every other screen has a back button instead.', shots: [['077_today_view','Today selected'],['079_bonfire','Bonfire selected']] },
+]},
+{ id: 'bosses', t: 'Bosses: create, edit, organise', intro: 'Every goal is a boss. A boss has chapters (stages), tasks inside chapters, and tasks "beyond the chapters" such as daily habits.', steps: [
+  { h: 'All bosses', p: 'Lists active bosses as cards with their art, attempt number, chapter progress and health shards. Bosses you have left wait in a collapsed <b>Waiting (N)</b> section; tap it to open. Defeated bosses move to the Hall of relics on your Profile. <b>Name a new boss</b> starts a new one.', shots: [['014_all_bosses','First visit'],['067_all_bosses_waiting','One boss waiting'],['068_waiting_expanded','Waiting opened'],['070_all_bosses_pinned_active','A pinned boss shows as a panel']] },
+  { h: 'Long-press a boss card', p: 'Long-press any card for <b>Pin / Unpin</b> and <b>Set waiting / Set active</b>.', shots: [['069_longpress_sheet_waiting','Waiting boss'],['071_longpress_theday','The Day']] },
+  { h: 'Name a new boss', list: ['<b>Title</b> (required) and <b>What does defeat mean?</b> (optional).','<b>Set a target date</b> opens a calendar; the boss then shows "N days left". The ✕ clears it.','<b>On a failed attempt, reset</b>: <i>Nothing</i>, <i>Current chapter</i> or <i>Whole boss</i>. This decides what reopens when you fall. The default comes from Settings.','<b>Chapters</b>: name each one, add tasks with <b>Add a task</b>, add more with <b>Add a chapter</b>, delete with ✕ (asks first if it holds tasks), and drag the ≡ grip to reorder.','<b>Beyond the chapters</b>: tasks that belong to the boss but no chapter, like daily habits.','<b>Save</b> works once there is a title, every chapter has a name and there is at least one task. It opens the new boss. Back leaves without saving and without asking.'], shots: [['015_boss_new_empty','Empty form'],['018_date_picker','Target date'],['019_boss_new_date_set','Date set'],['027_boss_new_two_tasks','A chapter with tasks'],['034_chapters_reordered','Chapters reordered'],['032_boss_new_bottom','Beyond the chapters']] },
+  { h: 'The task sheet', p: 'Adding or tapping a task opens a sheet: <b>Name the task</b>, <b>Strength</b> (Light +1, Heavy +3, Boss-tier +6 embers; the hold gets longer too), <b>Every day</b> to make it a daily, and <b>Chapter</b> to move it. <b>Done</b> appears once it has a name. When editing, <b>Delete</b> removes the task without asking.', shots: [['023_task_sheet_new','New task'],['024_task_sheet_filled','Light, daily'],['030_task_sheet_bosstier','Boss-tier'],['025_task_sheet_chapter_dropdown','Choose a chapter'],['035_task_sheet_edit','Edit task']] },
+  { h: 'Edit or delete a boss', p: 'Boss ⋯ → <b>Edit</b> opens the same form titled <i>Edit boss</i>, filled in, with <b>Delete boss</b> at the bottom. Deleting asks <i>Delete "Run a 10K" and all its history?</i>', shots: [['129_edit_boss','Edit boss'],['130_edit_boss_bottom','Delete boss'],['131_delete_boss_confirm','Confirm'],['036_delete_chapter_confirm','Deleting a chapter with tasks']] },
+]},
+{ id: 'fight', t: 'The boss screen', intro: 'Tap a boss card or Enter the fight to see one boss.', steps: [
+  { h: 'Reading the boss', list: ['The header shows <b>Chapter I of II</b> and a ⋯ button for boss actions.','The panel holds the hand-drawn boss, its name, the defeat line, <b>Attempt N · N days left</b>, and <b>Boss health</b> as 12 shards. Each struck chapter task takes shards away.','The current chapter is listed in full with <i>N of M struck · hold to strike</i>; finished or later chapters show as small capital headings with <i>Done</i> when complete.','When a chapter is finished the boss kneels: <i>Learn Spanish kneels. Chapter II awaits.</i>','A boss with no chapter tasks reads <i>This task is worn down by habit.</i> and shows no shards.'], shots: [['038_boss_screen_new','Fresh boss'],['039_boss_screen_lower','Chapters below'],['173_kneel','Chapter I done: kneel'],['191_theday_empty_boss','No tasks']] },
+  { h: 'Boss actions (⋯)', list: ['<b>Leave for now</b>: puts the boss in Waiting. Asks <i>Leave the fight?</i> first; struck tasks stay struck.','<b>Edit</b>, <b>Pin / Unpin</b>.','<b>Declare victory</b>: ends the fight now (asks <i>Mark this boss as defeated?</i>).','<b>This attempt failed</b>: a declared fall (see Falling).','The Day only offers Edit and Pin.'], shots: [['054_boss_actions','Boss actions'],['055_leave_alert','Leave the fight?'],['121_boss_actions_theday','The Day']] },
+]},
+{ id: 'strike', t: 'Striking a task', intro: 'Striking is how you mark a task done. Press and hold the round button on a task row.', steps: [
+  { h: 'Hold to strike', p: 'Hold for 0.3 s (Light), 0.6 s (Heavy) or 1.2 s (Boss-tier). The button fills, the row edge lights and trembles, and the phone ticks. Let go early and nothing happens. When the hold completes the strike lands: a slash, a white hit, the row shatters and the boss flinches.', shots: [['040_strike_1','Charging'],['040_strike_3','The hit'],['040_strike_5','Shatter']] },
+  { h: 'How did the strike land?', p: 'After the animation a sheet asks: <b>Clean strike</b> (done in full) or <b>A real try</b> (part done; still earns half the embers, rounded up). <b>Cancel</b> writes nothing and the task stays open.', shots: [['040_strike_8','The question'],['041_clean_4','Clean: struck, shards drop, "It is done."'],['064_home_after_cancel','Cancel leaves it open']] },
+  { h: 'Tap mode', p: 'Settings → <b>Tap instead of hold</b> makes the button a single tap. Everything else is the same.', shots: [['132_tapmode_sheet','Tap mode result sheet'],['133_tapmode_struck','Struck']] },
+  { h: 'Winning', p: 'Strike the last chapter task and the app asks <i>Mark this boss as defeated?</i> <b>Not yet</b> keeps the boss at 0 health; <b>Defeated</b> dissolves the boss name into dust and opens the victory screen.', shots: [['134_defeat_confirm','Defeat?'],['135_boss_vanquished_not_yet','Not yet: 0 / 12'],['137_vanish_1','The name turns to dust']] },
+]},
+{ id: 'actions', t: 'Task actions: promises, moving, tries', intro: 'Tap a task row anywhere except the hold button for its actions.', steps: [
+  { h: 'Task actions', p: '<b>Promise by…</b>, <b>Move it later</b> (only for a promised task), <b>Mark as tried</b>, <b>Edit</b> and <b>Delete</b> (asks first).', shots: [['042_task_actions','Task actions'],['045_task_actions_promised','With a promise'],['175_delete_task_confirm','Delete?']] },
+  { h: 'Promise by…', p: 'Pick <b>In 1 hour</b>, <b>In 3 hours</b> or <b>Tonight</b> (11 PM). Optional switches: <b>Remind me 10 minutes before</b>, and <b>Every day</b> for daily tasks. The row gets a deadline chip: <i>in 59 min</i> when under an hour, <i>by 11:00 PM</i> otherwise. Make six promises in a day and the app notes <i>That is six promises, three of them heavy.</i>', shots: [['043_commit_sheet','Promise by'],['142_commit_daily','Daily task: Every day'],['044_promised','in 59 min'],['167_chip_by_time','Two promises'],['170_heavy_flash','by 11:00 PM and the heavy note']] },
+  { h: 'Keeping or missing a promise', p: 'Strike before the deadline to keep it. If it passes, the promise is missed and you lose health: 1 for Light, 2 for Heavy, 3 for Boss-tier. If the app was closed, the next open shows <b>While you were away</b> with each missed task, its cost, and <b>Done late</b> to strike it anyway. Rows then carry chips such as <i>missed</i> and <i>done late</i>.', shots: [['144_away_summary','While you were away'],['145_away_done_late','After Done late'],['146_home_missed_chips','missed / done late']] },
+  { h: 'Move it later', p: 'The first move is free (<i>Free, once.</i>). After that each move costs a flask (<i>Costs a flask. You hold 3.</i>), and with no flasks left the options grey out.', shots: [['046_extend_free','Free, once'],['048_extend_flask','Costs a flask'],['168_extend_no_flask','No flask left']] },
+  { h: 'Mark as tried and the rule of three', p: 'A try earns half the embers and shows <i>You tried. That counts.</i> Three tries in a row on one task opens <i>Same path, same result. What will you change?</i>: <b>Change the approach</b> (edit the boss), <b>Split into smaller tasks</b>, <b>Rest first</b> (<i>Return when ready.</i>) or <b>Keep going</b>. Split asks for two to five smaller tasks, each one weight lighter.', shots: [['049_tried_1','You tried'],['051_rule_of_three','Rule of three'],['052_split_sheet','Split'],['053_split_filled','Split done'],['174_rest_first_flash','Rest first']] },
+]},
+{ id: 'quick', t: 'Quick tasks and The Day', intro: 'The Day is a built-in boss that is always active. It holds quick tasks so they do not need a goal.', steps: [
+  { h: 'Add a quick task', p: 'Tap <b>+</b> next to Today\'s tasks. Name it, pick a strength (Light by default), and choose which boss it strikes at under <b>Strikes at</b> (The Day by default). <b>Add to today</b> saves it. Quick tasks on The Day are saved as dailies.', shots: [['059_new_task_sheet_home','A new task'],['060_new_task_filled','Filled'],['061_which_boss','Which boss?'],['062_home_quick_task_added','Added to The Day']] },
+  { h: 'The Day as a boss', p: 'Its health follows today\'s tasks. It cannot be left, failed or won; its ⋯ menu has only Edit and Pin.', shots: [['120_boss_theday','The Day with tasks']] },
+]},
+{ id: 'today', t: 'The Today tab', intro: 'Today is a focused view of the day, with your health and embers. When a boss is pinned, the Today tab opens that boss instead.', steps: [
+  { h: 'What it shows', list: ['<b>Rest at the bonfire</b> card (reads <i>Rested</i> once you have rested).','Your <b>health</b>: ten pips. Missed promises and failed tries take health; resting restores it.','<b>Carried</b> embers (earned today) and <b>Banked</b> embers (kept after resting).','<b>TODAY\'S THREE</b>: the tasks you chose at the bonfire last night, ticked as you strike them, then <i>The three are done.</i>','The task list with per-boss counts.'], shots: [['077_today_view','Today'],['147_today_health_lost','Health lost to missed promises'],['149_today_three_banner','Today\'s three'],['150_today_three_done','The three are done'],['183_today_empty','Empty']] },
+]},
+{ id: 'bonfire', t: 'The Bonfire', intro: 'The bonfire is the end-of-day ritual. Rest once a day to bank embers, restore health and flasks, and set up tomorrow.', steps: [
+  { h: 'Rest a while', list: ['<i>Night N at the hearth.</i> counts your rests.','<b>How did today go?</b> <i>Fought well</i>, <i>Held on</i> or <i>I fell</i>, each with a short reply.','<b>Flasks restored</b>: up to three, ready for tomorrow.','<b>One thing for tomorrow</b>: a line you write for yourself.','<b>Tomorrow\'s tasks</b>: pick up to three tasks to face tomorrow. A fourth pick says <i>Three is enough for one day.</i>','<b>Rest at the hearth</b> rests and takes you Home. If the reminder is on, a line under it says when it will ring.'], shots: [['185_bonfire_empty','Rest a while'],['080_mood_fought','Fought well'],['081_mood_held','Held on'],['082_mood_fell','I fell'],['083_tomorrow_picker','Tomorrow\'s three'],['084_tomorrow_limit','Three is enough'],['086_bonfire_filled','Ready to rest']] },
+  { h: 'After resting', p: 'The bonfire says <i>You have rested.</i> and lists tomorrow\'s three. The first time you rest without a reminder, it offers <i>A quiet nudge each evening?</i>; saying yes asks iOS for permission. If you refuse permission it says <i>No reminder without permission.</i>', shots: [['090_bonfire_rested','Rested'],['186_reminder_invite','The nudge offer'],['187_ios_permission','iOS permission'],['188_no_reminder_flash','Permission refused']] },
+  { h: 'The check-in', p: 'On day 7 and day 14 the bonfire asks <i>Has Hearthrise left you feeling worse?</i> Answer <b>Never</b>, <b>Sometimes</b> or <b>Often</b>, or <b>Not now</b>. An answer shows <i>Thank you.</i>', shots: [['164_bonfire_checkin','Check-in'],['165_checkin_thanks','Thank you.']] },
+  { h: 'When you have fallen', p: 'At zero health the bonfire reads <i>You have fallen. Rest here to rise again today.</i> with a single <b>Rise</b> button that restores you.', shots: [['160_bonfire_fallen','Fallen'],['161_after_rise','After Rise']] },
+]},
+{ id: 'falls', t: 'Falling, missed days and flasks', intro: 'Falls are part of the fight. Nothing you earned is taken away; health and progress in the current attempt are what change.', steps: [
+  { h: 'A declared fall', p: 'Boss ⋯ → <b>This attempt failed</b>. The screen dims to <b>Fallen.</b>: <i>Attempt 1 ends. The Run a 10K remains, and so do you.</i>, a snapped thread, your health and embers kept, and <b>What did this teach you?</b> Write one line and <b>Rise</b>, or <b>Rest first. Write it tomorrow.</b> The attempt number goes up and the boss resets by its rule.', shots: [['124_fallen','Fallen'],['127_boss_after_fall','Attempt 2']] },
+  { h: 'A day without rest', p: 'If a whole day passes without resting, the next open asks <i>A day passed without rest.</i> <b>Use a flask</b> covers the day; <b>Let it fall</b> takes a fall. Several missed days ask once for all of them and spend one flask per day.', shots: [['151_flask_choice','One day'],['153_flask_choice_2','Two days'],['154_fallen_missed_day','Let it fall']] },
+  { h: 'Health reaches zero', p: 'Miss enough promises and health runs out. The fallen screen then adds a record: <i>Four promised, none kept.</i>, your accuracy today and this week, and in your first week <i>Your first week: nothing is lost but health.</i>', shots: [['157_health_death_1','Four deadlines passed'],['158_health_death_fallen','Fallen at zero health'],['159_today_fallen_health0','Health 0']] },
+]},
+{ id: 'victory', t: 'Victory and relics', intro: 'A defeated boss becomes a relic.', steps: [
+  { h: 'Victory', p: '<i>Run a 10K falls.</i> The screen fades in: the relic emblem, how many attempts it took, days and embers, the lessons from your falls, and an <b>Inscription</b> (up to 120 characters). <b>Return to the hearth</b> goes Home; <b>Keep as a relic</b> opens the relic.', shots: [['137_vanish_5','Fading in'],['137_vanish_8','Victory'],['138_victory_inscription_kb','Writing an inscription']] },
+  { h: 'The relic', p: 'Shows the emblem, date, defeat line, <b>Attempts / Days / Effort</b>, <i>2 attempts. Every one of them counted.</i>, the chapters, lessons, and the inscription with <b>Save</b>. The emblem gets more weathered the more attempts it took.', shots: [['139_relic_screen','Relic'],['141_profile_relic','In the Hall of relics']] },
+]},
+{ id: 'profile', t: 'Profile', intro: 'Your level, embers, flasks, health and relics.', steps: [
+  { h: 'What it shows', list: ['<b>Level N</b> with five bars and <i>N embers to the next</i>. Level 2 needs 10 banked embers, level 3 needs 30, level 4 needs 60.','<b>N embers banked</b>, <b>Flasks</b>, and the health pips.','An accuracy line once you make promises: <i>Today: 0 of 1 kept. This week: 0 of 1.</i>','<b>Hall of relics</b>: every defeated boss. Empty: <i>No bosses vanquished yet. The first relic awaits.</i>'], shots: [['184_profile_empty','Fresh'],['087_profile_before_rest','Before resting'],['092_profile_after_rest','Level 2'],['141_profile_relic','A relic']] },
+]},
+{ id: 'settings', t: 'Settings', intro: 'Open with the sliders button on Home. Changes save at once.', steps: [
+  { h: 'Every setting', list: ['<b>Tap instead of hold</b>: strike with one tap.','<b>Haptics</b>: on by default.','<b>Reduce motion</b>: stills the backdrop, glass light and animations.','<b>Evening reminder</b> and <b>Reminder time</b>. If iOS permission is refused the switch flips back and says <i>No reminder without permission.</i>','<b>Day starts at</b>: 12:00 AM to 6:00 AM (default 4:00 AM). Anything before it still counts as the previous day.','<b>On a failed attempt, reset (new bosses)</b>: the default reset rule for new bosses.','<b>Copy tester report</b>: copies a plain-text summary of your use (strikes, tries, falls, promises, check-in answers) for a tester to paste.','<b>Back up and sync</b>: optional Google sign-in. In this build it says <i>Sign-in is not available in this build.</i>','<b>Biome</b>: five colour themes (below).'], shots: [['093_settings','Settings'],['094_settings_toggled','Switches on'],['095_settings_time_picker','Reminder time'],['096_day_starts_dialog','Day starts at'],['097_settings_copied','Copied.'],['098_signin_unavailable','Sign-in'],['189_settings_reminder_denied','Permission refused']] },
+  { h: 'Biomes', p: 'Pharloom (default, crimson night), Deep Docks (ember orange), Choral Chambers (light, gold), Moss Grotto (light, green) and Greymoor (blue-grey). The choice applies at once and stays on this phone.', shots: [['099_settings_biomes','Pharloom'],['101_biome_docks_home','Deep Docks'],['110_biome_choral_home','Choral Chambers'],['105_biome_moss_home','Moss Grotto'],['115_biome_greymoor_home','Greymoor']] },
+  { h: 'Biomes on every tab', p: 'Today, Bonfire and Profile in each biome.', shots: [['102_biome_docks_today','Docks · Today'],['103_biome_docks_bonfire','Docks · Bonfire'],['111_biome_choral_today','Choral · Today'],['112_biome_choral_bonfire','Choral · Bonfire'],['113_biome_choral_profile','Choral · Profile'],['106_biome_moss_today','Moss · Today'],['107_biome_moss_profile','Moss · Profile'],['108_biome_moss_bonfire','Moss · Bonfire'],['116_biome_greymoor_today','Greymoor · Today'],['117_biome_greymoor_bonfire','Greymoor · Bonfire'],['118_biome_greymoor_profile','Greymoor · Profile']] },
+  { h: 'Larger text', p: 'Hearthrise follows the iPhone text size. At about double size the layouts hold; at the very largest size long boss names break mid-word.', shots: [['179_ax_medium_home','Home, large text'],['178_ax_medium_all_bosses','All bosses, large text'],['177_large_text_all_bosses','Largest size']] },
+]},
+{ id: 'words', t: 'Words the app uses', table: [
+  ['Boss','A goal. It has chapters, tasks, an attempt number and 12 health shards.'],
+  ['Chapter','A stage of a boss. Finish one and the boss kneels.'],
+  ['Strike','Marking a task done by holding (or tapping) its button.'],
+  ['Clean strike / A real try','Done in full, or part done (half embers).'],
+  ['Light / Heavy / Boss-tier','Task weight: 1, 3 or 6 embers; 0.3, 0.6 or 1.2 s hold; 1, 2 or 3 health if a promise is missed.'],
+  ['Embers','Points earned by striking. Carried during the day, banked when you rest. They set your level.'],
+  ['Health','Ten pips. Lost to missed promises and failed tries; restored by resting.'],
+  ['Flasks','Up to three. Cover a missed day or pay for moving a promise again.'],
+  ['Promise','A deadline you set on a task: in 1 hour, in 3 hours or tonight.'],
+  ['Attempt','Each fall starts a new attempt at the same boss.'],
+  ['The Day','Built-in boss for quick tasks. Always active.'],
+  ['Waiting','A boss you left for now. It keeps its progress.'],
+  ['Relic','What a defeated boss becomes, kept in the Hall of relics.'],
+  ['Day starts at','When the app\'s day rolls over (4:00 AM by default).'],
+]},
+];
+const ISSUES = [
+ ['block','Fallen screen: when the keyboard opens for the lesson, the layout overflows by 133 px, Rise is hidden and tapping outside does not close the keyboard. You cannot leave the screen.','125_fallen_lesson'],
+ ['bug','Glass alert buttons ("Delete", "Not yet", "Leave for now", "Defeated" from the ⋯ menu) show a yellow double underline.','131_delete_boss_confirm'],
+ ['bug','Home task count ignores the chip filter and counts tasks of left or defeated bosses ("1 of 1 struck" on an empty The Day).','058_home_chip_theday'],
+ ['bug','"Set waiting" on The Day closes the sheet and silently does nothing.','072_theday_set_waiting_result'],
+ ['bug','All bosses: The Day reads "All chapters done" though it has no chapters.','067_all_bosses_waiting'],
+ ['bug','The missed-day and health Fallen screens draw under the tab bar, which stays tappable.','154_fallen_missed_day'],
+ ['bug','Long-press boss sheet on Home opens under the floating tab bar.','076_panel_longpress'],
+ ['bug','Home flash line ("It is done.", "Promised.") sits flush against the left edge.','143_home_two_promises'],
+ ['bug','At large text sizes the flash line is cut off and overlaps "Today\'s tasks".','179_ax_medium_home'],
+ ['bug','Onboarding step 2: typing into the empty boss field keeps only the first letter; the field loses focus when Next enables.','002_onboard_step2_filled'],
+ ['bug','Tester report counts "Bonfire lessons: 0" after resting with a lesson written.','097_settings_copied'],
+ ['bug','Today\'s three counts tasks struck the day before (from a now-defeated boss) as done today.','150_today_three_done'],
+ ['note','Back from a new or edited boss discards changes without asking.','017_back_discards'],
+ ['note','Disabled Save (new boss) and empty "Add to today" look the same as enabled.','015_boss_new_empty'],
+ ['note','Time picker shows a teal AM/PM chip and near-black hour digits, outside the palette.','009_onboard_time_picker'],
+ ['note','Chapter dropdown, flask dialog and long-press boss sheet use stock Material styling instead of glass.','151_flask_choice'],
+ ['note','Quick tasks on The Day are saved as dailies, so a one-off errand returns every morning.','062_home_quick_task_added'],
+ ['note','Leave alert says "you keep 0 embers" while 13 are carried and not yet banked.','055_leave_alert'],
+ ['note','"Clean strike · Promise kept." appears when no promise was made.','040_strike_8'],
+ ['note','Article before boss names: "the Run a 10K", "The Run a 10K remains".','124_fallen'],
+ ['note','Using a flask, or a partial flask cover, gives no confirmation line.','163_partial_flask_result'],
+ ['note','Pinned panel for an empty boss shows "Boss health 0 / 12".','192_home_pinned_theday'],
+ ['note','Same number is "Embers" on Victory and "Effort" on the relic.','139_relic_screen'],
+ ['note','Tomorrow picker: the limit message pushes the list down under your finger.','084_tomorrow_limit'],
+ ['note','"+1 embers" (should be "+1 ember").','024_task_sheet_filled'],
+];
+
+const esc = s => s;
+const fig = ([id, cap]) => `<figure><button type="button" data-id="${id}" aria-label="Open screenshot: ${cap}"><img loading="lazy" src="img/${id}.jpg" alt="${cap}"></button><figcaption>${cap} <code>#${id.slice(0,3)}</code></figcaption></figure>`;
+let html = '', toc = '';
+for (const c of C) {
+  toc += `<a href="#${c.id}">${c.t}</a>`;
+  html += `<section class="ch" id="${c.id}"><h2>${c.t}</h2><div class="thread"><i></i></div>${c.intro ? `<p class="lead">${c.intro}</p>` : ''}`;
+  if (c.table) html += `<div class="tbl"><table><thead><tr><th>Word</th><th>Meaning</th></tr></thead><tbody>${c.table.map(([a,b]) => `<tr><td><b>${a}</b></td><td>${b}</td></tr>`).join('')}</tbody></table></div>`;
+  if (c.steps) html += `<div class="steps">${c.steps.map(s => `<div class="step${s.shots.length > 3 ? ' wide' : ''}"><div><h3>${s.h}</h3>${s.p ? `<p>${s.p}</p>` : ''}${s.list ? `<ul>${s.list.map(l => `<li>${l}</li>`).join('')}</ul>` : ''}</div><div class="shots">${s.shots.map(fig).join('')}</div></div>`).join('')}</div>`;
+  html += `</section>`;
+}
+toc += `<a href="#issues">Known issues</a>`;
+html += `<section class="ch" id="issues"><h2>Known issues found during the walk</h2><div class="thread"><i></i></div><p class="lead">Found on the simulator on 19 Oct 2026. The full list with steps is in <code>docs/ui-tour/findings.md</code> (54 items).</p><ol class="issues">${ISSUES.map(([s,t,id]) => `<li><span class="sev ${s}">${s === 'block' ? 'Blocker' : s === 'bug' ? 'Bug' : 'Polish'}</span>${t} <a href="#" data-id="${id}">screenshot</a></li>`).join('')}</ol></section>`;
+document.getElementById('chapters').innerHTML = html;
+document.getElementById('toc').innerHTML = toc;
+const lb = document.getElementById('lb'), lbc = document.getElementById('lbcap'), lbi = document.createElement('img'); lb.prepend(lbi);
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-id]'); if (!t) { if (e.target === lb) lb.close(); return; }
+  e.preventDefault(); lbi.src = `img/${t.dataset.id}.jpg`; lbi.alt = t.getAttribute('aria-label') || t.dataset.id; lbc.textContent = (t.querySelector('img')?.alt) || t.closest('li')?.textContent.replace('screenshot','').trim() || ''; lb.showModal();
+});
+lb.addEventListener('click', () => lb.close());
+</script>
