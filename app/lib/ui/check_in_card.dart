@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/check_in.dart';
 import '../core/theme.dart';
+import 'needle_frame.dart';
 
 /// "Has Hearthrise left you feeling worse?" (Stage 6 plan D6). Neutral
 /// choices and a way out; no score, nothing follows an answer.
@@ -24,12 +25,8 @@ class CheckInCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: kSurface,
-        border: Border.all(color: kAshDim),
-        borderRadius: BorderRadius.circular(Space.sm),
-      ),
+    return NeedleFrame(
+      tier: Cut.md,
       child: Padding(
         padding: const EdgeInsets.all(Space.md),
         child: Column(
@@ -48,7 +45,7 @@ class CheckInCard extends StatelessWidget {
                     onPressed: () => onAnswer(a),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(kMinTarget, kMinTarget),
-                      side: const BorderSide(color: kAshDim),
+                      side: BorderSide(color: context.palette.dim),
                     ),
                     child: Text(_labels[a]!, style: text.bodyMedium),
                   ),
@@ -61,9 +58,9 @@ class CheckInCard extends StatelessWidget {
                 style: TextButton.styleFrom(
                   minimumSize: const Size(kMinTarget, kMinTarget),
                 ),
-                child: const Text(
+                child: Text(
                   'Not now',
-                  style: TextStyle(color: kTextMuted),
+                  style: TextStyle(color: context.palette.ash),
                 ),
               ),
             ),

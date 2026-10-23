@@ -18,16 +18,27 @@ class PharloomBackdrop extends StatelessWidget {
   Widget build(BuildContext context) => Stack(
     fit: StackFit.expand,
     children: [
-      ExcludeSemantics(child: CustomPaint(painter: _NightPainter(drift))),
+      ExcludeSemantics(
+        child: CustomPaint(
+          painter: _NightPainter(
+            drift,
+            context.palette,
+            // Ink, not black, and lighter on the light biomes, so they stay clean.
+            Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.18,
+          ),
+        ),
+      ),
       child,
     ],
   );
 }
 
 class _NightPainter extends CustomPainter {
-  const _NightPainter(this.drift);
+  const _NightPainter(this.drift, this.palette, this.vignette);
 
   final double drift;
+  final HearthPalette palette;
+  final double vignette;
 
   static const _motes = 14;
 
@@ -35,14 +46,18 @@ class _NightPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final box = Offset.zero & size;
     canvas
-      ..drawRect(box, Paint()..color = kBackground)
+      ..drawRect(box, Paint()..color = palette.void_)
       ..drawRect(
         box,
         Paint()
           ..shader = RadialGradient(
             center: const Alignment(0, -1.15),
             radius: 1.1,
-            colors: [kMote.withValues(alpha: 0.12), kPharloom, kBackground],
+            colors: [
+              palette.mote.withValues(alpha: 0.12),
+              palette.ground,
+              palette.void_,
+            ],
             stops: const [0, 0.4, 0.8],
           ).createShader(box),
       )
@@ -52,8 +67,8 @@ class _NightPainter extends CustomPainter {
           ..shader = RadialGradient(
             radius: 0.95,
             colors: [
-              const Color(0x00000000),
-              const Color(0xFF000000).withValues(alpha: 0.6),
+              Colors.transparent,
+              palette.ink.withValues(alpha: vignette),
             ],
             stops: const [0.55, 1],
           ).createShader(box),
@@ -72,11 +87,20 @@ class _NightPainter extends CustomPainter {
       );
       final alpha = sin(rise * pi) * 0.6; // fades in low, out high
       canvas
-        ..drawCircle(at, 3, glow..color = kMote.withValues(alpha: alpha * 0.5))
-        ..drawCircle(at, 1.4, Paint()..color = kMote.withValues(alpha: alpha));
+        ..drawCircle(
+          at,
+          3,
+          glow..color = palette.mote.withValues(alpha: alpha * 0.5),
+        )
+        ..drawCircle(
+          at,
+          1.4,
+          Paint()..color = palette.mote.withValues(alpha: alpha),
+        );
     }
   }
 
   @override
-  bool shouldRepaint(_NightPainter old) => old.drift != drift;
+  bool shouldRepaint(_NightPainter old) =>
+      old.drift != drift || old.palette != palette || old.vignette != vignette;
 }

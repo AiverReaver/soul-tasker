@@ -28,8 +28,8 @@ class FlaskPips extends StatelessWidget {
                 height: _size,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: i < count ? kAsh : null,
-                  border: Border.all(color: kAshDim),
+                  color: i < count ? context.palette.text : null,
+                  border: Border.all(color: context.palette.dim),
                 ),
               ),
             ),

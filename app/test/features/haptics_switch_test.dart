@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:hearthrise/ui/setting_switch_row.dart';
 
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
 import 'pump.dart';
+import '../support/hold_finders.dart';
 
 Future<String> _seedBossTier(Harness h) => h.bosses.saveBoss(
   const BossDraft(
@@ -30,10 +31,10 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h);
 
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
-    final tile = find.widgetWithText(SwitchListTile, 'Haptics');
-    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+    final tile = find.widgetWithText(SettingSwitchRow, 'Haptics');
+    expect(tester.widget<SettingSwitchRow>(tile).value, isTrue);
 
     await tester.tap(tile);
     await settle(tester);
@@ -41,7 +42,7 @@ void main() {
     // getSingle, not watch().first: a stream never emits under fake async.
     final stored = await h.db.select(h.db.userSettings).getSingle();
     expect(stored.haptics, isFalse);
-    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+    expect(tester.widget<SettingSwitchRow>(tile).value, isFalse);
     await tearDownApp(tester, h);
   });
 
@@ -54,7 +55,7 @@ void main() {
     await h.settings.setTapMode(true);
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    await tester.tap(find.text('Read chapter 4'));
+    await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
 
     expect(sent, ['HapticFeedbackType.heavyImpact']);
@@ -69,9 +70,9 @@ void main() {
     await h.settings.setHaptics(false);
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    await tester.tap(find.text('Read chapter 4'));
+    await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
 
     expect(sent, isEmpty);
@@ -88,7 +89,7 @@ void main() {
     await pumpApp(tester, h, location: '/boss/$bossId');
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.text('Summit push')),
+      tester.getCenter(holdButton('Summit push')),
     );
     await tester.pump();
     await tester.pump(Weight.bossTier.holdDuration * 0.5);
@@ -102,7 +103,7 @@ void main() {
     await tester.pump(Weight.bossTier.holdDuration);
     await gesture.up();
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
 
     expect(sent, hasLength(sentBeforeFlip));

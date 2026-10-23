@@ -4,6 +4,10 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/commitment_dao.dart';
 import 'package:hearthrise/data/ember_dao.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/glass_circle_button.dart';
+import 'package:hearthrise/ui/profile_level.dart';
+import 'package:hearthrise/ui/stroke_icon.dart';
+import 'package:hearthrise/ui/thread_divider.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
@@ -35,9 +39,10 @@ void main() {
   testWidgets('the Home app bar opens the profile', (tester) async {
     final h = Harness();
     await pumpApp(tester, h);
-    await tester.tap(find.byTooltip('Profile'));
+    await tester.tap(find.bySemanticsLabel('Your profile'));
     await settle(tester);
     expect(find.text('PROFILE'), findsOneWidget);
+    expect(find.byType(GlassCircleButton), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -56,6 +61,19 @@ void main() {
     await EmberDao(h.db, h.clock.call).bank();
     await pumpApp(tester, h, location: '/profile');
 
+    expect(find.byType(ProfileLevel), findsOneWidget);
+    expect(find.byType(ThreadDivider), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Hall of relics')).style?.fontFamily,
+      'CormorantGaramond',
+    );
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is StrokeIcon && w.path == StrokeIcons.flame,
+      ),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Health 10 of 10'), findsOneWidget);
     expect(find.text('Level 1'), findsOneWidget);
     expect(find.text('7 embers to the next'), findsOneWidget);
     expect(find.text('3 embers banked'), findsOneWidget);
@@ -69,7 +87,7 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, location: '/profile');
     expect(
-      find.text('No foes vanquished yet. The first relic awaits.'),
+      find.text('No bosses vanquished yet. The first relic awaits.'),
       findsOneWidget,
     );
     await tearDownApp(tester, h);
@@ -81,9 +99,10 @@ void main() {
     await _relic(h, 'Newer');
     await pumpApp(tester, h, location: '/profile');
 
+    expect(find.text('Relic of Newer'), findsNothing);
     expect(
-      tester.getTopLeft(find.text('Relic of Newer')).dy,
-      lessThan(tester.getTopLeft(find.text('Relic of Older')).dy),
+      tester.getTopLeft(find.text('Newer')).dy,
+      lessThan(tester.getTopLeft(find.text('Older')).dy),
     );
     await tearDownApp(tester, h);
   });
@@ -95,14 +114,21 @@ void main() {
     await _relic(h, 'The Certification', falls: 2);
     await pumpApp(tester, h, location: '/profile');
 
-    await tester.tap(find.text('Relic of The Certification'));
+    await tester.tap(find.text('The Certification'));
     await settle(tester);
 
-    expect(find.text('3 attempts'), findsOneWidget);
+    expect(find.text('Attempts'), findsOneWidget);
     expect(find.text('3 attempts. Every one of them counted.'), findsOneWidget);
-    expect(find.textContaining('Attempt 1. Lesson 1.'), findsOneWidget);
-    expect(find.textContaining('Attempt 2. Lesson 2.'), findsOneWidget);
-    expect(find.text('Relic of The Certification'), findsOneWidget);
+    expect(find.text('Lesson 1.'), findsOneWidget);
+    expect(find.text('Lesson 2.'), findsOneWidget);
+    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('Relic of The Certification'), findsNothing);
+    expect(find.byType(GlassCircleButton), findsOneWidget); // back
+    expect(find.text('What the falls taught you'), findsOneWidget);
+    expect(find.text('0 / 120'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Patience.');
+    await tester.pump();
+    expect(find.text('9 / 120'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -141,9 +167,9 @@ void main() {
     await h.bosses.deleteBoss((await h.bosses.loadAll()).single.boss.id);
     await pumpApp(tester, h, location: '/relic/$id');
 
-    expect(find.text('Relic of The Certification'), findsOneWidget);
+    expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('2 attempts. Every one of them counted.'), findsOneWidget);
-    expect(find.textContaining('Attempt 1. Lesson 1.'), findsOneWidget);
+    expect(find.text('Lesson 1.'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }

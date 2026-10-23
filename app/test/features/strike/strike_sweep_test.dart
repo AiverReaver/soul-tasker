@@ -8,6 +8,7 @@ import 'package:hearthrise/ui/dust_vanish.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../support/recording_haptics.dart';
+import '../../support/hold_finders.dart';
 
 const _frame = Duration(milliseconds: 16);
 
@@ -50,7 +51,7 @@ Future<void> _holdFor(WidgetTester tester, Duration duration) async {
 /// Holds the row until the strike has just landed.
 Future<void> _strikeByHold(WidgetTester tester, Weight weight) async {
   final gesture = await tester.startGesture(
-    tester.getCenter(find.text('The task')),
+    tester.getCenter(holdButton('The task')),
   );
   await tester.pump();
   await _holdFor(tester, weight.holdDuration + _frame * 2);
@@ -86,7 +87,7 @@ void main() {
     await _strikeByHold(tester, Weight.heavy);
     expect(shake(), Offset.zero, reason: 'the cut is drawn before the shake');
 
-    await tester.pump(sweepDuration(Weight.heavy) * 0.42);
+    await tester.pump(const Duration(milliseconds: 200));
     expect(shake(), isNot(Offset.zero));
 
     await tester.pump(sweepDuration(Weight.heavy));
@@ -111,7 +112,7 @@ void main() {
   testWidgets('tap mode sweeps too', (tester) async {
     await tester.pumpWidget(_host(Weight.heavy, tapMode: true));
 
-    await tester.tap(find.text('The task'));
+    await tester.tap(holdButton('The task'));
     await tester.pump(_frame);
     expect(sweep, findsOneWidget);
 
@@ -127,97 +128,10 @@ void main() {
     expect(sweep, findsNothing);
   });
 
-  testWidgets('a struck row is dimmed to 0.35', (tester) async {
-    await tester.pumpWidget(_host(Weight.heavy, isDone: true));
-
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.byType(AnimatedOpacity),
-    );
-
-    expect(opacity.opacity, 0.35);
-  });
-
-  testWidgets('an open row is fully opaque', (tester) async {
-    await tester.pumpWidget(_host(Weight.heavy));
-
-    final opacity = tester.widget<AnimatedOpacity>(
-      find.byType(AnimatedOpacity),
-    );
-
-    expect(opacity.opacity, 1);
-  });
-
-  group('with a Tried choice', () {
-    testWidgets('a full hold asks Strike or Tried before striking', (
-      tester,
-    ) async {
-      var strikes = 0;
-      await tester.pumpWidget(
-        _host(Weight.light, onStrike: () => strikes++, onTried: () {}),
-      );
-      await _strikeByHold(tester, Weight.light);
-      await tester.pumpAndSettle();
-      expect(find.text('Strike'), findsOneWidget);
-      expect(find.text('Tried'), findsOneWidget);
-      expect(strikes, 0);
-    });
-
-    testWidgets('Strike lands the strike', (tester) async {
-      var strikes = 0;
-      await tester.pumpWidget(
-        _host(Weight.light, onStrike: () => strikes++, onTried: () {}),
-      );
-      await _strikeByHold(tester, Weight.light);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Strike'));
-      await tester.pump(_frame);
-      expect(strikes, 1);
-      expect(find.byKey(kStrikeSweepKey), findsOneWidget);
-    });
-
-    testWidgets('Tried calls onTried and never strikes', (tester) async {
-      var strikes = 0, tried = 0;
-      await tester.pumpWidget(
-        _host(Weight.light, onStrike: () => strikes++, onTried: () => tried++),
-      );
-      await _strikeByHold(tester, Weight.light);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Tried'));
-      await tester.pumpAndSettle();
-      expect(tried, 1);
-      expect(strikes, 0);
-    });
-
-    testWidgets('dismissing the choice does nothing', (tester) async {
-      var strikes = 0, tried = 0;
-      await tester.pumpWidget(
-        _host(Weight.light, onStrike: () => strikes++, onTried: () => tried++),
-      );
-      await _strikeByHold(tester, Weight.light);
-      await tester.pumpAndSettle();
-      await tester.tapAt(const Offset(2, 2));
-      await tester.pumpAndSettle();
-      expect(find.text('Strike'), findsNothing);
-      expect(strikes + tried, 0);
-    });
-
-    testWidgets('tap mode asks too', (tester) async {
-      await tester.pumpWidget(
-        _host(Weight.light, tapMode: true, onTried: () {}),
-      );
-      await tester.tap(find.text('The task'));
-      await tester.pumpAndSettle();
-      expect(find.text('Tried'), findsOneWidget);
-    });
-
-    testWidgets('a struck task bursts into dust', (tester) async {
-      await tester.pumpWidget(_host(Weight.light, onTried: () {}));
-      await _strikeByHold(tester, Weight.light);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Strike'));
-      await tester.pump(); // the first frame sets the animation start
-      await tester.pump(_frame * 3);
-      expect(find.byKey(kDustPainterKey), findsOneWidget);
-    });
+  testWidgets('a struck task bursts into dust', (tester) async {
+    await tester.pumpWidget(_host(Weight.light, onTried: () {}));
+    await _strikeByHold(tester, Weight.light);
+    await tester.pump(_frame * 3);
+    expect(find.byKey(kDustPainterKey), findsOneWidget);
   });
 }

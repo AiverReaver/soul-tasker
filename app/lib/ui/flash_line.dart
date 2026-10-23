@@ -13,7 +13,7 @@ class FlashLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.titleMedium
-        ?.copyWith(color: kEmber);
+        ?.copyWith(color: context.palette.silk);
     return SizedBox(
       height: _height,
       child: AnimatedSwitcher(

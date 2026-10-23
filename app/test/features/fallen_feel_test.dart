@@ -2,17 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/haptics.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/features/fallen/fallen_screen.dart';
+import 'package:hearthrise/ui/ember_button.dart';
+import 'package:hearthrise/ui/snapping_thread.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
 import '../support/recording_haptics.dart';
+import '../support/boss_actions.dart';
 import 'pump.dart';
 
 const _heavy = 'HapticFeedbackType.heavyImpact';
 
 Future<void> _declareFall(WidgetTester tester) async {
-  await tester.scrollUntilVisible(find.text('This attempt failed'), 200);
-  await tester.tap(find.text('This attempt failed'));
+  await tapBossAction(tester, 'This attempt failed', settleAfter: false);
 }
 
 /// Lowest opacity among the fade transitions around the fallen text.
@@ -61,7 +63,18 @@ void main() {
     await settle(tester);
 
     expect(find.text('Fallen.'), findsOneWidget);
-    expect(find.text('Rest, then rise.'), findsOneWidget);
+    final title = tester.widget<Text>(find.text('Fallen.'));
+    expect(title.style?.fontSize, 60);
+    expect(title.style?.letterSpacing, greaterThan(2));
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold).last).backgroundColor,
+      Biome.pharloom.palette.voidfall,
+    );
+    expect(find.widgetWithText(EmberButton, 'Rise'), findsOneWidget);
+    expect(
+      find.text('Attempt 1 ends. The Certification remains, and so do you.'),
+      findsOneWidget,
+    );
     expect(find.text('What did this teach you?'), findsOneWidget);
     expect(sent, [_heavy]);
     await tearDownApp(tester, h);
@@ -87,7 +100,7 @@ void main() {
   testWidgets('Skip pops null', (tester) async {
     final popped = await _openFromButton(tester);
 
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first. Write it tomorrow.'));
     await tester.pumpAndSettle();
 
     expect(popped, [null]);
@@ -164,7 +177,7 @@ void main() {
     await open(null);
     expect(find.textContaining('promised'), findsNothing);
     expect(find.textContaining('This week'), findsNothing);
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first. Write it tomorrow.'));
     await tester.pumpAndSettle();
 
     await open(
@@ -182,5 +195,51 @@ void main() {
       find.text('Your first week: nothing is lost but health.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('with a story: the attempt line, health, embers and helper', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => FallenScreen.show(
+                context,
+                Haptics(() => false),
+                story: const FallenStory(
+                  attempt: 3,
+                  bossTitle: 'The Certification',
+                  health: 4,
+                  maxHealth: 10,
+                  embers: 1240,
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Attempt 3 ends. The Certification remains, and so do you.'),
+      findsOneWidget,
+    );
+    expect(find.text('Rest, then rise.'), findsNothing);
+    expect(find.text('2 / 5'), findsOneWidget);
+    expect(find.text('1,240'), findsOneWidget);
+    expect(find.text('Embers kept'), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Fallen.')).style?.letterSpacing, 8);
+    expect(tester.widget<TextField>(find.byType(TextField)).minLines, 3);
+    expect(
+      find.text('You will see it at the start of attempt 4.'),
+      findsOneWidget,
+    );
+    expect(find.byType(SnappingThread), findsOneWidget);
   });
 }

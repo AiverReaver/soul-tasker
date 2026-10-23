@@ -82,6 +82,22 @@ void main() {
     await _pump(tester, EmberButton(label: 'Rest', onPressed: () => pressed++));
     await tester.tap(find.text('Rest'));
     expect(pressed, 1);
+    // Solid silk with onSilk text, at least 52 px tall (THEME_PLAN step 7).
+    final p = Biome.pharloom.palette;
+    expect(tester.widget<Text>(find.text('Rest')).style?.color, p.onSilk);
+    expect(
+      tester.getSize(find.byType(EmberButton)).height,
+      greaterThanOrEqualTo(52),
+    );
+    final fill = tester.widget<ColoredBox>(
+      find
+          .descendant(
+            of: find.byType(EmberButton),
+            matching: find.byType(ColoredBox),
+          )
+          .first,
+    );
+    expect(fill.color, p.silk);
   });
 
   testWidgets('PlanBanner can carry another title', (tester) async {

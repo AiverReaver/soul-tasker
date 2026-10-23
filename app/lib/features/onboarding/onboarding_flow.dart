@@ -61,6 +61,16 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     );
   }
 
+  /// Skip leaves the setup for the last page, where a boss is still optional.
+  void _skipToEnd() {
+    _release();
+    _pages.animateToPage(
+      4,
+      duration: motionOf(context, Motion.fade),
+      curve: Motion.ease,
+    );
+  }
+
   Future<void> _finish({required bool save}) async {
     if (_isBusy) return;
     setState(() => _isBusy = true);
@@ -121,18 +131,20 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    var step = 0;
     Widget page({
       required String line,
       required Widget body,
       bool isLast = false,
       bool canAdvance = true,
     }) => OnboardingPage(
+      step: ++step,
       line: line,
       body: body,
       isLast: isLast,
       canAdvance: canAdvance,
       onNext: isLast ? () => _finish(save: true) : _next,
-      onSkip: () => _finish(save: false),
+      onSkip: isLast ? () => _finish(save: false) : _skipToEnd,
     );
 
     return Scaffold(
@@ -172,13 +184,14 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             ),
           ),
           page(
-            line: 'Break it into phases.',
+            line: 'Break it into chapters.',
             body: NameListEditor(
               items: _phases,
               keyPrefix: 'phase',
-              hint: 'Phase name',
-              removeLabel: 'Remove phase',
-              addLabel: 'Add a phase',
+              help: 'Big goals fall in stages. Two or three is plenty.',
+              hint: 'Chapter name',
+              removeLabel: 'Remove chapter',
+              addLabel: 'Add a chapter',
               max: _maxPhases,
               onChanged: (id, t) => _phases = _edit(_phases, id, t),
               onRemove: (id) => setState(
@@ -200,9 +213,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             body: NameListEditor(
               items: _dailies,
               keyPrefix: 'daily',
-              hint: 'A small daily foe',
-              removeLabel: 'Remove daily foe',
-              addLabel: 'Add a daily foe',
+              help: 'Small tasks that come back each morning.',
+              hint: 'A small daily task',
+              removeLabel: 'Remove daily task',
+              addLabel: 'Add a daily task',
               max: _maxDailies,
               onChanged: (id, t) => _dailies = _edit(_dailies, id, t),
               onRemove: (id) => setState(

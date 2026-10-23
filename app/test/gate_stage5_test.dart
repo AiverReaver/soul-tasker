@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/day_dao.dart';
 import 'package:hearthrise/data/enums.dart';
@@ -9,6 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import 'data/harness.dart';
 import 'features/pump.dart';
 import 'support/fake_reminders.dart';
+import 'support/hold_finders.dart';
 
 // The Stage 5 gate, scripted (STAGE5_PLAN.md step 11): a new install goes
 // through onboarding to a saved boss, falls twice with lessons, drains the
@@ -42,20 +44,20 @@ void main() {
       (w) => w is TextFormField && w.key.toString().contains('daily-'),
     );
     await tester.enterText(dailies, 'Walk');
-    await tester.tap(find.text('Add a daily foe'));
+    await tester.tap(find.text('Add a daily task'));
     await settle(tester);
     await tester.enterText(dailies.last, 'Flashcards');
     await tester.tap(find.text('Next'));
     await settle(tester);
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(GlassSwitch));
     await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Walk · daily'), findsOneWidget);
-    expect(find.text('Flashcards · daily'), findsOneWidget);
+    expect(find.text('Walk'), findsOneWidget);
+    expect(find.text('Flashcards'), findsOneWidget);
     expect(reminders.calls, contains('schedule:1260'));
     // Leave the app view; keep the database for the rest of the script.
     await tester.pumpWidget(const SizedBox());
@@ -68,7 +70,7 @@ void main() {
       draft.copyWith(
         phases: [
           for (final (i, p) in draft.phases.indexed)
-            p.copyWith(tasks: [TaskDraft(title: 'Phase task ${i + 1}')]),
+            p.copyWith(tasks: [TaskDraft(title: 'Chapter task ${i + 1}')]),
         ],
       ),
     );
@@ -102,14 +104,15 @@ void main() {
       location: '/boss/$bossId',
       onboarded: null,
       reminders: reminders,
+      tall: true,
     );
-    await tester.tap(find.text('Phase task 1'));
+    await tester.tap(holdButton('Chapter task 1'));
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
-    await tester.tap(find.text('Phase task 2'));
+    await tester.tap(holdButton('Chapter task 2'));
     await settle(tester);
-    await tester.tap(find.text('Strike'));
+    await tester.tap(find.text('Clean strike'));
     await settle(tester);
     await tester.tap(find.text('Defeated'));
     await settle(tester);
@@ -118,19 +121,23 @@ void main() {
         .where((e) => e.kind == EmberKind.earn && e.bossId == bossId)
         .fold<int>(0, (sum, e) => sum + e.amount);
     expect(earned, 7); // Walk 1 + two Heavy strikes of 3
-    expect(find.text('Foe vanquished.'), findsOneWidget);
-    expect(find.text('3 attempts'), findsOneWidget);
-    expect(find.text('3 days'), findsOneWidget);
-    expect(find.text('$earned embers of effort'), findsOneWidget);
-    final first = find.textContaining('Attempt 1. Started too late.');
-    final second = find.textContaining('Attempt 2. Skipped the warm-up.');
+    expect(find.textContaining(' falls.'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('victory-attempts'))).data,
+      '3',
+    );
+    expect(find.text('attempts'), findsOneWidget);
+    expect(find.text('Days'), findsOneWidget);
+    expect(find.text('$earned'), findsOneWidget);
+    final first = find.text('Started too late.');
+    final second = find.text('Skipped the warm-up.');
     expect(first, findsOneWidget);
     expect(tester.getTopLeft(first).dy, lessThan(tester.getTopLeft(second).dy));
     expect(find.bySemanticsLabel('A worn emblem'), findsOneWidget);
     await tester.ensureVisible(find.byType(TextField));
     await tester.enterText(find.byType(TextField), 'Patience.');
-    await tester.ensureVisible(find.text('Done'));
-    await tester.tap(find.text('Done'));
+    await tester.ensureVisible(find.text('Return to the hearth'));
+    await tester.tap(find.text('Return to the hearth'));
     await settle(tester);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 10));
@@ -175,10 +182,10 @@ void main() {
       onboarded: null,
       reminders: reminders,
     );
-    expect(find.text('Relic of The Certification'), findsOneWidget);
-    await tester.tap(find.text('Relic of The Certification'));
+    expect(find.text('The Certification'), findsOneWidget);
+    await tester.tap(find.text('The Certification'));
     await settle(tester);
-    expect(find.textContaining('Attempt 1. Started too late.'), findsOneWidget);
+    expect(find.text('Started too late.'), findsOneWidget);
     expect(find.text('3 attempts. Every one of them counted.'), findsOneWidget);
     await tester.ensureVisible(find.byType(TextField));
     await tester.enterText(find.byType(TextField), 'Patience, earned.');

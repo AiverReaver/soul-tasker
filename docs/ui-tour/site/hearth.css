@@ -1,0 +1,222 @@
+/* Hearthrise UI in CSS: tokens and components measured from app/lib (1 CSS px = 1 Flutter logical px). */
+@font-face { font-family: "Cormorant Garamond"; src: url("fonts/CormorantGaramond.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
+@font-face { font-family: "Hanken Grotesk"; src: url("fonts/HankenGrotesk.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+
+/* ---- Biome tokens (core/palette.dart). Scope: any element with data-biome. ---- */
+[data-biome], .hr {
+  --void: #09060C; --ground: #140B1C; --ground2: #0D0811; --voidfall: #060408;
+  --shell: #130E17; --raised: #221828; --raised2: #1C1420; --seam: #3A2F3E;
+  --struckBg: #0F0B12; --struckEdge: #241C28; --deep: #7A2638;
+  --silk: #E8566D; --silkHi: #EF6E83; --onSilk: #09060C;
+  --bone: #F4EBDD; --text: #E6DDCB; --ash: #A79BA6; --shard: #E9DFCB; --dim: #5F5463;
+  --ink: #050307; --mote: #B7A8D6; --mask: #F4EBDD;
+  --glassFill: rgba(255,255,255,.08); --glassFillHi: rgba(255,255,255,.16);
+  --glassLight: rgba(255,248,236,.85); --glassKey: #050307; --vignette: .6;
+  --silk55: color-mix(in srgb, var(--silk) 55%, transparent);
+}
+[data-biome="docks"] {
+  --void: #0B0806; --ground: #1F120A; --ground2: #120B07; --voidfall: #070504;
+  --shell: #16100C; --raised: #2B1B10; --raised2: #21150E; --seam: #403126;
+  --struckBg: #110C09; --struckEdge: #2A2019; --deep: #8C3B12;
+  --silk: #FF7A2E; --silkHi: #FF9550; --onSilk: #160A03;
+  --bone: #FBE9D4; --text: #EDDCC6; --ash: #B3A291; --shard: #F4BB84; --dim: #6D5C4D;
+  --ink: #050302; --mote: #FFAE63; --mask: #EAD9C4; --glassKey: #050302;
+}
+[data-biome="choral"] {
+  --void: #EFE6D1; --ground: #FBF3E0; --ground2: #F4EAD3; --voidfall: #E8DCC2;
+  --shell: #FFFAF0; --raised: #F5E6C2; --raised2: #FBF1DA; --seam: #D6C49C;
+  --struckBg: #F1E8D3; --struckEdge: #E3D6B7; --deep: #B8913F;
+  --silk: #94640F; --silkHi: #A87414; --onSilk: #FFFAF0;
+  --bone: #2A1E0F; --text: #3B2D1B; --ash: #6B5A41; --shard: #B8872D; --dim: #B7A37F;
+  --ink: #2A1E0F; --mote: #C49030; --mask: #FFFAF0;
+  --glassFill: rgba(255,250,240,.6); --glassFillHi: rgba(255,250,240,.9);
+  --glassLight: rgba(255,255,255,.95); --glassKey: #2A1E0F; --vignette: .18; --haze: 24%;
+}
+[data-biome="moss"] {
+  --void: #E7EEDC; --ground: #F2F6E8; --ground2: #E9EFDD; --voidfall: #DFE7D0;
+  --shell: #FBFDF5; --raised: #E4EECF; --raised2: #F1F6E6; --seam: #C3D2A8;
+  --struckBg: #EEF2E4; --struckEdge: #D9E2C8; --deep: #7FA05A;
+  --silk: #3D6B2C; --silkHi: #4A7D36; --onSilk: #FBFDF5;
+  --bone: #1C2A1A; --text: #2A3A27; --ash: #5A6B52; --shard: #7C9C4A; --dim: #A9B894;
+  --ink: #1C2A1A; --mote: #8DB255; --mask: #FBFDF5;
+  --glassFill: rgba(251,253,245,.6); --glassFillHi: rgba(251,253,245,.9);
+  --glassLight: rgba(255,255,255,.95); --glassKey: #1C2A1A; --vignette: .18; --haze: 30%;
+}
+[data-biome="greymoor"] {
+  --void: #0A0D11; --ground: #131B24; --ground2: #0D1218; --voidfall: #080A0D;
+  --shell: #111820; --raised: #1C2733; --raised2: #16202A; --seam: #2E3B48;
+  --struckBg: #0D1218; --struckEdge: #1D2630; --deep: #2F4A62;
+  --silk: #7FB2D9; --silkHi: #98C4E6; --onSilk: #08121C;
+  --bone: #E9EEF2; --text: #D5DDE3; --ash: #9AA7B2; --shard: #CFDBE4; --dim: #4F5D6A;
+  --ink: #04070A; --mote: #A9C3D6; --mask: #E3E9EE; --glassKey: #04070A;
+}
+
+/* ---- Phone frame: iPhone 16, 393 x 852 pt, top inset 59, bottom inset 34 ---- */
+.phone {
+  position: relative; width: 393px; height: 852px; overflow: hidden; flex: none;
+  background: var(--void); color: var(--text);
+  font: 400 15px/1.45 "Hanken Grotesk", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+}
+.phone *, .phone *::before, .phone *::after { box-sizing: border-box; }
+.phone > .backdrop { position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 215px 120px at 50% 0, color-mix(in srgb, var(--mote) var(--haze, 10%), transparent), transparent),
+    radial-gradient(circle 373px at 50% 50%, transparent 55%, color-mix(in srgb, var(--ink) calc(var(--vignette) * 100%), transparent) 100%),
+    radial-gradient(circle 432px at 50% -64px, color-mix(in srgb, var(--mote) 12%, transparent) 0%, var(--ground) 40%, var(--void) 80%);
+}
+.phone > .backdrop.fall { background: var(--voidfall); }
+.phone > .screen { position: absolute; inset: 0; padding-top: 59px; display: flex; flex-direction: column; }
+.statusbar { position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 50; pointer-events: none; color: var(--bone); }
+.statusbar .time { position: absolute; left: 0; width: 132px; top: 18px; text-align: center; font: 600 17px/22px -apple-system, "SF Pro Text", system-ui, sans-serif; letter-spacing: -.4px; }
+.statusbar .island { position: absolute; left: 134px; top: 11px; width: 125px; height: 37px; border-radius: 19px; background: #000; }
+.statusbar .icons { position: absolute; right: 32px; top: 21px; display: flex; gap: 6px; align-items: center; }
+.statusbar .icons svg { display: block; }
+.home-ind { position: absolute; left: 130px; bottom: 8px; width: 134px; height: 5px; border-radius: 3px; background: var(--bone); opacity: .4; z-index: 70; }
+.motes { position: absolute; inset: 0; pointer-events: none; }
+.motes i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--mote); box-shadow: 0 0 6px 2px color-mix(in srgb, var(--mote) 40%, transparent); }
+
+/* ---- Type (core/theme.dart) ---- */
+.t-display-m { font: 500 44px/1.1 "Cormorant Garamond", Georgia, serif; letter-spacing: 1px; color: var(--bone); }
+.t-display-s { font: 500 34px/1.15 "Cormorant Garamond", Georgia, serif; letter-spacing: 1px; color: var(--bone); }
+.t-headline  { font: 500 28px/1.15 "Cormorant Garamond", Georgia, serif; letter-spacing: 1px; color: var(--bone); }
+.t-title     { font: 500 22px/1.3 "Cormorant Garamond", Georgia, serif; color: var(--bone); }
+.t-body-l    { font: 400 16px/1.5 "Hanken Grotesk", sans-serif; color: var(--text); }
+.t-body-m    { font: 400 15px/1.45 "Hanken Grotesk", sans-serif; color: var(--text); }
+.t-body-s    { font: 400 14px/1.45 "Hanken Grotesk", sans-serif; color: var(--ash); }
+.t-label     { font: 600 12px/1.4 "Hanken Grotesk", sans-serif; letter-spacing: 1.6px; color: var(--ash); text-transform: uppercase; }
+.t-flash     { font: 500 22px/36px "Cormorant Garamond", Georgia, serif; color: var(--silk); height: 36px; white-space: nowrap; }
+.bone { color: var(--bone); } .ash { color: var(--ash); } .silk { color: var(--silk); } .dim { color: var(--dim); }
+.w600 { font-weight: 600; } .center { text-align: center; }
+
+/* ---- NeedleFrame (ui/needle_frame.dart): 1px edge round a clipped fill. Cut.lg 8, md 6, sm 4 ---- */
+.nf { border: 1px solid var(--seam); background: var(--shell); border-radius: 8px; }
+.nf.md { border-radius: 6px; } .nf.sm { border-radius: 4px; }
+.nf.hot { border-color: var(--silk); } .nf.deep { border-color: var(--deep); } .nf.ready { border-color: var(--bone); }
+.nf.raised { background: var(--raised); } .nf.raised2 { background: var(--raised2); }
+.nf.struck { background: var(--struckBg); border-color: var(--struckEdge); }
+
+/* ---- Glass (ui/glass_surface.dart) ---- */
+.glass { position: relative; isolation: isolate; background: var(--glassFill);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15); backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow: 0 8px 14px -2px rgba(0,0,0,.35); }
+.glass::before { /* key line 2px, inner ring 2px, bottom shade, sheen */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  box-shadow: inset 0 0 0 2px var(--glassKey), inset 0 0 0 4px rgba(255,255,255,.16),
+              inset 0 -5px 0 0 color-mix(in srgb, var(--glassKey) 28%, transparent);
+  background: linear-gradient(152deg, rgba(255,255,255,.14) 0 33%, transparent 33%);
+}
+.glass::after { /* rim light: 4px conic ring */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px; pointer-events: none; z-index: 3;
+  background: conic-gradient(from 230deg, var(--glassLight) 0 18%, transparent 18% 50%, rgba(255,255,255,.22) 50% 62%, transparent 62%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.glass > .glint { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; }
+.glass.tint { background: var(--silk55); }
+.glass.hi { background: var(--glassFillHi); }
+.glass.flat { background: var(--shell); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.g-circle { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--bone); }
+.g-pill { height: 44px; border-radius: 22px; padding: 0 18px; display: inline-flex; align-items: center; font: 600 15px/1 "Hanken Grotesk", sans-serif; color: var(--bone); }
+.g-pill > span, .g-circle > svg { position: relative; z-index: 5; }
+.tap48 { min-width: 48px; min-height: 48px; display: grid; place-items: center; }
+
+/* ---- Buttons & rows ---- */
+.ember { min-height: 52px; padding: 0 24px; border-radius: 6px; background: var(--silk); border: 1px solid var(--silk);
+  display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 15px/1 "Hanken Grotesk", sans-serif; color: var(--onSilk); }
+.ember.off { background: transparent; border-color: transparent; color: var(--dim); font-weight: 600; }
+.textbtn { min-height: 48px; display: inline-flex; align-items: center; padding: 0 8px; font: 600 15px/1 "Hanken Grotesk", sans-serif; color: var(--silk); }
+.textbtn.ash { color: var(--ash); font-weight: 500; }
+.action-row { height: 52px; border: 1px solid var(--seam); background: var(--shell); border-radius: 6px; display: grid; place-items: center; font: 600 16px/1 "Hanken Grotesk", sans-serif; color: var(--bone); }
+.choice-row { min-height: 48px; border: 1px solid var(--seam); background: var(--shell); border-radius: 6px; padding: 0 16px; display: flex; align-items: center; font: 400 15px/1.45 "Hanken Grotesk", sans-serif; color: var(--bone); }
+.choice-row.off { color: var(--dim); }
+.chev { font: 400 22px/1 "Hanken Grotesk", sans-serif; color: var(--ash); }
+
+/* ThreadDivider: 1px silk line, 6px diamond in the centre with 8px padding */
+.thread { position: relative; height: 8px; display: flex; align-items: center; gap: 8px; }
+.thread::before, .thread::after { content: ""; flex: 1; height: 1px; background: var(--silk); }
+.thread > i { width: 6px; height: 6px; background: var(--silk); transform: rotate(45deg); flex: none; }
+.pip { display: inline-block; width: 6px; height: 6px; background: var(--silk); transform: rotate(45deg); flex: none; }
+.pip.dim { background: var(--dim); } .pip.p8 { width: 8px; height: 8px; } .pip.p12 { width: 12px; height: 12px; } .pip.p5 { width: 5px; height: 5px; }
+
+/* GlassSwitch 52 x 32, diamond knob 14 at left 8 / 30 */
+.g-switch { width: 52px; height: 32px; border-radius: 16px; flex: none; }
+.g-switch > b { position: absolute; z-index: 6; top: 9px; left: 8px; width: 14px; height: 14px; transform: rotate(45deg); background: var(--ash); border: 1.5px solid var(--glassKey); }
+.g-switch.on { background: var(--silk55); } .g-switch.on > b { left: 30px; background: var(--bone); }
+
+/* HoldButton: glass circle 48, blur 0, key 1.5 */
+.hold { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.hold::before { box-shadow: inset 0 0 0 1.5px var(--glassKey), inset 0 0 0 3.5px rgba(255,255,255,.16), inset 0 -5px 0 0 color-mix(in srgb, var(--glassKey) 28%, transparent); }
+.hold.ready::before { box-shadow: inset 0 0 0 1.5px var(--bone), inset 0 0 0 3.5px rgba(255,255,255,.16); }
+.hold > .fill { position: absolute; left: 0; right: 0; bottom: 1px; background: color-mix(in srgb, var(--silk) 78%, transparent); z-index: 1; border-radius: 0 0 24px 24px; }
+
+/* Task row (ui/task_row_tile.dart): N(md) min 64, pad L16 R8 */
+.task { position: relative; min-height: 64px; border: 1px solid var(--seam); background: var(--shell); border-radius: 6px; padding: 8px 8px 8px 16px; display: flex; align-items: center; gap: 14px; }
+.task .pips { display: flex; flex-direction: column; gap: 4px; align-items: center; width: 8px; }
+.task .tt { flex: 1; min-width: 0; }
+.task .tt b { display: block; font: 500 16px/22px "Hanken Grotesk", sans-serif; color: var(--bone); }
+.task .tt small { display: block; font: 400 13px/18px "Hanken Grotesk", sans-serif; color: var(--ash); }
+.task.done { background: var(--struckBg); border-color: var(--struckEdge); }
+.task.done .tt b { color: var(--ash); text-decoration: line-through 1.5px var(--ink); }
+.task.charge { border-color: var(--silk); }
+.task .chk { width: 48px; height: 48px; display: grid; place-items: center; }
+.chip { margin: 0 8px; border: 1px solid var(--seam); background: var(--shell); border-radius: 4px; padding: 2px 8px; font: 400 14px/1.45 "Hanken Grotesk", sans-serif; color: var(--ash); white-space: nowrap; }
+.chip.soon { border-color: var(--silk); color: var(--silk); }
+
+/* ShardMeter: 12 skewed shards, gap 3, radius 2 */
+.shards { display: flex; gap: 3px; height: 10px; }
+.shards.h8 { height: 8px; }
+.shards > i { flex: 1; background: color-mix(in srgb, var(--dim) 35%, transparent); border-radius: 2px; transform: skewX(-22.8deg); }
+.shards > i.on { background: var(--shard); }
+/* PlayerHealthBar: pips 14 x 6, gap 4, 1px dim border */
+.health { display: flex; gap: 4px; }
+.health > i { width: 14px; height: 6px; border: 1px solid var(--dim); position: relative; overflow: hidden; }
+.health > i.on { background: var(--shard); border-color: var(--shard); }
+.health > i.half::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: var(--shard); }
+/* FlaskPips: 12px circles, gap 8 */
+.flasks { display: flex; gap: 8px; }
+.flasks > i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--dim); }
+.flasks > i.on { background: var(--text); }
+/* level bars 10 x 4 */
+.bars { display: flex; gap: 2px; } .bars > i { width: 10px; height: 4px; background: color-mix(in srgb, var(--dim) 35%, transparent); } .bars > i.on { background: var(--silk); }
+
+/* Segments (mood, strength, reset, filter chips) */
+.segs { display: flex; gap: 8px; }
+.seg { flex: 1; min-height: 48px; border: 1px solid var(--seam); background: var(--shell); border-radius: 6px; display: grid; place-items: center; text-align: center; padding: 4px; font: 600 15px/1.3 "Hanken Grotesk", sans-serif; color: var(--ash); }
+.seg.on { border-color: var(--silk); color: var(--bone); }
+.seg.raised.on { background: var(--raised); }
+.fchip { min-height: 48px; border: 1px solid var(--seam); background: var(--shell); border-radius: 6px; padding: 0 16px; display: inline-flex; align-items: center; font: 400 15px/1 "Hanken Grotesk", sans-serif; color: var(--ash); white-space: nowrap; }
+.fchip.on { border-color: var(--silk); background: var(--raised); color: var(--bone); }
+
+/* Fields */
+.field { border: 1px solid var(--seam); background: var(--shell); border-radius: 6px; padding: 14px 16px; font: 400 16px/1.5 "Hanken Grotesk", sans-serif; color: var(--text); }
+.field.ph { color: var(--ash); }
+.uline { border-bottom: 1px solid var(--dim); padding: 8px 0; font: 400 16px/1.5 "Hanken Grotesk", sans-serif; color: var(--ash); }
+
+/* GlassTabBar: stadium 62, margin 21 / bottom 19 + 34 inset */
+.tabbar { position: absolute; left: 21px; right: 21px; bottom: 53px; height: 62px; border-radius: 31px; padding: 4px; display: flex; gap: 2px; z-index: 40; }
+.tabbar > .tab { position: relative; z-index: 5; flex: 1; border-radius: 27px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--ash); font: 600 11px/13px "Hanken Grotesk", sans-serif; }
+.tabbar > .tab.on { background: var(--glassFillHi); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.16); color: var(--bone); }
+
+/* GlassSheet: outer pad 8, radius 44, blur 28, shell@58% on top; GlassAlert radius 34, blur 24, shell@62% */
+.scrim { position: absolute; inset: 0; background: color-mix(in srgb, var(--ink) 62%, transparent); z-index: 60; }
+.sheet { position: absolute; left: 8px; right: 8px; bottom: 8px; border-radius: 44px; z-index: 61; -webkit-backdrop-filter: blur(28px) saturate(1.7); backdrop-filter: blur(28px) saturate(1.7);
+  background: linear-gradient(color-mix(in srgb, var(--shell) 58%, transparent), color-mix(in srgb, var(--shell) 58%, transparent)), var(--glassFill); }
+.sheet > .in { position: relative; z-index: 5; padding: 26px 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+.grabber { align-self: center; width: 40px; height: 6px; border-radius: 2px; background: rgba(255,255,255,.45); border: 1px solid var(--glassKey); transform: skewX(-22.8deg); margin: -8px 0 -6px; }
+.sheet-head { display: flex; align-items: center; gap: 12px; }
+.sheet-head > div { flex: 1; min-width: 0; }
+.sheet-head .t-title { font-size: 26px; line-height: 30px; }
+.alert { position: absolute; left: 50%; transform: translate(-50%, -50%); top: 50%; width: 334px; border-radius: 34px; z-index: 61; overflow: hidden;
+  -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7);
+  background: linear-gradient(color-mix(in srgb, var(--shell) 62%, transparent), color-mix(in srgb, var(--shell) 62%, transparent)), var(--glassFill); }
+.alert > .in { position: relative; z-index: 5; padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+.alert .t-title { font-size: 30px; line-height: 34px; }
+.alert .acts > div { position: relative; z-index: 5; min-height: 52px; display: grid; place-items: center; border-top: 1.5px solid var(--glassKey); font: 600 17px/1 "Hanken Grotesk", sans-serif; color: var(--bone); }
+.alert .acts > div.def { background: color-mix(in srgb, var(--silk) 28%, transparent); }
+
+/* Boss art, emblem and icons are inline SVG built by hearth.js */
+.icon { display: block; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; stroke-linejoin: round; }
+.col { display: flex; flex-direction: column; } .row { display: flex; align-items: center; }
+.gap4 { gap: 4px; } .gap8 { gap: 8px; } .gap12 { gap: 12px; } .gap16 { gap: 16px; } .gap24 { gap: 24px; }
+.px20 { padding-left: 20px; padding-right: 20px; } .grow { flex: 1; min-width: 0; }

@@ -13,7 +13,7 @@ Future<void> showBossVanish(BuildContext context, String name) async {
   await showGeneralDialog<void>(
     context: context,
     barrierDismissible: false,
-    barrierColor: kBackground.withValues(alpha: 0.92),
+    barrierColor: context.palette.void_.withValues(alpha: 0.92),
     transitionDuration: Motion.quick,
     pageBuilder: (_, _, _) => _BossVanish(name: name),
   );
@@ -61,9 +61,12 @@ class _BossVanishState extends State<_BossVanish>
               widget.name,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                color: kDust,
+                color: context.palette.bone,
                 shadows: [
-                  Shadow(color: kDust.withValues(alpha: 0.6), blurRadius: 24),
+                  Shadow(
+                    color: context.palette.bone.withValues(alpha: 0.6),
+                    blurRadius: 24,
+                  ),
                 ],
               ),
             ),

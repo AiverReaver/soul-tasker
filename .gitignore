@@ -1,1 +1,7 @@
 .DS_Store
+
+# Generated UI-tour screenshots and renders (hundreds of MB); rebuild with docs/ui-tour scripts.
+docs/ui-tour/shots/
+docs/ui-tour/render/out/
+docs/ui-tour/site/img/
+app/test/golden/failures/

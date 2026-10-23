@@ -23,7 +23,7 @@ class SettingValueRow extends StatelessWidget {
       title: Text(title, style: text.bodyMedium),
       trailing: Text(
         value,
-        style: text.bodyMedium?.copyWith(color: kTextMuted),
+        style: text.bodyMedium?.copyWith(color: context.palette.ash),
       ),
       onTap: onTap,
     );

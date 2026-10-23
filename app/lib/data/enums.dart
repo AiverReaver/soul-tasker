@@ -10,7 +10,7 @@ enum BossStatus { active, waiting, defeated }
 /// What a failed attempt undoes (§5.1).
 enum ResetOnFail {
   nothing('Nothing'),
-  currentPhase('Current phase'),
+  currentPhase('Current chapter'),
   wholeBoss('Whole boss');
 
   const ResetOnFail(this.label);
@@ -82,7 +82,7 @@ enum CommitmentOutcome { kept, tried, missed, frozen, lateStrike, cancelled }
 enum HealthReason { miss, tried, bonfireRestore, rise }
 
 /// What a signal event records (Stage 6 plan D3, D4, D6).
-enum SignalKind { fell, tapModeChanged, checkIn, checkInDismissed }
+enum SignalKind { fell, tapModeChanged, checkIn, checkInDismissed, mood }
 
 /// A flask spent or restored (Stage 7 plan D8).
 enum FlaskKind { spend, restore }

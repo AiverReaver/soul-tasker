@@ -69,6 +69,24 @@ final settingsProvider = StreamProvider(
 
 /// Reads the setting on every haptic rather than watching it, so one object
 /// stays valid for the life of the app (D10). On while settings load.
+/// What only this phone keeps (device-only, not synced).
+final deviceSettingsProvider = StreamProvider(
+  (ref) => ref.watch(settingsDaoProvider).watchDevice(),
+);
+
+/// This phone's colour theme.
+final biomeProvider = Provider(
+  (ref) =>
+      ref.watch(deviceSettingsProvider.select((d) => d.asData?.value.biome)),
+);
+
+/// Whether the glass light follows the phone (on by default).
+final motionEffectsProvider = Provider(
+  (ref) => ref.watch(
+    deviceSettingsProvider.select((d) => d.asData?.value.motionEffects ?? true),
+  ),
+);
+
 final hapticsProvider = Provider(
   (ref) => Haptics(() => ref.read(settingsProvider).value?.haptics ?? true),
 );
@@ -151,6 +169,11 @@ final tomorrowPicksProvider = FutureProvider.autoDispose((ref) {
   ref.watch(dayStatusProvider);
   return ref.watch(planPickDaoProvider).tomorrow();
 });
+
+/// Rests so far, for "Night {n} at the hearth".
+final restCountProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(dayDaoProvider).restCount(),
+);
 
 final relicDaoProvider = Provider(
   (ref) => RelicDao(ref.watch(databaseProvider), ref.watch(clockProvider)),

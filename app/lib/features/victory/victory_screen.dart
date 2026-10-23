@@ -9,8 +9,10 @@ import '../../data/relic_dao.dart';
 import '../../ui/ember_button.dart';
 import '../../ui/inscription_field.dart';
 import '../../ui/lesson_timeline.dart';
+import '../../ui/needle_frame.dart';
 import '../../ui/relic_emblem.dart';
-import '../../ui/victory_numbers.dart';
+import '../../ui/stat_row.dart';
+import '../../ui/thread_divider.dart';
 
 /// How long the whole reveal takes; five sections fade in one after another.
 const _reveal = Duration(milliseconds: 5000);
@@ -66,12 +68,14 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
       FadeTransition(opacity: _section(i), child: child);
 
   /// Saves the inscription, if any, and goes home. Done and back both end here.
-  Future<void> _finish() async {
+  Future<void> _finish({bool openRelic = false}) async {
     final text = _inscription.text.trim();
     if (text.isNotEmpty) {
       await ref.read(relicDaoProvider).setInscription(widget.relicId, text);
     }
-    if (mounted) context.go('/');
+    if (!mounted) return;
+    context.go('/');
+    if (openRelic) context.push('/relic/${widget.relicId}');
   }
 
   @override
@@ -98,24 +102,57 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Center(child: RelicEmblem(weathering: relic.emblem, size: 140)),
+          const SizedBox(height: Space.md),
           _fadeIn(
             0,
             Text(
-              'Foe vanquished.',
+              '${relic.name.replaceFirst('Relic of ', '')} falls.',
               textAlign: TextAlign.center,
-              style: text.displayMedium,
+              style: text.displayMedium?.copyWith(fontSize: 42),
             ),
           ),
-          const SizedBox(height: Space.lg),
+          const SizedBox(height: Space.md),
+          const Center(child: SizedBox(width: 200, child: ThreadDivider())),
+          const SizedBox(height: Space.md),
           _fadeIn(
             1,
-            VictoryNumbers(
-              attempts: relic.attempts,
-              days: relic.days,
-              effort: relic.effort,
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.end,
+              spacing: 12,
+              children: [
+                Text('Taken in', style: text.bodyMedium),
+                Text(
+                  '${relic.attempts}',
+                  key: const ValueKey('victory-attempts'),
+                  style: text.displayMedium?.copyWith(fontSize: 88, height: 1),
+                ),
+                Text(
+                  relic.attempts == 1 ? 'attempt' : 'attempts',
+                  style: text.bodyMedium,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: Space.lg),
+          const SizedBox(height: Space.md),
+          _fadeIn(
+            1,
+            StatRow(
+              stats: [
+                Stat('${relic.days}', 'Days'),
+                Stat('${relic.effort}', 'Embers'),
+              ],
+            ),
+          ),
+          if (view.story.lessons.isNotEmpty) ...[
+            const SizedBox(height: Space.lg),
+            Text(
+              'What the falls taught you',
+              style: text.titleMedium?.copyWith(fontSize: 22, height: 28 / 22),
+            ),
+            const SizedBox(height: Space.sm),
+          ],
           _fadeIn(
             2,
             LessonTimeline(
@@ -130,28 +167,29 @@ class _VictoryScreenState extends ConsumerState<VictoryScreen>
             ),
           ),
           const SizedBox(height: Space.xl),
+          _fadeIn(4, InscriptionField(controller: _inscription)),
+          const SizedBox(height: Space.md),
           _fadeIn(
-            3,
+            4,
             Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('A relic remains.', style: text.titleMedium),
-                const SizedBox(height: Space.md),
-                RelicEmblem(weathering: relic.emblem),
-                const SizedBox(height: Space.md),
-                Text(
-                  relic.name,
-                  textAlign: TextAlign.center,
-                  style: text.bodyLarge,
+                EmberButton(label: 'Return to the hearth', onPressed: _finish),
+                const SizedBox(height: Space.sm),
+                NeedleFrame(
+                  tier: Cut.md,
+                  child: InkWell(
+                    onTap: () => _finish(openRelic: true),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: kMinTarget),
+                      child: Center(
+                        child: Text('Keep as a relic', style: text.bodyMedium),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: Space.xl),
-          _fadeIn(4, InscriptionField(controller: _inscription)),
-          const SizedBox(height: Space.md),
-          Align(
-            alignment: Alignment.centerRight,
-            child: _fadeIn(4, EmberButton(label: 'Done', onPressed: _finish)),
           ),
         ],
       ),

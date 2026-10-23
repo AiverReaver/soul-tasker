@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/ui/choice_dialog.dart';
+import 'package:hearthrise/ui/glass_switch.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:hearthrise/ui/setting_choice_row.dart';
 import 'package:hearthrise/ui/setting_switch_row.dart';
 import 'package:hearthrise/ui/setting_value_row.dart';
@@ -27,10 +29,7 @@ void main() {
       ),
     );
     expect(find.text('Haptics'), findsOneWidget);
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      true,
-    );
+    expect(tester.widget<GlassSwitch>(find.byType(GlassSwitch)).value, true);
 
     await tester.tap(find.text('Haptics'));
     expect(changed, isFalse);
@@ -68,6 +67,17 @@ void main() {
       ),
     );
     expect(find.text('On a failed attempt'), findsOneWidget);
+    expect(find.byType(NeedleFrame), findsNWidgets(2));
+    bool? selectedOf(String label) => tester
+        .widget<Semantics>(
+          find.byWidgetPredicate(
+            (w) => w is Semantics && w.properties.label == label,
+          ),
+        )
+        .properties
+        .selected;
+    expect(selectedOf('Nothing'), isTrue);
+    expect(selectedOf('Whole boss'), isFalse);
     await tester.tap(find.text('Whole boss'));
     expect(picked, 'b');
   });
@@ -85,7 +95,7 @@ void main() {
       ),
     );
     expect(find.text('Day starts at'), findsOneWidget);
-    expect(find.byType(SimpleDialogOption), findsNWidgets(2));
+    expect(find.byType(NeedleFrame), findsNWidgets(2));
     await tester.tap(find.text('2:00 AM'));
     expect(picked, 2);
   });

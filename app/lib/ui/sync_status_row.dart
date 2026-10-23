@@ -54,15 +54,21 @@ class SyncStatusRow extends StatelessWidget {
   }
 
   Widget _button(String label, VoidCallback onTap) => TextButton(
-    style: TextButton.styleFrom(minimumSize: _minTarget),
+    style: TextButton.styleFrom(
+      minimumSize: _minTarget,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      alignment: Alignment.centerLeft,
+    ),
     onPressed: isBusy ? null : onTap,
     child: Text(label),
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => _body(context);
+
+  Widget _body(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: kTextMuted);
+    final muted = text.bodyMedium?.copyWith(color: context.palette.ash);
     final account = email;
     if (account == null) {
       return Column(

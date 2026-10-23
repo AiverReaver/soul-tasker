@@ -5,7 +5,9 @@ import 'package:flutter/widgets.dart';
 
 import '../data/harness.dart';
 import '../support/fake_sounds.dart';
+import '../support/boss_actions.dart';
 import 'pump.dart';
+import '../support/hold_finders.dart';
 
 Future<String> _oneTaskBoss(Harness h) => h.bosses.saveBoss(
   const BossDraft(
@@ -39,9 +41,9 @@ void main() {
         overrides: [player.asOverride],
       );
 
-      await tester.tap(find.text('Sit the exam'));
+      await tester.tap(holdButton('Sit the exam'));
       await settle(tester);
-      await tester.tap(find.text('Strike'));
+      await tester.tap(find.text('Clean strike'));
       await settle(tester);
       await tester.tap(find.text('Defeated'));
       await settle(tester);
@@ -64,8 +66,7 @@ void main() {
         overrides: [player.asOverride],
       );
 
-      await tester.scrollUntilVisible(find.text('This attempt failed'), 200);
-      await tester.tap(find.text('This attempt failed'));
+      await tapBossAction(tester, 'This attempt failed');
       await settle(tester);
 
       expect(player.calls, isOn ? ['play:fallen'] : isEmpty);
@@ -81,11 +82,11 @@ void main() {
     await h.settings.setSound(true);
     await pumpApp(tester, h, overrides: [player.asOverride]);
 
-    await tester.tap(find.text('Rest at the bonfire'));
+    await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 
-    await tester.pageBack();
+    await tester.tap(find.text('Home'));
     await settle(tester);
     expect(player.calls, ['hum:start', 'hum:stop']);
     await tearDownApp(tester, h);
@@ -96,7 +97,7 @@ void main() {
     final h = Harness();
     await h.settings.setSound(true);
     await pumpApp(tester, h, overrides: [player.asOverride]);
-    await tester.tap(find.text('Rest at the bonfire'));
+    await tester.tap(find.text('Bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 

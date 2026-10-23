@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../core/clock.dart';
+import '../core/palette.dart';
 import 'database.dart';
 import 'enums.dart';
 import 'signal_dao.dart';
@@ -18,6 +19,9 @@ class SettingsDao {
   Stream<AppSettings> watch() => _db.select(_db.userSettings).watchSingle();
 
   /// What only this phone keeps: onboarding and missed-day bookkeeping.
+  Stream<DeviceSettings> watchDevice() =>
+      _db.select(_db.settings).watchSingle();
+
   Future<DeviceSettings> device() => _db.select(_db.settings).getSingle();
 
   Future<void> _write(UserSettingsCompanion change) => _db
@@ -40,6 +44,13 @@ class SettingsDao {
   Future<void> setOnboarded(bool isDone) => _db
       .update(_db.settings)
       .write(SettingsCompanion(onboarded: Value(isDone)));
+
+  Future<void> setMotionEffects(bool isOn) => _db
+      .update(_db.settings)
+      .write(SettingsCompanion(motionEffects: Value(isOn)));
+
+  Future<void> setBiome(Biome biome) =>
+      _db.update(_db.settings).write(SettingsCompanion(biome: Value(biome)));
 
   Future<void> setSound(bool isOn) =>
       _write(UserSettingsCompanion(sound: Value(isOn)));

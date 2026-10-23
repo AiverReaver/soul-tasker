@@ -50,6 +50,7 @@ void main() {
       'tapModeChanged',
       'checkIn',
       'checkInDismissed',
+      'mood',
     ]);
     expect(CheckInAnswer.values.map((a) => a.name), [
       'never',

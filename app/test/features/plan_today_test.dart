@@ -51,4 +51,22 @@ void main() {
     expect(find.byType(PlanBanner), findsNothing);
     await tearDownApp(tester, h);
   });
+
+  testWidgets('rows are grouped by boss and chapter with "n of m"', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.attempts.strike(taskNamed(view, 'Walk').task.id);
+    await pumpApp(tester, h);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+
+    // One label per run: dailies, the current chapter, the rest.
+    expect(find.text('THE CERTIFICATION · DAILY'), findsOneWidget);
+    expect(find.text('1 of 1'), findsOneWidget);
+    expect(find.text('THE CERTIFICATION · CHAPTER I · LEARN'), findsOneWidget);
+    expect(find.text('0 of 2'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
 }

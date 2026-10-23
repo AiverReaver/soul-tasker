@@ -1,31 +1,95 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/features/boss_edit/boss_edit_screen.dart';
 import 'package:hearthrise/features/boss/boss_stage.dart';
 import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
+import '../support/boss_actions.dart';
+import '../support/foe_actions.dart';
 import 'pump.dart';
 
 void main() {
-  testWidgets('home shows the empty state', (tester) async {
+  testWidgets('the bosses list shows the empty state', (tester) async {
     final h = Harness();
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, location: '/bosses', tall: true);
 
     expect(find.text('No boss stands before you.'), findsOneWidget);
     expect(find.text('Name a new boss'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('home lists active bosses and a waiting section', (tester) async {
+  testWidgets('the pinned boss comes first, then the other active ones', (
+    tester,
+  ) async {
+    final h = Harness();
+    final other = await h.seed();
+    final pinned = await h.seed();
+    await h.bosses.setPinned(pinned.boss.id, isPinned: true);
+    await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
+    await pumpApp(tester, h, location: '/bosses', tall: true);
+
+    final pinnedY = tester.getTopLeft(
+      find.byKey(const Key('pinned-boss-panel')),
+    );
+    expect(
+      tester.getTopLeft(find.text('The Habit')).dy,
+      greaterThan(pinnedY.dy),
+    );
+    expect(other.boss.id, isNot(pinned.boss.id));
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Name a new boss opens the editor', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, location: '/bosses', tall: true);
+    await tester.tap(find.text('Name a new boss'));
+    await settle(tester);
+    expect(find.byType(BossEditScreen), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Waiting (n) is collapsed until you open it', (tester) async {
     final h = Harness();
     final waiting = await h.seed();
     await h.bosses.setStatus(waiting.boss.id, BossStatus.waiting);
-    await h.seed();
-    await pumpApp(tester, h);
+    await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
+    await pumpApp(tester, h, location: '/bosses', tall: true);
 
+    expect(find.text('Waiting (1)'), findsOneWidget);
+    expect(find.text('The Certification'), findsNothing);
+    await tester.tap(find.text('Waiting (1)'));
+    await settle(tester);
     expect(find.text('The Certification'), findsOneWidget);
-    expect(find.text('WAITING (1)'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the back circle leaves the list', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, tall: true);
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await settle(tester);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -41,15 +105,23 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('mark as tried shows the quiet line', (tester) async {
+  testWidgets('a boss page names its chapter in roman numerals', (
+    tester,
+  ) async {
     final h = Harness();
     final view = await h.seed();
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
 
-    await tester.tap(find.byTooltip('Actions for Read chapter 4'));
-    await settle(tester);
-    await tester.tap(find.text('Mark as tried'));
-    await settle(tester);
+    expect(find.text('Chapter I of II'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('mark as tried shows the quiet line', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await pumpApp(tester, h, location: '/boss/${view.boss.id}', tall: true);
+
+    await tapFoeAction(tester, 'Read chapter 4', 'Mark as tried');
 
     expect(find.text('You tried. That counts.'), findsOneWidget);
     await tearDownApp(tester, h);
@@ -59,19 +131,22 @@ void main() {
     final h = Harness();
     final view = await h.seed();
     await pumpApp(tester, h, location: '/boss/${view.boss.id}');
-    expect(find.text('Attempt 1.'), findsOneWidget);
+    expect(find.textContaining('Attempt 1'), findsOneWidget);
 
-    await tester.scrollUntilVisible(find.text('This attempt failed'), 200);
-    await tester.tap(find.text('This attempt failed'));
+    await tapBossAction(tester, 'This attempt failed');
     await settle(tester);
-    await tester.enterText(find.byType(TextField), 'Rushed the second phase.');
+    await tester.enterText(
+      find.byType(TextField),
+      'Rushed the second chapter.',
+    );
     await tester.tap(find.text('Rise'));
     await settle(tester);
-    // The attempt line sits at the top; scroll back to it.
-    await tester.scrollUntilVisible(find.textContaining('Attempt 2.'), -200);
 
     expect(
-      find.text('Attempt 2. Last time: Rushed the second phase.'),
+      find.textContaining(
+        'Attempt 2 · Last lesson: Rushed the second chapter.',
+        findRichText: true,
+      ),
       findsOneWidget,
     );
     await tearDownApp(tester, h);
@@ -110,11 +185,11 @@ void main() {
     await tearDownApp(tester, h);
     final h2 = Harness();
     await h2.seed();
-    await pumpApp(tester, h2);
+    await pumpApp(tester, h2, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Book the room'), findsOneWidget);
-    expect(find.text('Walk · daily'), findsOneWidget);
+    expect(find.text('Walk'), findsOneWidget);
     await tearDownApp(tester, h2);
   });
 }

@@ -16,6 +16,7 @@ NameListEditor _editor(
   ValueChanged<int>? onRemove,
   VoidCallback? onAdd,
   int? autofocusId,
+  String? help,
 }) => NameListEditor(
   items: items,
   keyPrefix: 'row',
@@ -27,6 +28,7 @@ NameListEditor _editor(
   onRemove: onRemove ?? (_) {},
   onAdd: onAdd ?? () {},
   autofocusId: autofocusId,
+  help: help,
 );
 
 void main() {
@@ -39,6 +41,21 @@ void main() {
     expect(find.text('The boss'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField), 'Garage');
     expect(seen, 'Garage');
+  });
+
+  testWidgets('NameListEditor shows its help line and numbers the rows', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _editor([
+        NameListItem(id: 1, text: 'a'),
+        NameListItem(id: 2, text: 'b'),
+      ], help: 'Two or three is plenty.'),
+    );
+    expect(find.text('Two or three is plenty.'), findsOneWidget);
+    expect(find.text('I'), findsOneWidget);
+    expect(find.text('II'), findsOneWidget);
   });
 
   testWidgets('NameListEditor edits, removes and adds', (tester) async {

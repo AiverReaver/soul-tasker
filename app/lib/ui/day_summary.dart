@@ -40,7 +40,7 @@ class DaySummary extends StatelessWidget {
             padding: const EdgeInsets.only(top: Space.sm),
             child: Text(
               lesson,
-              style: text.bodyMedium?.copyWith(color: kTextMuted),
+              style: text.bodyMedium?.copyWith(color: context.palette.ash),
             ),
           ),
       ],

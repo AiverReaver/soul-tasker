@@ -1,28 +1,33 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/commitment_resolver.dart';
+import '../../core/clock.dart';
 import '../../core/sounds.dart';
 import '../../core/theme.dart';
 import '../../data/day_dao.dart';
 import '../../data/enums.dart';
 import '../../data/plan_pick_dao.dart';
 import '../../data/providers.dart';
-import '../../ui/accuracy_line.dart';
 import '../../ui/check_in_card.dart';
-import '../../ui/day_summary.dart';
 import '../../ui/ember_button.dart';
-import '../../ui/ember_tally.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/flask_pips.dart';
-import '../../ui/pick_row.dart';
-import '../../ui/player_health_bar.dart';
+import '../../ui/glass_circle_button.dart';
+import '../../ui/glass_sheet.dart';
+import '../../ui/stroke_icon.dart';
+import '../../ui/thread_divider.dart';
+import '../../ui/mood_choice.dart';
+import '../../ui/needle_text_field.dart';
+import '../../ui/tomorrow_pick_sheet.dart';
+import '../../ui/tomorrow_row.dart';
 import '../../ui/reminder_invite.dart';
 import '../../ui/plan_banner.dart';
 import '../ritual/reminder_coordinator.dart';
 
-/// The bonfire (§5.6): review the day, write one lesson, pick tomorrow's
-/// three, rest. Holds the lesson field and the picks; the widgets are in `ui/`.
+/// The bonfire (D9): a check-in, not a planner. Say how the day went, write
+/// one thing for tomorrow, choose tomorrow's foes, rest. Holds the field and
+/// the mood; the widgets are in `ui/`.
 class BonfireScreen extends ConsumerStatefulWidget {
   const BonfireScreen({super.key});
 
@@ -33,7 +38,7 @@ class BonfireScreen extends ConsumerStatefulWidget {
 class _BonfireScreenState extends ConsumerState<BonfireScreen>
     with WidgetsBindingObserver {
   final _lesson = TextEditingController();
-  final _picked = <String>[];
+  int? _mood;
   String? _flash;
 
   /// The check-in line after answering or dismissing; the card then leaves
@@ -69,26 +74,41 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     super.dispose();
   }
 
-  void _toggle(String taskId, {required bool isOn}) {
-    if (isOn && _picked.length >= kMaxPicks) {
-      setState(() => _flash = 'Three is enough for one day.');
-      return;
-    }
-    setState(() {
-      _flash = null;
-      isOn ? _picked.add(taskId) : _picked.remove(taskId);
-    });
+  static const _moods = ['Fought well', 'Held on', 'I fell'];
+
+  Future<void> _pickMood(int i) async {
+    setState(() => _mood = i);
+    await ref.read(signalDaoProvider).add(SignalKind.mood, value: i);
+  }
+
+  Future<void> _openTomorrow() async {
+    final candidates = await ref.read(pickCandidatesProvider.future);
+    final picks = await ref.read(tomorrowPicksProvider.future);
+    if (!mounted) return;
+    final open = {for (final c in candidates) c.taskId};
+    final chosen = await showGlassSheet<List<String>>(
+      context,
+      (_) => _TomorrowPicker(
+        candidates: candidates,
+        initial: [
+          for (final p in picks)
+            if (open.contains(p.task.id)) p.task.id,
+        ],
+      ),
+    );
+    if (chosen == null) return;
+    await ref.read(planPickDaoProvider).setTomorrow(chosen);
+    ref.invalidate(tomorrowPicksProvider);
   }
 
   Future<void> _rest() async {
     ref.read(hapticsProvider).medium();
     final days = ref.read(dayDaoProvider);
-    final didRest = await days.rest(
-      lesson: _lesson.text,
-      pickTaskIds: List.of(_picked),
-    );
+    final didRest = await days.rest(lesson: _lesson.text);
     if (!didRest || !mounted) return;
     await _inviteReminder(days);
+    // A flash (reminder refused) stays readable here; otherwise on to Home.
+    if (mounted && _flash == null) context.go('/');
   }
 
   Future<void> _checkIn(CheckInAnswer? answer) async {
@@ -132,66 +152,62 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     final status = ref.watch(dayStatusProvider).value;
     final summary = ref.watch(daySummaryProvider).value;
     final isRested = status?.isRested ?? false;
-    final health = ref.watch(healthProvider).value;
-    final isFallen = health == 0;
-    final accuracy = ref.watch(accuracyProvider).value;
+    final isFallen = ref.watch(healthProvider).value == 0;
     final checkIn = ref.watch(checkInDueProvider).value;
 
     return Scaffold(
-      appBar: AppBar(title: Text('BONFIRE', style: text.labelSmall)),
       body: SafeArea(
         child: status == null || summary == null
             ? const SizedBox.shrink()
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+            : Column(
                 children: [
-                  if (isRested) ...[
-                    Text('You have rested.', style: text.titleMedium),
-                    FlashLine(_flash),
-                    const SizedBox(height: Space.md),
-                  ],
-                  DaySummary(
-                    strikes: summary.strikes,
-                    tried: summary.tried,
-                    falls: summary.falls,
-                    lessons: summary.lessons,
-                    dayLesson: summary.dayLesson,
-                  ),
-                  if (checkIn != null && !_isCheckInDone && !isFallen) ...[
-                    const SizedBox(height: Space.md),
-                    CheckInCard(
-                      onAnswer: _checkIn,
-                      onDismiss: () => _checkIn(null),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      Space.sm,
+                      20,
+                      Space.md,
                     ),
-                  ],
-                  if (_checkInLine != null) FlashLine(_checkInLine),
-                  const SizedBox(height: Space.md),
-                  EmberTally(
-                    carried: summary.embers.carried,
-                    banked: summary.embers.banked,
-                  ),
-                  const SizedBox(height: Space.md),
-                  FlaskPips(count: status.flasks, cap: kFlaskCap),
-                  if (health != null) ...[
-                    const SizedBox(height: Space.md),
-                    PlayerHealthBar(health: health, max: kMaxHealthHalfPoints),
-                  ],
-                  if (accuracy != null) ...[
-                    const SizedBox(height: Space.sm),
-                    AccuracyLine(
-                      todayKept: accuracy.today.kept,
-                      todayMade: accuracy.today.made,
-                      weekKept: accuracy.week.kept,
-                      weekMade: accuracy.week.made,
+                    child: Row(
+                      spacing: Space.sm + 4,
+                      children: [
+                        GlassCircleButton(
+                          icon: StrokeIcons.back,
+                          semanticLabel: 'Back to bosses',
+                          onTap: () => context.go('/'),
+                        ),
+                        Text('BONFIRE', style: text.labelSmall),
+                      ],
                     ),
-                  ],
-                  const SizedBox(height: Space.lg),
-                  if (isFallen)
-                    ..._fallen(text)
-                  else if (isRested)
-                    _tomorrow()
-                  else
-                    ..._plan(text),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+                      children: [
+                        if (isRested) ...[
+                          Text('You have rested.', style: text.titleMedium),
+                          FlashLine(_flash),
+                          const SizedBox(height: Space.md),
+                        ],
+                        if (checkIn != null &&
+                            !_isCheckInDone &&
+                            !isFallen) ...[
+                          CheckInCard(
+                            onAnswer: _checkIn,
+                            onDismiss: () => _checkIn(null),
+                          ),
+                          const SizedBox(height: Space.md),
+                        ],
+                        if (_checkInLine != null) FlashLine(_checkInLine),
+                        if (isFallen)
+                          ..._fallen(text)
+                        else if (isRested)
+                          _tomorrow()
+                        else
+                          ..._plan(text, status.flasks, summary.strikes),
+                      ],
+                    ),
+                  ),
                 ],
               ),
       ),
@@ -222,41 +238,135 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     );
   }
 
-  List<Widget> _plan(TextTheme text) {
-    final candidates = ref.watch(pickCandidatesProvider).value ?? const [];
+  String? _moodNote(int strikes) => switch (_mood) {
+    0 =>
+      '$strikes ${strikes == 1 ? 'task' : 'tasks'} struck. The Warden felt it.',
+    1 => 'Holding on is a kind of winning.',
+    2 => 'You fell. Rise. Embers are kept.',
+    _ => null,
+  };
+
+  List<Widget> _plan(TextTheme text, int flasks, int strikes) {
+    final night = (ref.watch(restCountProvider).value ?? 0) + 1;
+    final picks = ref.watch(tomorrowPicksProvider).value ?? const [];
+    final titles = [for (final p in picks) p.task.title];
+    final settings = ref.watch(settingsProvider).value;
     return [
-      Text('What did today teach you?', style: text.titleMedium),
-      TextField(
-        controller: _lesson,
-        maxLength: 120,
-        style: text.bodyMedium,
-        cursorColor: kEmber,
-        decoration: const InputDecoration(
-          hintText: 'One line, if you like.',
-          hintStyle: TextStyle(color: kTextMuted),
-          enabledBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: kAshDim),
-          ),
-          focusedBorder: UnderlineInputBorder(
-            borderSide: BorderSide(color: kEmber),
-          ),
-        ),
+      Text(
+        'Rest a while.',
+        textAlign: TextAlign.center,
+        style: text.displayMedium?.copyWith(fontSize: 44),
+      ),
+      const SizedBox(height: Space.sm),
+      Text(
+        'Night $night at the hearth. Tell it how the day went.',
+        textAlign: TextAlign.center,
+        style: text.bodyMedium?.copyWith(color: context.palette.ash),
       ),
       const SizedBox(height: Space.lg),
-      Text("TOMORROW'S THREE", style: text.labelSmall),
-      FlashLine(_flash),
-      for (final c in candidates)
-        PickRow(
-          title: c.title,
-          bossTitle: c.bossTitle,
-          isSelected: _picked.contains(c.taskId),
-          onChanged: (isOn) => _toggle(c.taskId, isOn: isOn),
-        ),
-      const SizedBox(height: Space.md),
-      Align(
-        alignment: Alignment.centerRight,
-        child: EmberButton(label: 'Rest', onPressed: _rest),
+      const ThreadDivider(),
+      const SizedBox(height: Space.lg),
+      Text('How did today go?', style: text.titleMedium),
+      const SizedBox(height: Space.sm),
+      MoodChoice(
+        labels: _moods,
+        selected: _mood,
+        note: _moodNote(strikes),
+        onChanged: _pickMood,
       ),
+      const SizedBox(height: Space.lg),
+      Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 2,
+              children: [
+                Text(
+                  'Flasks restored',
+                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '$flasks of $kFlaskCap · ready for tomorrow',
+                  style: text.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          FlaskPips(count: flasks, cap: kFlaskCap),
+        ],
+      ),
+      const SizedBox(height: Space.lg),
+      NeedleTextField(
+        controller: _lesson,
+        caption: 'One thing for tomorrow',
+        isPlainCaption: true,
+        hint: 'Write before noon',
+        maxLength: 120,
+      ),
+      const SizedBox(height: Space.md),
+      TomorrowRow(titles: titles, onTap: _openTomorrow, max: kMaxPicks),
+      const SizedBox(height: Space.lg),
+      EmberButton(label: 'Rest at the hearth', onPressed: _rest),
+      if (settings != null && settings.reminderEnabled) ...[
+        const SizedBox(height: Space.sm),
+        Text(
+          'One gentle reminder tomorrow at ${formatClock(settings.reminderMinutes)}.',
+          textAlign: TextAlign.center,
+          style: text.bodySmall,
+        ),
+      ],
     ];
   }
+}
+
+/// The picker sheet's state: the chosen ids and the "enough" flash. Pops the
+/// chosen ids on "Set tomorrow"; Cancel pops nothing.
+class _TomorrowPicker extends StatefulWidget {
+  const _TomorrowPicker({required this.candidates, required this.initial});
+
+  final List<PickCandidate> candidates;
+  final List<String> initial;
+
+  @override
+  State<_TomorrowPicker> createState() => _TomorrowPickerState();
+}
+
+class _TomorrowPickerState extends State<_TomorrowPicker> {
+  late final _picked = [...widget.initial];
+  String? _flash;
+
+  void _toggle(String id) {
+    if (_picked.contains(id)) {
+      setState(() {
+        _flash = null;
+        _picked.remove(id);
+      });
+    } else if (_picked.length >= kMaxPicks) {
+      setState(() => _flash = 'Three is enough for one day.');
+    } else {
+      setState(() {
+        _flash = null;
+        _picked.add(id);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => TomorrowPickSheet(
+    options: [
+      for (final c in widget.candidates)
+        PickOption(
+          id: c.taskId,
+          title: c.title,
+          subtitle: '${c.bossTitle} · ${c.weight.label}',
+          pips: c.weight.index + 1,
+        ),
+    ],
+    picked: _picked.toSet(),
+    flash: _flash,
+    onToggle: _toggle,
+    onSet: () => Navigator.pop(context, List.of(_picked)),
+    max: kMaxPicks,
+  );
 }

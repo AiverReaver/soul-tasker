@@ -36,6 +36,39 @@ Offset strikeShake(double progress) {
   return _shake[step.clamp(0, _shake.length - 1)];
 }
 
+/// The beats of a strike on the clock since the hold completed (D8): the
+/// row flashes for 110 ms, shatters to 500 ms, settles to 1300 ms, then rests.
+enum StrikeBeat { idle, hit, shatter, settle }
+
+const _shatterStart = Duration(milliseconds: 110);
+const _settleStart = Duration(milliseconds: 500);
+const _strikeEnd = Duration(milliseconds: 1300);
+
+/// Which beat a strike is on [t] after its hold completed.
+StrikeBeat strikeBeatAt(Duration t) {
+  if (t.isNegative || t >= _strikeEnd) return StrikeBeat.idle;
+  if (t < _shatterStart) return StrikeBeat.hit;
+  if (t < _settleStart) return StrikeBeat.shatter;
+  return StrikeBeat.settle;
+}
+
+const _rowShake = [
+  Offset(-5, 2),
+  Offset(4, -2),
+  Offset(-3, -1),
+  Offset(2, 1),
+  Offset(-1, 0),
+];
+const _rowShakeStep = Duration(milliseconds: 56);
+
+/// Where the struck row sits [t] after its hold completed: five held steps
+/// across the 280 ms after the shatter starts, still before and after.
+Offset rowShakeAt(Duration t) {
+  final s = t - _shatterStart;
+  if (s.isNegative || s >= _rowShakeStep * _rowShake.length) return Offset.zero;
+  return _rowShake[s.inMilliseconds ~/ _rowShakeStep.inMilliseconds];
+}
+
 /// How many flecks and silk threads a strike throws.
 int slashFlecks(bool isBossTier) => isBossTier ? 14 : 8;
 
@@ -71,21 +104,30 @@ class StrikeSweepView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CustomPaint(
     size: Size.infinite,
-    painter: _SlashPainter(progress: progress, isBossTier: isBossTier),
+    painter: _SlashPainter(
+      progress: progress,
+      isBossTier: isBossTier,
+      palette: context.palette,
+    ),
   );
 }
 
 class _SlashPainter extends CustomPainter {
-  const _SlashPainter({required this.progress, required this.isBossTier});
+  const _SlashPainter({
+    required this.progress,
+    required this.isBossTier,
+    required this.palette,
+  });
 
   final double progress;
   final bool isBossTier;
+  final HearthPalette palette;
 
-  static Paint _ink([double alpha = 1]) => Paint()
+  Paint _ink([double alpha = 1]) => Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2.2
     ..strokeJoin = StrokeJoin.round
-    ..color = kInk.withValues(alpha: alpha);
+    ..color = palette.ink.withValues(alpha: alpha);
 
   // Into the 370 x 80 drawing box: scaled evenly by width so the crescent
   // keeps its shape, centred on the row and free to overhang it.
@@ -100,7 +142,7 @@ class _SlashPainter extends CustomPainter {
     canvas.save();
     _toRow(canvas, size);
     canvas
-      ..drawPath(arc, Paint()..color = kDust.withValues(alpha: alpha))
+      ..drawPath(arc, Paint()..color = palette.bone.withValues(alpha: alpha))
       ..drawPath(arc, _ink(alpha))
       ..restore();
   }
@@ -122,21 +164,21 @@ class _SlashPainter extends CustomPainter {
               ..style = PaintingStyle.stroke
               ..strokeWidth = 2
               ..strokeCap = StrokeCap.round
-              ..color = kEmber,
+              ..color = palette.silk,
           )
           ..restore();
       case SlashBeat.hitStop:
         // Everything holds; the row burns white under the impact star.
         canvas.drawRect(
           Offset.zero & size,
-          Paint()..color = kDust.withValues(alpha: 0.55),
+          Paint()..color = palette.bone.withValues(alpha: 0.55),
         );
         _cut(canvas, size, _arcBroken);
         canvas
           ..save()
           ..translate(centre.dx, centre.dy)
           ..scale(isBossTier ? 1.1 : 0.8)
-          ..drawPath(_star, Paint()..color = kDust)
+          ..drawPath(_star, Paint()..color = palette.bone)
           ..drawPath(_star, _ink())
           ..restore();
       case SlashBeat.shatter:
@@ -164,7 +206,7 @@ class _SlashPainter extends CustomPainter {
           Paint()
             ..strokeWidth = 2
             ..strokeCap = StrokeCap.round
-            ..color = kEmber.withValues(alpha: alpha),
+            ..color = palette.silk.withValues(alpha: alpha),
         );
         continue;
       }
@@ -180,7 +222,10 @@ class _SlashPainter extends CustomPainter {
         ..save()
         ..translate(at.dx, at.dy)
         ..rotate(angle + travel * 4)
-        ..drawPath(fleck, Paint()..color = kDust.withValues(alpha: alpha))
+        ..drawPath(
+          fleck,
+          Paint()..color = palette.bone.withValues(alpha: alpha),
+        )
         ..drawPath(fleck, _ink(alpha)..strokeWidth = 1.2)
         ..restore();
     }
@@ -188,5 +233,7 @@ class _SlashPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SlashPainter old) =>
-      old.progress != progress || old.isBossTier != isBossTier;
+      old.progress != progress ||
+      old.isBossTier != isBossTier ||
+      old.palette != palette;
 }

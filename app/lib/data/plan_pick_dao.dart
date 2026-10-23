@@ -90,6 +90,12 @@ class PlanPickDao {
   Future<void> setPicks(String day, List<String> taskIds) =>
       _db.transaction(() => writePicks(_db, day, taskIds, _clock()));
 
+  /// Saves the picks for the day after the current one.
+  Future<void> setTomorrow(List<String> taskIds) async => setPicks(
+    shiftDay(dayOf(_clock(), rolloverHour: await _db.rolloverHour()), 1),
+    taskIds,
+  );
+
   Future<List<PlannedTask>> picksFor(String day) async {
     final plan = await (_db.select(
       _db.dayPlans,

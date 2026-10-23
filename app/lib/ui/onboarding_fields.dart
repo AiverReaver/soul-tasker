@@ -1,17 +1,18 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../core/roman.dart';
 import '../core/theme.dart';
 
-InputDecoration _decoration(String hint) => InputDecoration(
-  hintText: hint,
-  hintStyle: const TextStyle(color: kTextMuted),
-  enabledBorder: const UnderlineInputBorder(
-    borderSide: BorderSide(color: kAshDim),
-  ),
-  focusedBorder: const UnderlineInputBorder(
-    borderSide: BorderSide(color: kEmber),
-  ),
-);
+/// The underlined one-line input used by onboarding and the bonfire.
+InputDecoration inscriptionDecoration(HearthPalette p, String hint) =>
+    InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: p.ash),
+      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: p.dim)),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: p.silk),
+      ),
+    );
 
 /// A single labelled line of text. The caller keeps the value.
 class LineField extends StatelessWidget {
@@ -41,8 +42,8 @@ class LineField extends StatelessWidget {
           initialValue: initialValue,
           maxLength: maxLength,
           style: text.bodyLarge,
-          cursorColor: kEmber,
-          decoration: _decoration(hint),
+          cursorColor: context.palette.silk,
+          decoration: inscriptionDecoration(context.palette, hint),
           onChanged: onChanged,
         ),
       ],
@@ -74,7 +75,11 @@ class NameListEditor extends StatelessWidget {
     required this.onRemove,
     required this.onAdd,
     this.autofocusId,
+    this.help,
   });
+
+  /// One line above the rows.
+  final String? help;
 
   final List<NameListItem> items;
   final String keyPrefix;
@@ -98,9 +103,21 @@ class NameListEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (help case final line?)
+          Padding(
+            padding: const EdgeInsets.only(bottom: Space.sm),
+            child: Text(line, style: text.bodyMedium),
+          ),
         for (final (i, item) in items.indexed)
           Row(
             children: [
+              SizedBox(
+                width: 30,
+                child: Text(
+                  romanNumeral(i + 1),
+                  style: text.labelSmall?.copyWith(color: context.palette.silk),
+                ),
+              ),
               Expanded(
                 child: TextFormField(
                   key: ValueKey('$keyPrefix-${item.id}'),
@@ -108,8 +125,11 @@ class NameListEditor extends StatelessWidget {
                   autofocus: item.id == autofocusId,
                   maxLength: 60,
                   style: text.bodyLarge,
-                  cursorColor: kEmber,
-                  decoration: _decoration(hint).copyWith(counterText: ''),
+                  cursorColor: context.palette.silk,
+                  decoration: inscriptionDecoration(
+                    context.palette,
+                    hint,
+                  ).copyWith(counterText: ''),
                   onChanged: (t) => onChanged(item.id, t),
                 ),
               ),
@@ -119,7 +139,7 @@ class NameListEditor extends StatelessWidget {
                   minWidth: kMinTarget,
                   minHeight: kMinTarget,
                 ),
-                icon: const Icon(Icons.close, color: kTextMuted),
+                icon: Icon(Icons.close, color: context.palette.ash),
                 onPressed: () => onRemove(item.id),
               ),
             ],

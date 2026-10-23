@@ -50,6 +50,7 @@ dependencies:
     path: packages/hearthrise_api
   google_sign_in: ^7.2.0
   flutter_secure_storage: ^11.2.0
+  sensors_plus: ^7.1.1
 
 dev_dependencies:
   flutter_test:
@@ -81,9 +82,9 @@ flutter:
     - family: CormorantGaramond
       fonts:
         - asset: assets/fonts/CormorantGaramond.ttf
-    - family: Inter
+    - family: HankenGrotesk
       fonts:
-        - asset: assets/fonts/Inter.ttf
+        - asset: assets/fonts/HankenGrotesk.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

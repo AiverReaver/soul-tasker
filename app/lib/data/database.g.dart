@@ -2730,7 +2730,38 @@ class $SettingsTable extends Settings
     defaultValue: const Constant(false),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, lastResolvedDay, onboarded];
+  late final GeneratedColumnWithTypeConverter<Biome, int> biome =
+      GeneratedColumn<int>(
+        'biome',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      ).withConverter<Biome>($SettingsTable.$converterbiome);
+  static const VerificationMeta _motionEffectsMeta = const VerificationMeta(
+    'motionEffects',
+  );
+  @override
+  late final GeneratedColumn<bool> motionEffects = GeneratedColumn<bool>(
+    'motion_effects',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("motion_effects" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    lastResolvedDay,
+    onboarded,
+    biome,
+    motionEffects,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2761,6 +2792,15 @@ class $SettingsTable extends Settings
         onboarded.isAcceptableOrUnknown(data['onboarded']!, _onboardedMeta),
       );
     }
+    if (data.containsKey('motion_effects')) {
+      context.handle(
+        _motionEffectsMeta,
+        motionEffects.isAcceptableOrUnknown(
+          data['motion_effects']!,
+          _motionEffectsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2782,6 +2822,16 @@ class $SettingsTable extends Settings
         DriftSqlType.bool,
         data['${effectivePrefix}onboarded'],
       )!,
+      biome: $SettingsTable.$converterbiome.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}biome'],
+        )!,
+      ),
+      motionEffects: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}motion_effects'],
+      )!,
     );
   }
 
@@ -2789,6 +2839,9 @@ class $SettingsTable extends Settings
   $SettingsTable createAlias(String alias) {
     return $SettingsTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<Biome, int, int> $converterbiome =
+      const EnumIndexConverter<Biome>(Biome.values);
 }
 
 class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
@@ -2801,10 +2854,20 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
   /// False until onboarding is finished or skipped. The v5 upgrade sets it
   /// true so existing installs never see it (Stage 5 plan D11).
   final bool onboarded;
+
+  /// The colour theme. Stored as the [Biome] index; never synced (THEME_PLAN
+  /// D3). Add new biomes only at the end.
+  final Biome biome;
+
+  /// The glass light follows the phone's motion, and drifts on its own.
+  /// Device-only; off stills the light (V41_PLAN.md D3b).
+  final bool motionEffects;
   const DeviceSettings({
     required this.id,
     this.lastResolvedDay,
     required this.onboarded,
+    required this.biome,
+    required this.motionEffects,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2814,6 +2877,10 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
       map['last_resolved_day'] = Variable<String>(lastResolvedDay);
     }
     map['onboarded'] = Variable<bool>(onboarded);
+    {
+      map['biome'] = Variable<int>($SettingsTable.$converterbiome.toSql(biome));
+    }
+    map['motion_effects'] = Variable<bool>(motionEffects);
     return map;
   }
 
@@ -2824,6 +2891,8 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
           ? const Value.absent()
           : Value(lastResolvedDay),
       onboarded: Value(onboarded),
+      biome: Value(biome),
+      motionEffects: Value(motionEffects),
     );
   }
 
@@ -2836,6 +2905,10 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
       id: serializer.fromJson<int>(json['id']),
       lastResolvedDay: serializer.fromJson<String?>(json['lastResolvedDay']),
       onboarded: serializer.fromJson<bool>(json['onboarded']),
+      biome: $SettingsTable.$converterbiome.fromJson(
+        serializer.fromJson<int>(json['biome']),
+      ),
+      motionEffects: serializer.fromJson<bool>(json['motionEffects']),
     );
   }
   @override
@@ -2845,6 +2918,10 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
       'id': serializer.toJson<int>(id),
       'lastResolvedDay': serializer.toJson<String?>(lastResolvedDay),
       'onboarded': serializer.toJson<bool>(onboarded),
+      'biome': serializer.toJson<int>(
+        $SettingsTable.$converterbiome.toJson(biome),
+      ),
+      'motionEffects': serializer.toJson<bool>(motionEffects),
     };
   }
 
@@ -2852,12 +2929,16 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
     int? id,
     Value<String?> lastResolvedDay = const Value.absent(),
     bool? onboarded,
+    Biome? biome,
+    bool? motionEffects,
   }) => DeviceSettings(
     id: id ?? this.id,
     lastResolvedDay: lastResolvedDay.present
         ? lastResolvedDay.value
         : this.lastResolvedDay,
     onboarded: onboarded ?? this.onboarded,
+    biome: biome ?? this.biome,
+    motionEffects: motionEffects ?? this.motionEffects,
   );
   DeviceSettings copyWithCompanion(SettingsCompanion data) {
     return DeviceSettings(
@@ -2866,6 +2947,10 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
           ? data.lastResolvedDay.value
           : this.lastResolvedDay,
       onboarded: data.onboarded.present ? data.onboarded.value : this.onboarded,
+      biome: data.biome.present ? data.biome.value : this.biome,
+      motionEffects: data.motionEffects.present
+          ? data.motionEffects.value
+          : this.motionEffects,
     );
   }
 
@@ -2874,45 +2959,60 @@ class DeviceSettings extends DataClass implements Insertable<DeviceSettings> {
     return (StringBuffer('DeviceSettings(')
           ..write('id: $id, ')
           ..write('lastResolvedDay: $lastResolvedDay, ')
-          ..write('onboarded: $onboarded')
+          ..write('onboarded: $onboarded, ')
+          ..write('biome: $biome, ')
+          ..write('motionEffects: $motionEffects')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, lastResolvedDay, onboarded);
+  int get hashCode =>
+      Object.hash(id, lastResolvedDay, onboarded, biome, motionEffects);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DeviceSettings &&
           other.id == this.id &&
           other.lastResolvedDay == this.lastResolvedDay &&
-          other.onboarded == this.onboarded);
+          other.onboarded == this.onboarded &&
+          other.biome == this.biome &&
+          other.motionEffects == this.motionEffects);
 }
 
 class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
   final Value<int> id;
   final Value<String?> lastResolvedDay;
   final Value<bool> onboarded;
+  final Value<Biome> biome;
+  final Value<bool> motionEffects;
   const SettingsCompanion({
     this.id = const Value.absent(),
     this.lastResolvedDay = const Value.absent(),
     this.onboarded = const Value.absent(),
+    this.biome = const Value.absent(),
+    this.motionEffects = const Value.absent(),
   });
   SettingsCompanion.insert({
     this.id = const Value.absent(),
     this.lastResolvedDay = const Value.absent(),
     this.onboarded = const Value.absent(),
+    this.biome = const Value.absent(),
+    this.motionEffects = const Value.absent(),
   });
   static Insertable<DeviceSettings> custom({
     Expression<int>? id,
     Expression<String>? lastResolvedDay,
     Expression<bool>? onboarded,
+    Expression<int>? biome,
+    Expression<bool>? motionEffects,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (lastResolvedDay != null) 'last_resolved_day': lastResolvedDay,
       if (onboarded != null) 'onboarded': onboarded,
+      if (biome != null) 'biome': biome,
+      if (motionEffects != null) 'motion_effects': motionEffects,
     });
   }
 
@@ -2920,11 +3020,15 @@ class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
     Value<int>? id,
     Value<String?>? lastResolvedDay,
     Value<bool>? onboarded,
+    Value<Biome>? biome,
+    Value<bool>? motionEffects,
   }) {
     return SettingsCompanion(
       id: id ?? this.id,
       lastResolvedDay: lastResolvedDay ?? this.lastResolvedDay,
       onboarded: onboarded ?? this.onboarded,
+      biome: biome ?? this.biome,
+      motionEffects: motionEffects ?? this.motionEffects,
     );
   }
 
@@ -2940,6 +3044,14 @@ class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
     if (onboarded.present) {
       map['onboarded'] = Variable<bool>(onboarded.value);
     }
+    if (biome.present) {
+      map['biome'] = Variable<int>(
+        $SettingsTable.$converterbiome.toSql(biome.value),
+      );
+    }
+    if (motionEffects.present) {
+      map['motion_effects'] = Variable<bool>(motionEffects.value);
+    }
     return map;
   }
 
@@ -2948,7 +3060,9 @@ class SettingsCompanion extends UpdateCompanion<DeviceSettings> {
     return (StringBuffer('SettingsCompanion(')
           ..write('id: $id, ')
           ..write('lastResolvedDay: $lastResolvedDay, ')
-          ..write('onboarded: $onboarded')
+          ..write('onboarded: $onboarded, ')
+          ..write('biome: $biome, ')
+          ..write('motionEffects: $motionEffects')
           ..write(')'))
         .toString();
   }
@@ -12427,11 +12541,15 @@ typedef $$SettingsTableCreateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String?> lastResolvedDay,
   Value<bool> onboarded,
+  Value<Biome> biome,
+  Value<bool> motionEffects,
 });
 typedef $$SettingsTableUpdateCompanionBuilder = SettingsCompanion Function({
   Value<int> id,
   Value<String?> lastResolvedDay,
   Value<bool> onboarded,
+  Value<Biome> biome,
+  Value<bool> motionEffects,
 });
 
 class $$SettingsTableFilterComposer
@@ -12455,6 +12573,17 @@ class $$SettingsTableFilterComposer
 
   ColumnFilters<bool> get onboarded => $composableBuilder(
     column: $table.onboarded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Biome, Biome, int> get biome =>
+      $composableBuilder(
+        column: $table.biome,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get motionEffects => $composableBuilder(
+    column: $table.motionEffects,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -12482,6 +12611,16 @@ class $$SettingsTableOrderingComposer
     column: $table.onboarded,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get biome => $composableBuilder(
+    column: $table.biome,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get motionEffects => $composableBuilder(
+    column: $table.motionEffects,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SettingsTableAnnotationComposer
@@ -12503,6 +12642,14 @@ class $$SettingsTableAnnotationComposer
 
   GeneratedColumn<bool> get onboarded =>
       $composableBuilder(column: $table.onboarded, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Biome, int> get biome =>
+      $composableBuilder(column: $table.biome, builder: (column) => column);
+
+  GeneratedColumn<bool> get motionEffects => $composableBuilder(
+    column: $table.motionEffects,
+    builder: (column) => column,
+  );
 }
 
 class $$SettingsTableTableManager
@@ -12539,20 +12686,28 @@ class $$SettingsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String?> lastResolvedDay = const Value.absent(),
                 Value<bool> onboarded = const Value.absent(),
+                Value<Biome> biome = const Value.absent(),
+                Value<bool> motionEffects = const Value.absent(),
               }) => SettingsCompanion(
                 id: id,
                 lastResolvedDay: lastResolvedDay,
                 onboarded: onboarded,
+                biome: biome,
+                motionEffects: motionEffects,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 Value<String?> lastResolvedDay = const Value.absent(),
                 Value<bool> onboarded = const Value.absent(),
+                Value<Biome> biome = const Value.absent(),
+                Value<bool> motionEffects = const Value.absent(),
               }) => SettingsCompanion.insert(
                 id: id,
                 lastResolvedDay: lastResolvedDay,
                 onboarded: onboarded,
+                biome: biome,
+                motionEffects: motionEffects,
               ),
           withReferenceMapper: (p0) => p0
               .map(

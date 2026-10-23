@@ -7,13 +7,14 @@ import 'package:hearthrise/ui/commit_sheet.dart';
 import 'package:hearthrise/ui/deadline_chip.dart';
 import 'package:hearthrise/ui/extend_sheet.dart';
 import 'package:hearthrise/ui/player_health_bar.dart';
-import 'package:hearthrise/ui/task_row_tile.dart';
+import 'package:hearthrise/ui/glass_alert.dart';
+import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
   MaterialApp(
     theme: buildTheme(),
-    home: Scaffold(body: SingleChildScrollView(child: child)),
+    home: Scaffold(body: child),
   ),
 );
 
@@ -55,8 +56,24 @@ void main() {
       );
       Color colorOf(String s) =>
           tester.widget<Text>(find.text(s)).style!.color!;
-      expect(colorOf('in 40 min'), kEmber);
-      expect(colorOf('missed'), kTextMuted);
+      expect(colorOf('in 40 min'), Biome.pharloom.palette.silk);
+      expect(colorOf('missed'), Biome.pharloom.palette.ash);
+    });
+
+    testWidgets('sits in a needle frame, edged silk only when soon', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const Column(
+          children: [
+            DeadlineChip(label: 'in 40 min', isSoon: true),
+            DeadlineChip(label: 'missed', isSoon: false),
+          ],
+        ),
+      );
+      final frames = tester.widgetList<NeedleFrame>(find.byType(NeedleFrame));
+      expect(frames.map((f) => f.edge), [Biome.pharloom.palette.silk, null]);
     });
   });
 
@@ -172,10 +189,10 @@ void main() {
           onClose: () {},
         ),
       );
-      expect(
-        find.text('While you were away, two deadlines passed.'),
-        findsOneWidget,
-      );
+      expect(find.text('Two deadlines passed.'), findsOneWidget);
+      expect(find.text('WHILE YOU WERE AWAY'), findsOneWidget);
+      expect(find.byType(GlassAlert), findsOneWidget);
+      expect(find.byType(NeedleFrame), findsNWidgets(2)); // one per row
       expect(find.text('−2 health'), findsOneWidget);
       await tester.tap(find.text('Done late').first);
       expect(late, 'c1');
@@ -192,10 +209,7 @@ void main() {
           onClose: () {},
         ),
       );
-      expect(
-        find.text('While you were away, a deadline passed.'),
-        findsOneWidget,
-      );
+      expect(find.text('A deadline passed.'), findsOneWidget);
       expect(find.text('Done late'), findsNothing);
     });
   });
@@ -244,18 +258,18 @@ void main() {
     });
   });
 
-  testWidgets('TaskRowTile shows a deadline slot when given', (tester) async {
+  testWidgets('AwaySummary: Go on closes it', (tester) async {
+    var closed = 0;
     await _pump(
       tester,
-      const TaskRowTile(
-        title: 'Read chapter 4',
-        weightLabel: 'Heavy',
-        isDone: false,
-        progress: 0,
-        deadline: DeadlineChip(label: 'by 11:00 PM', isSoon: false),
+      AwaySummary(
+        rows: const [AwayRow(id: 'c1', title: 'Walk', cost: 'frozen')],
+        onDoneLate: (_) {},
+        onClose: () => closed++,
       ),
     );
-    expect(find.text('by 11:00 PM'), findsOneWidget);
+    await tester.tap(find.text('Go on'));
+    expect(closed, 1);
   });
 
   testWidgets('AwaySummary scrolls when many deadlines passed', (tester) async {

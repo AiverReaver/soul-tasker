@@ -9,7 +9,7 @@ void main() {
   setUp(() => h = Harness());
   tearDown(() => h.db.close());
 
-  test('saves a boss with phases, tasks and standalone tasks', () async {
+  test('saves a boss with chapters, tasks and standalone tasks', () async {
     final view = await h.seed();
 
     expect(view.boss.attemptNumber, 1);
@@ -38,7 +38,7 @@ void main() {
     );
   });
 
-  test('edit reorders phases, moves a task, deletes removed rows', () async {
+  test('edit reorders chapters, moves a task, deletes removed rows', () async {
     final view = await h.seed();
     final draft = BossDraft.fromView(view);
     final learn = draft.phases[0];
@@ -67,7 +67,7 @@ void main() {
     expect(after.standalone, isEmpty);
   });
 
-  test('deleting a phase removes its tasks', () async {
+  test('deleting a chapter removes its tasks', () async {
     final view = await h.seed();
     final draft = BossDraft.fromView(view);
     await h.bosses.saveBoss(draft.copyWith(phases: [draft.phases.first]));
@@ -141,7 +141,7 @@ void main() {
     expect(rows.where((t) => t.id == original.task.id), hasLength(1));
   });
 
-  test('deleting a boss removes phases, tasks and attempts', () async {
+  test('deleting a boss removes chapters, tasks and attempts', () async {
     final view = await h.seed();
     await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
     await h.bosses.deleteBoss(view.boss.id);

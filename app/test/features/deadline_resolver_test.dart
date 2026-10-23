@@ -9,6 +9,7 @@ import 'package:hearthrise/data/health_dao.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/harness.dart';
+import '../support/foe_actions.dart';
 import 'pump.dart';
 
 // Starts 2026-10-14 08:00, the day after install, so no missed day is
@@ -49,7 +50,7 @@ void main() {
 
   testWidgets('nothing due: nothing shown', (tester) async {
     await boss('A', 1);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     expect(find.textContaining('While you were away'), findsNothing);
     expect(find.text('Fallen.'), findsNothing);
     await tearDownApp(tester, h);
@@ -61,12 +62,9 @@ void main() {
     final a = await boss('A', 2);
     await promiseAll(await tasksOf(a));
     h.clock.now = DateTime(2026, 10, 14, 12);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
-    expect(
-      find.text('While you were away, two deadlines passed.'),
-      findsOneWidget,
-    );
+    expect(find.text('Two deadlines passed.'), findsOneWidget);
     expect(find.text('−2 health'), findsNWidgets(2));
     await tester.tap(find.text('Done late').first);
     await settle(tester);
@@ -90,7 +88,7 @@ void main() {
   ) async {
     final a = await boss('A', 1);
     await promiseAll(await tasksOf(a));
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
     await tester.pump(kDeadlineTick);
@@ -108,7 +106,7 @@ void main() {
     final a = await boss('A', 5);
     await promiseAll(await tasksOf(a));
     h.clock.now = DateTime(2026, 10, 14, 12);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Go on'));
     await settle(tester);
 
@@ -135,7 +133,7 @@ void main() {
     await h.setFlasks(0);
     // The 14th passes with no rest; open on the 15th.
     h.clock.now = DateTime(2026, 10, 15, 12);
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Go on'));
     await settle(tester);
 
@@ -158,7 +156,7 @@ void main() {
   ) async {
     final a = await boss('A', 1);
     await promiseAll(await tasksOf(a));
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
@@ -168,10 +166,7 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await settle(tester);
     expect(await health.health('2026-10-14'), 16);
-    expect(
-      find.text('While you were away, a deadline passed.'),
-      findsOneWidget,
-    );
+    expect(find.text('A deadline passed.'), findsOneWidget);
     await tester.tap(find.text('Go on'));
     await settle(tester);
     await tearDownApp(tester, h);
@@ -184,14 +179,11 @@ void main() {
     final task = (await tasksOf(a)).single;
     await commits.commit(task, DeadlinePreset.tonight);
     await health.record(-19, HealthReason.miss, '2026-10-14', h.clock());
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
 
-    await tester.tap(find.byTooltip('Actions for A T0'));
-    await settle(tester);
-    await tester.tap(find.text('Mark as tried'));
-    await settle(tester);
+    await tapFoeAction(tester, 'A T0', 'Mark as tried');
 
     expect(find.text('Fallen.'), findsOneWidget);
     expect(find.text('One promised, none kept.'), findsOneWidget);
@@ -211,21 +203,16 @@ void main() {
     final a = await boss('A', 6);
     final ts = await tasksOf(a);
     await promiseAll(ts.take(5).toList());
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
 
     // The deadlines pass between ticks; the strike settles them first.
     h.clock.now = DateTime(2026, 10, 14, 9, 30);
-    await tester.ensureVisible(find.byTooltip('Actions for A T5'));
-    await settle(tester);
-    await tester.tap(find.byTooltip('Actions for A T5'));
-    await settle(tester);
-    await tester.tap(find.text('Mark as tried'));
-    await settle(tester);
+    await tapFoeAction(tester, 'A T5', 'Mark as tried');
 
     expect(find.text('Fallen.'), findsOneWidget);
-    await tester.tap(find.text('Skip'));
+    await tester.tap(find.text('Rest first. Write it tomorrow.'));
     await settle(tester);
     // Skipped: not offered again in this run.
     await tester.pump(kDeadlineTick);
@@ -242,7 +229,7 @@ void main() {
     h.clock.now = DateTime(2026, 10, 14, 12);
     // Settled, then the app was killed before the fallen moment.
     await health.resolveDue();
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.text('Fallen.'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Next time.');

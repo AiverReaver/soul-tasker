@@ -4,11 +4,13 @@ import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/features/strike/hold_to_strike.dart';
+import 'package:hearthrise/ui/hold_button.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/harness.dart';
 import '../../support/recording_haptics.dart';
 import '../pump.dart';
+import '../../support/hold_finders.dart';
 
 const _frame = Duration(milliseconds: 16);
 const _dragPastSlop = Offset(0, -40);
@@ -26,18 +28,9 @@ double _scrolled(WidgetTester tester) => tester
     .position
     .pixels;
 
-/// The ember fill of the row titled [title]: 0 empty, 1 full.
-double _fill(WidgetTester tester, String title) {
-  final row = find.ancestor(
-    of: find.text(title),
-    matching: find.byType(HoldToStrike),
-  );
-  final fill = find.descendant(
-    of: row,
-    matching: find.byType(FractionallySizedBox),
-  );
-  return tester.widget<FractionallySizedBox>(fill).widthFactor!;
-}
+/// The hold button's fill of the row titled [title]: 0 empty, 1 full.
+double _fill(WidgetTester tester, String title) =>
+    tester.widget<HoldButton>(holdButton(title)).progress;
 
 void main() {
   testWidgets('a lone list: dragging while holding scrolls and never strikes', (
@@ -67,7 +60,7 @@ void main() {
     );
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.text('Task 2')),
+      tester.getCenter(holdButton('Task 2')),
     );
     await tester.pump();
     await gesture.moveBy(_dragPastSlop);
@@ -107,7 +100,7 @@ void main() {
     );
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.text('Task 2')),
+      tester.getCenter(holdButton('Task 2')),
     );
     await tester.pump();
     await _holdFor(tester, Weight.heavy.holdDuration + _frame * 2);
@@ -132,12 +125,12 @@ void main() {
         ],
       ),
     );
-    await pumpApp(tester, h);
+    await pumpApp(tester, h, tall: true);
     await tester.tap(find.text('Today'));
     await settle(tester);
 
     final gesture = await tester.startGesture(
-      tester.getCenter(find.text('Chore 2')),
+      tester.getCenter(holdButton('Chore 2')),
     );
     await tester.pump();
     await gesture.moveBy(_dragPastSlop);

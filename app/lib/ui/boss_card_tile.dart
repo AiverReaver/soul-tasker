@@ -2,8 +2,8 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
 import 'boss_art.dart';
-import 'boss_health_bar.dart';
-import 'carved_frame.dart';
+import 'needle_frame.dart';
+import 'shard_meter.dart';
 
 /// One boss on the home list (§6.1). Pure presentation: values in, taps out.
 class BossCardTile extends StatelessWidget {
@@ -16,7 +16,7 @@ class BossCardTile extends StatelessWidget {
     required this.isPinned,
     required this.onTap,
     required this.onLongPress,
-    this.healthGroups,
+    this.showHealth = false,
     this.boilFrame = 0,
   });
 
@@ -26,8 +26,8 @@ class BossCardTile extends StatelessWidget {
   final double health;
   final bool isPinned;
 
-  /// Health bar segments; null hides the bar.
-  final List<List<bool>>? healthGroups;
+  /// Shows the shard meter.
+  final bool showHealth;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -37,7 +37,6 @@ class BossCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final groups = healthGroups;
     return Semantics(
       label:
           'Boss $title, attempt $attemptNumber, '
@@ -46,19 +45,18 @@ class BossCardTile extends StatelessWidget {
       excludeSemantics: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: CarvedFrame(
+        child: NeedleFrame(
           key: const Key('boss-card-frame'),
-          isLit: isPinned,
-          padding: EdgeInsets.zero,
+          edge: isPinned ? context.palette.deep : null,
+          fill: isPinned ? context.palette.raised2 : null,
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
               onTap: onTap,
               onLongPress: onLongPress,
-              splashColor: kEmber.withValues(alpha: 0.12),
-              highlightColor: kAshDim.withValues(alpha: 0.1),
+              splashColor: context.palette.silk.withValues(alpha: 0.12),
+              highlightColor: context.palette.dim.withValues(alpha: 0.1),
               child: Padding(
-                // Extra inset keeps content clear of the inner hairline.
                 padding: const EdgeInsets.all(Space.md + Space.xs),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -66,14 +64,14 @@ class BossCardTile extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _heading(text)),
+                        Expanded(child: _heading(context, text)),
                         const SizedBox(width: Space.sm),
                         BossArt(boilFrame: boilFrame, width: 72),
                       ],
                     ),
-                    if (groups != null) ...[
+                    if (showHealth) ...[
                       const SizedBox(height: Space.md),
-                      BossHealthBar(groups: groups, health: health, height: 8),
+                      ShardMeter(filled: shardsFor(health), height: 8),
                     ],
                   ],
                 ),
@@ -85,7 +83,7 @@ class BossCardTile extends StatelessWidget {
     );
   }
 
-  Widget _heading(TextTheme text) => Column(
+  Widget _heading(BuildContext context, TextTheme text) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       if (isPinned)
@@ -95,11 +93,14 @@ class BossCardTile extends StatelessWidget {
             children: [
               const _PinMark(),
               const SizedBox(width: Space.sm),
-              Text('Pinned', style: text.labelSmall?.copyWith(color: kEmber)),
+              Text(
+                'Pinned',
+                style: text.labelSmall?.copyWith(color: context.palette.silk),
+              ),
             ],
           ),
         ),
-      Text(title, style: text.displaySmall?.copyWith(fontSize: 28)),
+      Text(title, style: text.headlineMedium),
       const SizedBox(height: Space.xs),
       Text('Attempt $attemptNumber · $progressLabel', style: text.bodySmall),
     ],
@@ -117,10 +118,10 @@ class _PinMark extends StatelessWidget {
     child: Transform.rotate(
       key: const Key('pin-mark'),
       angle: 0.785398,
-      child: const SizedBox(
+      child: SizedBox(
         width: 6,
         height: 6,
-        child: ColoredBox(color: kEmber),
+        child: ColoredBox(color: context.palette.silk),
       ),
     ),
   );

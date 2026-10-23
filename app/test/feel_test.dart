@@ -6,6 +6,7 @@ import 'package:hearthrise/features/strike/hold_to_strike.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'support/recording_haptics.dart';
+import 'support/hold_finders.dart';
 
 Widget _host({
   required VoidCallback onStrike,
@@ -32,7 +33,7 @@ void main() {
     var strikes = 0;
     final haptics = RecordingHaptics();
     await tester.pumpWidget(_host(onStrike: () => strikes++, haptics: haptics));
-    final row = find.text('Read chapter 4'); // Heavy: 600 ms hold
+    final row = holdButton('Read chapter 4'); // Heavy: 600 ms hold
 
     var gesture = await tester.startGesture(tester.getCenter(row));
     await tester.pump(const Duration(milliseconds: 300));
@@ -57,7 +58,7 @@ void main() {
     await tester.pumpWidget(
       _host(onStrike: () => strikes++, haptics: haptics, tapMode: true),
     );
-    await tester.tap(find.text('Read chapter 4'));
+    await tester.tap(holdButton('Read chapter 4'));
     expect(strikes, 1);
     expect(haptics.events, ['heavy']);
   });

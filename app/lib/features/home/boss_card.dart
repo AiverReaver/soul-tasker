@@ -3,10 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme.dart';
+import '../../core/clock.dart';
+import '../../core/days_left.dart';
 import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/boss_card_tile.dart';
+import '../../ui/pinned_boss_panel.dart';
 import '../shell/atmosphere.dart';
 
 /// One boss on the home list (§6.1). Long-press for pin and status.
@@ -16,14 +19,28 @@ class BossCard extends ConsumerWidget {
   final BossView view;
 
   String get _progress {
-    if (!view.hasSegments) return 'Daily foes';
+    if (!view.hasSegments) return 'Daily tasks';
     final fighting = view.phases
         .where((p) => p.tasks.any((t) => t.isSegment))
         .toList();
     final current = view.currentPhase;
     return current == null
-        ? 'All phases done'
-        : 'Phase ${fighting.indexOf(current) + 1} of ${fighting.length}';
+        ? 'All chapters done'
+        : 'Chapter ${_roman(fighting.indexOf(current) + 1)} of '
+              '${_roman(fighting.length)}';
+  }
+
+  static String _roman(int n) {
+    const parts = {10: 'X', 9: 'IX', 5: 'V', 4: 'IV', 1: 'I'};
+    var rest = n;
+    final out = StringBuffer();
+    for (final MapEntry(:key, :value) in parts.entries) {
+      while (rest >= key) {
+        out.write(value);
+        rest -= key;
+      }
+    }
+    return out.toString();
   }
 
   Future<void> _actions(BuildContext context, WidgetRef ref) async {
@@ -31,7 +48,7 @@ class BossCard extends ConsumerWidget {
     final dao = ref.read(bossDaoProvider);
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: kSurface,
+      backgroundColor: context.palette.shell,
       builder: (sheet) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -71,15 +88,27 @@ class BossCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final boss = view.boss;
+    if (boss.isPinned && boss.status == BossStatus.active) {
+      return PinnedBossPanel(
+        title: boss.title,
+        subtitle: [
+          _progress,
+          'Attempt ${boss.attemptNumber}',
+          ?daysLeftLabel(boss.targetDate, ref.read(clockProvider)()),
+        ].join(' · '),
+        health: view.health,
+        boilFrame: Atmosphere.boilFrameOf(context),
+        onEnter: () => context.push('/boss/${boss.id}'),
+        onLongPress: () => _actions(context, ref),
+      );
+    }
     return BossCardTile(
       title: boss.title,
       attemptNumber: boss.attemptNumber,
       progressLabel: _progress,
       health: view.health,
       isPinned: boss.isPinned,
-      healthGroups: boss.status == BossStatus.active && view.hasSegments
-          ? view.healthGroups
-          : null,
+      showHealth: boss.status == BossStatus.active && view.hasSegments,
       boilFrame: Atmosphere.boilFrameOf(context),
       onTap: () => context.push('/boss/${boss.id}'),
       onLongPress: () => _actions(context, ref),

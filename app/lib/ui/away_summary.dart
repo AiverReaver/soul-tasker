@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/deadlines.dart';
 import '../core/theme.dart';
+import 'glass_alert.dart';
+import 'needle_frame.dart';
 
 /// One passed deadline in the away summary.
 @immutable
@@ -23,7 +25,7 @@ class AwayRow {
   final bool isDone;
 }
 
-/// Deadlines that passed while the app was closed, in one calm summary
+/// Deadlines that passed while the app was closed, in one calm glass alert
 /// instead of a wall of penalties (§5.12, plan D19).
 class AwaySummary extends StatelessWidget {
   const AwaySummary({
@@ -40,32 +42,62 @@ class AwaySummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final heading = rows.length == 1
-        ? 'While you were away, a deadline passed.'
-        : 'While you were away, ${countWord(rows.length)} deadlines passed.';
-    return AlertDialog(
-      backgroundColor: kSurface,
-      title: Text(heading, style: text.titleMedium),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final r in rows)
-              Row(
-                children: [
-                  Expanded(child: Text(r.title, style: text.bodyMedium)),
-                  Text(r.cost, style: text.bodySmall),
-                  if (!r.isDone)
-                    TextButton(
-                      onPressed: () => onDoneLate(r.id),
-                      child: const Text('Done late'),
+    final p = context.palette;
+    final title = rows.length == 1
+        ? 'A deadline passed.'
+        : '${_capital(countWord(rows.length))} deadlines passed.';
+    return GlassAlert(
+      label: 'While you were away',
+      title: title,
+      onAction: (_) => onClose(),
+      actions: const ['Go on'],
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 280),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: Space.sm,
+            children: [
+              for (final r in rows)
+                NeedleFrame(
+                  tier: Cut.md,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Space.md,
+                      vertical: Space.xs,
                     ),
-                ],
-              ),
-          ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                r.title,
+                                style: text.bodyMedium!.copyWith(color: p.bone),
+                              ),
+                            ),
+                            Text(r.cost, style: text.bodySmall),
+                          ],
+                        ),
+                        if (!r.isDone)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => onDoneLate(r.id),
+                              child: const Text('Done late'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-      actions: [TextButton(onPressed: onClose, child: const Text('Go on'))],
     );
   }
+
+  static String _capital(String s) => s[0].toUpperCase() + s.substring(1);
 }

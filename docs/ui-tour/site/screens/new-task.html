@@ -1,0 +1,66 @@
+<style>
+#newtask>.backdrop{background:radial-gradient(ellipse 215px 120px at 50% 0, color-mix(in srgb, var(--mote) 10%, transparent), transparent),radial-gradient(circle 373px at 50% 50%, transparent 55%, color-mix(in srgb, var(--ink) calc(var(--vignette) * 100%), transparent) 100%),radial-gradient(circle 432px at 50% -64px, color-mix(in srgb, var(--mote) 12%, transparent) 0%, var(--ground) 40%, var(--void) 80%), var(--void)}
+#newtask .home-ind{left:126.5px;width:140px;opacity:.4}
+#newtask .home-ind{z-index:70}
+#newtask .lbl{font:600 12px/17px "Hanken Grotesk";letter-spacing:1.6px;color:var(--ash)}
+#newtask .fld{border:1px solid var(--seam);background:var(--shell);border-radius:6px;padding:0 16px;height:53px;display:flex;align-items:center;font:400 16px/24px "Hanken Grotesk";color:var(--text)}
+#newtask .sheet{overflow:hidden}
+#newtask .statusbar{z-index:80}
+#newtask .sheet .grabber{margin:0}
+#newtask .sheet .thread{height:6px}
+#newtask .sheet-head{align-items:flex-start}
+#newtask .sheet-head .t-title{display:block;font:500 26px/30px "Cormorant Garamond",serif}
+#newtask .sheet-head .lb{display:block;font:600 12px/16.8px "Hanken Grotesk";letter-spacing:1.6px;color:var(--ash);text-transform:uppercase}
+#newtask .sheet-head .pw{height:48px;display:grid;place-items:center}
+#newtask .ar{height:52px;border:1px solid var(--seam);background:var(--shell);border-radius:6px;display:grid;place-items:center;font:600 16px/1 "Hanken Grotesk";color:var(--bone)}
+#newtask .cap{font:600 15px/21.75px "Hanken Grotesk";color:var(--bone)}
+#newtask .col6{display:flex;flex-direction:column;gap:6px}
+#newtask .sg{display:flex;gap:8px}
+#newtask .sgi{flex:1;height:73px;border:1px solid var(--seam);background:var(--shell);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding-top:0}
+#newtask .sgi.on{border-color:var(--silk)}
+#newtask .sgi .pp{display:flex;gap:4px;height:6px}
+#newtask .sgi .pp i{width:6px;height:6px;background:var(--dim);transform:rotate(45deg)}
+#newtask .sgi.on .pp i{background:var(--silk)}
+#newtask .sgi b{font:600 15px/21.75px "Hanken Grotesk";color:var(--ash)} #newtask .sgi.on b{color:var(--bone)}
+#newtask .sgi small{font:400 14px/20.3px "Hanken Grotesk";color:var(--ash)}
+</style>
+<div class="phone" id="newtask" data-biome="pharloom" data-shot="060_new_task_filled" data-title="New task sheet, filled">
+  <div class="backdrop"></div><div class="motes"><i style="left:215px;top:113px;opacity:.5"></i><i style="left:330px;top:190px;opacity:.6"></i></div>
+  <div class="statusbar" data-time="9:33"></div>
+  <div class="screen">
+    <div class="px20" style="padding-top:8px;padding-bottom:16px;display:flex;flex-direction:column;gap:8px">
+      <div class="row" style="justify-content:space-between">
+        <span class="t-label" style="text-transform:none">Hearthrise</span>
+        <div class="row" style="gap:8px;margin-right:-2px">
+          <span class="tap48"><span class="glass g-circle"><svg data-i="profile"></svg></span></span>
+          <span class="tap48"><span class="glass g-circle"><svg data-i="settings"></svg></span></span>
+        </div>
+      </div>
+      <div class="row" style="align-items:flex-end;justify-content:space-between">
+        <div class="col"><span class="t-body-m ash" style="font-size:14px">19 Oct 2026</span><span class="t-display-s" style="margin-top:4px">Evening.</span></div>
+        <div class="row" style="gap:10px;margin-bottom:4px">
+          <div class="col" style="gap:6px;align-items:flex-end">
+            <span class="row t-body-m" style="gap:4px;color:var(--text)"><svg data-i="flame" data-s="14" data-w="1.8" style="color:var(--silk)"></svg>0</span>
+            <span class="bars"><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+          <span style="width:37px;height:37px;display:grid;place-items:center"><span style="width:26px;height:26px;background:var(--silk);transform:rotate(45deg);display:grid;place-items:center"><b style="transform:rotate(-45deg);font:500 16px/1 'Cormorant Garamond',serif;color:var(--onSilk)">1</b></span></span>
+        </div>
+      </div>
+    </div>
+    <div class="px20"><div class="nf row" style="padding:12px 14px;min-height:56px;justify-content:space-between">
+      <span class="t-body-m"><b class="w600 bone">All bosses</b><span class="ash"> · 2 active · 1 waiting</span></span><span class="chev">›</span>
+    </div></div>
+    <div class="px20 row" style="gap:8px;margin-top:2px"><span class="fchip">All</span><span class="fchip">Ship the portfolio</span><span class="fchip on">The Day</span></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="sheet glass" data-glint="88" style="height:528px"><div class="in">
+    <i class="grabber"></i>
+    <div class="sheet-head"><div><span class="lb">Today’s tasks</span><span class="t-title">A new task</span></div><span class="pw"><span class="glass g-pill"><span>Cancel</span></span></span></div>
+    <div class="thread"><i></i></div>
+<div style="display:flex;flex-direction:column;gap:16px"><div class="col6"><span class="cap">Name the task</span><div class="fld" style="height:54.5px">Call the bank</div></div>
+<div class="col6" style="gap:7px"><span class="lbl">Strength</span><div class="sg"><div class="sgi on"><span class="pp"><i></i></span><b>Light</b><small>+1 embers</small></div><div class="sgi"><span class="pp"><i></i><i></i></span><b>Heavy</b><small>+3 embers</small></div><div class="sgi"><span class="pp"><i></i><i></i><i></i></span><b>Boss-tier</b><small>+6 embers</small></div></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Strikes at</span><div class="nf md" style="height:57.5px;padding:0 16px;display:flex;align-items:center;font:500 16px/24px 'Hanken Grotesk';color:var(--bone)"><span style="flex:1">The Day</span><span class="chev">›</span></div></div>
+<div class="ember" style="height:54px;font:600 16px/1 'Hanken Grotesk';gap:14px"><svg data-i="strike" data-s="20" data-w="1.6"></svg>Add to today</div></div>
+  </div></div>
+  <i class="home-ind"></i>
+</div>

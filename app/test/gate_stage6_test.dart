@@ -62,7 +62,7 @@ void main() {
     }
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('Zorblax the Unnamed'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await close();
     final bossId = (await h.bosses.loadAll()).single.boss.id;
     at(1, 20);
@@ -115,7 +115,7 @@ void main() {
     // The tester report, copied from Settings.
     Future<String> copyReport() async {
       await open();
-      await tester.tap(find.byTooltip('Settings'));
+      await tester.tap(find.bySemanticsLabel('Settings'));
       await settle(tester);
       await tester.tap(find.text('Copy tester report'));
       await settle(tester);

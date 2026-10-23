@@ -8,7 +8,6 @@ import 'package:hearthrise/ui/level_line.dart';
 import 'package:hearthrise/ui/onboarding_page.dart';
 import 'package:hearthrise/ui/relic_emblem.dart';
 import 'package:hearthrise/ui/relic_tile.dart';
-import 'package:hearthrise/ui/victory_numbers.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
@@ -31,7 +30,8 @@ void main() {
 
     test('more attempts, more marks; no rank word or red in the labels', () {
       final marks = [
-        for (final w in Weathering.values) EmblemPainter(w).markCount,
+        for (final w in Weathering.values)
+          EmblemPainter(w, Biome.pharloom.palette).markCount,
       ];
       expect(marks, [...marks]..sort());
       expect(marks.toSet(), hasLength(4));
@@ -41,30 +41,7 @@ void main() {
           isNot(anyOf(contains('best'), contains('perfect'), contains('lvl'))),
         );
       }
-      expect(kBossHealth, isNot(kEmber));
-    });
-  });
-
-  group('VictoryNumbers', () {
-    testWidgets('plural copy', (tester) async {
-      await _pump(
-        tester,
-        const VictoryNumbers(attempts: 3, days: 12, effort: 48),
-      );
-      expect(find.text('3 attempts'), findsOneWidget);
-      expect(find.text('12 days'), findsOneWidget);
-      expect(find.text('48 embers of effort'), findsOneWidget);
-    });
-
-    testWidgets('singular copy, never "first try"', (tester) async {
-      await _pump(
-        tester,
-        const VictoryNumbers(attempts: 1, days: 1, effort: 1),
-      );
-      expect(find.text('1 attempt'), findsOneWidget);
-      expect(find.text('1 day'), findsOneWidget);
-      expect(find.text('1 ember of effort'), findsOneWidget);
-      expect(find.textContaining('first try'), findsNothing);
+      expect(Biome.pharloom.palette.shard, isNot(Biome.pharloom.palette.silk));
     });
   });
 
@@ -79,11 +56,14 @@ void main() {
           ],
         ),
       );
-      expect(
-        find.textContaining('Attempt 1. Started too late.'),
-        findsOneWidget,
+      expect(find.text('I'), findsOneWidget);
+      expect(find.text('II'), findsOneWidget);
+      final line = tester.widget<Text>(
+        find.textContaining('Started too late.'),
       );
-      expect(find.textContaining('Attempt 2. Rushed it.'), findsOneWidget);
+      expect(line.style?.fontStyle, FontStyle.italic);
+      expect(line.style?.fontFamily, 'CormorantGaramond');
+      expect(find.textContaining('Rushed it.'), findsOneWidget);
       expect(find.textContaining('a missed day'), findsOneWidget);
     });
 
@@ -104,8 +84,9 @@ void main() {
         tester,
         InscriptionField(controller: c, onSaved: (t) => saved = t),
       );
-      expect(find.text('What did this fight make of you?'), findsOneWidget);
-      expect(find.text('0/$kInscriptionMax'), findsOneWidget);
+      expect(find.text('Inscription'), findsOneWidget);
+      expect(find.text('A line to remember this by'), findsOneWidget);
+      expect(find.text('0 / $kInscriptionMax'), findsOneWidget);
       await tester.enterText(find.byType(TextField), 'Patience.');
       await tester.tap(find.text('Save'));
       expect(saved, 'Patience.');
@@ -140,7 +121,7 @@ void main() {
     testWidgets('empty state', (tester) async {
       await _pump(tester, HallOfRelics(entries: const [], onOpen: (_) {}));
       expect(
-        find.text('No foes vanquished yet. The first relic awaits.'),
+        find.text('No bosses vanquished yet. The first relic awaits.'),
         findsOneWidget,
       );
     });
@@ -190,6 +171,7 @@ void main() {
       await _pump(
         tester,
         OnboardingPage(
+          step: 1,
           line: 'Failing is fine.',
           body: const Text('body'),
           onNext: () => next++,
@@ -208,6 +190,7 @@ void main() {
       await _pump(
         tester,
         OnboardingPage(
+          step: 1,
           line: 'x',
           body: const SizedBox(),
           isLast: true,
@@ -221,6 +204,7 @@ void main() {
       await _pump(
         tester,
         OnboardingPage(
+          step: 1,
           line: 'x',
           body: const SizedBox(),
           isLast: true,

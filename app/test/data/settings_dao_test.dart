@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:hearthrise/core/palette.dart';
+
 import 'harness.dart';
 
 void main() {
@@ -50,6 +52,28 @@ void main() {
         throwsArgumentError,
       );
       expect((await h.settings.watch().first).reminderMinutes, 21 * 60);
+    });
+  });
+
+  group('biome', () {
+    test('a fresh database is Pharloom', () async {
+      expect((await h.settings.device()).biome, Biome.pharloom);
+    });
+
+    test('setBiome is read back by device()', () async {
+      await h.settings.setBiome(Biome.moss);
+      expect((await h.settings.device()).biome, Biome.moss);
+    });
+  });
+
+  group('motion effects', () {
+    test('a fresh database has them on', () async {
+      expect((await h.settings.device()).motionEffects, isTrue);
+    });
+
+    test('setMotionEffects is read back by device()', () async {
+      await h.settings.setMotionEffects(false);
+      expect((await h.settings.device()).motionEffects, isFalse);
     });
   });
 }

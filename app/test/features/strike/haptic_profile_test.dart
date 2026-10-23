@@ -6,6 +6,7 @@ import 'package:hearthrise/features/strike/hold_to_strike.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../support/recording_haptics.dart';
+import '../../support/hold_finders.dart';
 
 const _frame = Duration(milliseconds: 16);
 
@@ -42,7 +43,7 @@ Future<void> _holdFor(WidgetTester tester, Duration duration) async {
 
 Future<TestGesture> _press(WidgetTester tester) async {
   final gesture = await tester.startGesture(
-    tester.getCenter(find.text('The task')),
+    tester.getCenter(holdButton('The task')),
   );
   await tester.pump(); // first frame sets the animation start time
   return gesture;
@@ -119,7 +120,7 @@ void main() {
       final haptics = RecordingHaptics();
       await tester.pumpWidget(_host(haptics, weight, tapMode: true));
 
-      await tester.tap(find.text('The task'));
+      await tester.tap(holdButton('The task'));
       await tester.pumpAndSettle();
 
       expect(haptics.events, expected);

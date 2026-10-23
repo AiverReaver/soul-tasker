@@ -1,11 +1,14 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'data/providers.dart';
 import 'features/shell/atmosphere.dart';
+import 'features/shell/tilt_controller.dart';
 
-class HearthriseApp extends StatefulWidget {
+class HearthriseApp extends ConsumerStatefulWidget {
   const HearthriseApp({
     super.key,
     this.initialLocation = '/',
@@ -19,10 +22,10 @@ class HearthriseApp extends StatefulWidget {
   final bool isAmbient;
 
   @override
-  State<HearthriseApp> createState() => _HearthriseAppState();
+  ConsumerState<HearthriseApp> createState() => _HearthriseAppState();
 }
 
-class _HearthriseAppState extends State<HearthriseApp> {
+class _HearthriseAppState extends ConsumerState<HearthriseApp> {
   late final GoRouter _router = buildRouter(widget.initialLocation);
 
   @override
@@ -36,10 +39,25 @@ class _HearthriseAppState extends State<HearthriseApp> {
     return MaterialApp.router(
       title: 'Hearthrise',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
+      theme: buildTheme(ref.watch(biomeProvider) ?? Biome.pharloom),
+      themeAnimationDuration: Motion.fade,
       routerConfig: _router,
-      builder: (context, child) =>
-          Atmosphere(isStill: !widget.isAmbient, child: child!),
+      builder: (context, child) {
+        final motionEffects = ref.watch(motionEffectsProvider);
+        return MediaQuery(
+          // Reduce motion stills every animation that honours the system flag.
+          data: MediaQuery.of(context).copyWith(
+            disableAnimations:
+                !motionEffects || MediaQuery.disableAnimationsOf(context),
+          ),
+          child: Atmosphere(
+            isStill: !widget.isAmbient,
+            tiltSource: widget.isAmbient ? const SensorsTiltSource() : null,
+            motionEffects: motionEffects,
+            child: child!,
+          ),
+        );
+      },
     );
   }
 }

@@ -39,7 +39,7 @@ void main() {
         syncApiFactoryProvider.overrideWithValue((_) => server),
       ],
     );
-    await tester.tap(find.byTooltip('Settings'));
+    await tester.tap(find.bySemanticsLabel('Settings'));
     await settle(tester);
     await tester.scrollUntilVisible(
       find.text('Back up and sync'),
@@ -305,7 +305,7 @@ void main() {
 
     await tester.tap(find.text('Delete account'));
     await settle(tester);
-    await tester.tap(find.widgetWithText(TextButton, 'Delete'));
+    await tester.tap(find.text('Delete'));
     await settle(tester);
 
     expect(accounts.calls, contains('delete:session-1'));

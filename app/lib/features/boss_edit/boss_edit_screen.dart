@@ -7,6 +7,14 @@ import '../../core/theme.dart';
 import '../../data/boss_draft.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/glass_circle_button.dart';
+import '../../ui/glass_pill_button.dart';
+import '../../ui/needle_text_field.dart';
+import '../../ui/phase_panel.dart';
+import '../../ui/setting_choice_row.dart';
+import '../../ui/needle_frame.dart';
+import '../../ui/stroke_icon.dart';
+import '../../ui/thread_divider.dart';
 import '../boss/task_row.dart' show confirm;
 import 'task_edit_sheet.dart';
 
@@ -23,6 +31,15 @@ class BossEditScreen extends ConsumerStatefulWidget {
 class _BossEditScreenState extends ConsumerState<BossEditScreen> {
   BossDraft? _draft;
   String? _error;
+  final _title = TextEditingController();
+  final _meaning = TextEditingController();
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _meaning.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -34,15 +51,21 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     final id = widget.bossId;
     final BossDraft draft;
     if (id == null) {
-      final settings = await ref.read(settingsDaoProvider).watch().first;
-      draft = BossDraft.fresh(settings.defaultResetOnFail);
+      final settings = await ref.read(settingsDaoProvider).read();
+      draft = BossDraft(
+        resetOnFail: settings.defaultResetOnFail,
+        phases: const [PhaseDraft(name: '')],
+      );
     } else {
       final view = await ref.read(bossDaoProvider).loadBoss(id);
       if (view == null) return setState(() => _error = 'This boss is gone.');
       draft = BossDraft.fromView(view);
     }
     // Every row gets its id up front so list keys stay stable while editing.
-    if (mounted) setState(() => _draft = _withIds(draft));
+    if (!mounted) return;
+    _title.text = draft.title;
+    _meaning.text = draft.defeatMeaning;
+    setState(() => _draft = _withIds(draft));
   }
 
   BossDraft _withIds(BossDraft d) {
@@ -123,7 +146,7 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     if (phase.tasks.isNotEmpty) {
       final ok = await confirm(
         context,
-        'Delete this phase and its ${phase.tasks.length} tasks?',
+        'Delete this chapter and its ${phase.tasks.length} tasks?',
         action: 'Delete',
       );
       if (!ok) return;
@@ -147,20 +170,49 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
   @override
   Widget build(BuildContext context) {
     final draft = _draft;
+    final text = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.bossId == null ? 'A new boss' : 'Edit boss'),
-        actions: [
-          TextButton(
-            onPressed: draft != null && draft.canSave ? _save : null,
-            child: const Text('Save'),
-          ),
-        ],
-      ),
       body: SafeArea(
-        child: draft == null
-            ? Center(child: Text(_error ?? ''))
-            : _form(context, draft),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.sm),
+              child: Row(
+                spacing: Space.sm + 4,
+                children: [
+                  GlassCircleButton(
+                    icon: StrokeIcons.back,
+                    semanticLabel: 'Back',
+                    onTap: () =>
+                        context.canPop() ? context.pop() : context.go('/'),
+                  ),
+                  Expanded(
+                    child: Text(
+                      widget.bossId == null ? 'A new boss' : 'Edit boss',
+                      style: text.titleMedium?.copyWith(
+                        fontSize: 26,
+                        height: 30 / 26,
+                      ),
+                    ),
+                  ),
+                  GlassPillButton(
+                    label: 'Save',
+                    onTap: draft != null && draft.canSave ? _save : null,
+                  ),
+                ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: ThreadDivider(),
+            ),
+            Expanded(
+              child: draft == null
+                  ? Center(child: Text(_error ?? ''))
+                  : _form(context, draft),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -171,39 +223,49 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
       padding: const EdgeInsets.fromLTRB(20, Space.md, 20, Space.xl),
       children: [
         if (_error != null)
-          Text(_error!, style: text.bodyMedium?.copyWith(color: kEmber)),
-        TextFormField(
-          initialValue: draft.title,
-          maxLength: 80,
-          style: text.bodyLarge,
-          decoration: const InputDecoration(labelText: 'Title'),
+          Text(
+            _error!,
+            style: text.bodyMedium?.copyWith(color: context.palette.silk),
+          ),
+        NeedleTextField(
+          controller: _title,
+          caption: 'Title',
+          hint: 'A goal worth a fight',
           onChanged: (v) => _update((d) => d.copyWith(title: v)),
         ),
-        TextFormField(
-          initialValue: draft.defeatMeaning,
+        const SizedBox(height: Space.md),
+        NeedleTextField(
+          controller: _meaning,
+          caption: 'What does defeat mean?',
           maxLength: 200,
-          style: text.bodyLarge,
-          decoration: const InputDecoration(
-            labelText: 'What does defeat mean?',
-          ),
           onChanged: (v) => _update((d) => d.copyWith(defeatMeaning: v)),
         ),
         _dateRow(context, draft),
         const SizedBox(height: Space.md),
-        Text('On a failed attempt, reset', style: text.bodySmall),
-        const SizedBox(height: Space.sm),
-        SegmentedButton<ResetOnFail>(
-          segments: [
-            for (final r in ResetOnFail.values)
-              ButtonSegment(value: r, label: Text(r.label)),
-          ],
-          selected: {draft.resetOnFail},
-          showSelectedIcon: false,
-          onSelectionChanged: (s) =>
-              _update((d) => d.copyWith(resetOnFail: s.single)),
+        SettingChoiceRow<ResetOnFail>(
+          title: 'On a failed attempt, reset',
+          options: {for (final r in ResetOnFail.values) r: r.label},
+          selected: draft.resetOnFail,
+          onChanged: (r) => _update((d) => d.copyWith(resetOnFail: r)),
         ),
         const SizedBox(height: Space.lg),
-        Text('PHASES', style: text.labelSmall),
+        const ThreadDivider(),
+        const SizedBox(height: Space.md),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Chapters', style: _serifHead(text)),
+            Flexible(
+              child: Text(
+                'Hold the grip to reorder',
+                textAlign: TextAlign.end,
+                style: text.bodySmall,
+              ),
+            ),
+          ],
+        ),
         ReorderableListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -215,28 +277,26 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           }),
           children: [
             for (final (i, p) in draft.phases.indexed)
-              Padding(
+              PhasePanel(
                 key: ValueKey(p.id),
-                padding: const EdgeInsets.symmetric(vertical: Space.sm),
-                child: _PhaseCard(
-                  index: i,
-                  phase: p,
-                  onRename: (name) => _update(
-                    (d) => d.copyWith(
-                      phases: [
-                        for (final q in d.phases)
-                          q.id == p.id ? q.copyWith(name: name) : q,
-                      ],
-                    ),
+                index: i,
+                name: p.name,
+                foes: [for (final t in p.tasks) _foe(t)],
+                onRename: (name) => _update(
+                  (d) => d.copyWith(
+                    phases: [
+                      for (final q in d.phases)
+                        q.id == p.id ? q.copyWith(name: name) : q,
+                    ],
                   ),
-                  onDelete: () => _deletePhase(p),
-                  onAddTask: () => _editTask(
-                    TaskDraft(id: newId(), title: ''),
-                    p.id,
-                    isNew: true,
-                  ),
-                  onEditTask: (t) => _editTask(t, p.id),
                 ),
+                onDelete: () => _deletePhase(p),
+                onAddFoe: () => _editTask(
+                  TaskDraft(id: newId(), title: ''),
+                  p.id,
+                  isNew: true,
+                ),
+                onEditFoe: (i) => _editTask(p.tasks[i], p.id),
               ),
           ],
         ),
@@ -249,10 +309,15 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
               ],
             ),
           ),
-          child: const Text('Add a phase'),
+          child: const Text('Add a chapter'),
         ),
         const SizedBox(height: Space.lg),
-        Text('BEYOND THE PHASES', style: text.labelSmall),
+        Text('Beyond the chapters', style: _serifHead(text)),
+        const SizedBox(height: Space.xs),
+        Text(
+          'Tasks that belong to the boss but no chapter, like daily habits.',
+          style: text.bodySmall,
+        ),
         for (final t in draft.standalone)
           _TaskLine(task: t, onTap: () => _editTask(t, null)),
         TextButton(
@@ -265,9 +330,9 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           const SizedBox(height: Space.xl),
           TextButton(
             onPressed: _deleteBoss,
-            child: const Text(
+            child: Text(
               'Delete boss',
-              style: TextStyle(color: kTextMuted),
+              style: TextStyle(color: context.palette.ash),
             ),
           ),
         ],
@@ -275,91 +340,57 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     );
   }
 
+  static TextStyle? _serifHead(TextTheme text) =>
+      text.titleMedium?.copyWith(fontSize: 22, height: 28 / 22);
+
+  static PhaseFoe _foe(TaskDraft t) => PhaseFoe(
+    title: t.title,
+    note:
+        '${t.weight.label}${t.recurrence == Recurrence.daily ? ' · daily' : ''}',
+  );
+
   Widget _dateRow(BuildContext context, BossDraft draft) {
     final date = draft.targetDate;
-    return Row(
-      children: [
-        Expanded(
-          child: TextButton(
-            style: TextButton.styleFrom(alignment: Alignment.centerLeft),
-            onPressed: _pickDate,
-            child: Text(
-              date == null
-                  ? 'Set a target date'
-                  : 'Target: ${MaterialLocalizations.of(context).formatMediumDate(date)}',
-            ),
-          ),
-        ),
-        if (date != null)
-          IconButton(
-            tooltip: 'Clear target date',
-            icon: const Icon(Icons.close, color: kTextMuted),
-            onPressed: () => _update((d) => d.copyWith(clearTargetDate: true)),
-          ),
-      ],
-    );
-  }
-}
-
-class _PhaseCard extends StatelessWidget {
-  const _PhaseCard({
-    required this.index,
-    required this.phase,
-    required this.onRename,
-    required this.onDelete,
-    required this.onAddTask,
-    required this.onEditTask,
-  });
-
-  final int index;
-  final PhaseDraft phase;
-  final ValueChanged<String> onRename;
-  final VoidCallback onDelete;
-  final VoidCallback onAddTask;
-  final ValueChanged<TaskDraft> onEditTask;
-
-  @override
-  Widget build(BuildContext context) {
-    // Material (not a colored box) so the task ListTiles can paint ink.
-    return Material(
-      color: kSurface,
-      shape: Border.all(color: kAshDim.withValues(alpha: 0.3)),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(Space.sm, 0, Space.sm, Space.sm),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    final p = context.palette;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: Space.md),
+      child: NeedleFrame(
+        tier: Cut.md,
+        child: Row(
           children: [
-            Row(
-              children: [
-                ReorderableDragStartListener(
-                  index: index,
-                  child: const SizedBox(
-                    width: kMinTarget,
-                    height: kMinTarget,
-                    child: Icon(Icons.drag_handle, color: kTextMuted),
-                  ),
-                ),
-                Expanded(
-                  child: TextFormField(
-                    initialValue: phase.name,
-                    maxLength: 60,
-                    decoration: const InputDecoration(
-                      hintText: 'Phase name',
-                      counterText: '',
+            Expanded(
+              child: InkWell(
+                onTap: _pickDate,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 52),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Space.md),
+                    child: Row(
+                      spacing: Space.sm + 4,
+                      children: [
+                        Icon(Icons.event_outlined, size: 20, color: p.silk),
+                        Expanded(
+                          child: Text(
+                            date == null
+                                ? 'Set a target date'
+                                : 'Target: ${MaterialLocalizations.of(context).formatMediumDate(date)}',
+                            style: text.bodyMedium,
+                          ),
+                        ),
+                      ],
                     ),
-                    onChanged: onRename,
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Delete phase',
-                  icon: const Icon(Icons.close, color: kTextMuted),
-                  onPressed: onDelete,
-                ),
-              ],
+              ),
             ),
-            for (final t in phase.tasks)
-              _TaskLine(task: t, onTap: () => onEditTask(t)),
-            TextButton(onPressed: onAddTask, child: const Text('Add a task')),
+            if (date != null)
+              IconButton(
+                tooltip: 'Clear target date',
+                icon: Icon(Icons.close, color: p.ash),
+                onPressed: () =>
+                    _update((d) => d.copyWith(clearTargetDate: true)),
+              ),
           ],
         ),
       ),
@@ -377,12 +408,40 @@ class _TaskLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final daily = task.recurrence == Recurrence.daily ? ' · daily' : '';
-    return ListTile(
-      minTileHeight: kMinTarget,
-      contentPadding: const EdgeInsets.symmetric(horizontal: Space.sm),
-      title: Text(task.title, style: text.bodyMedium),
-      trailing: Text('${task.weight.label}$daily', style: text.bodySmall),
-      onTap: onTap,
+    return Padding(
+      padding: const EdgeInsets.only(top: Space.sm),
+      child: NeedleFrame(
+        tier: Cut.md,
+        child: InkWell(
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Space.md,
+                vertical: Space.sm,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(task.title, style: text.bodyMedium),
+                        Text(
+                          '${task.weight.label}$daily',
+                          style: text.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: context.palette.ash),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

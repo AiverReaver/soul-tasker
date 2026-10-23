@@ -1,0 +1,263 @@
+<title>Hearthrise Design Book</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="hearth.css">
+<style>
+/* Design book for Hearthrise: the doc chrome is a quiet ink page; every specimen is live CSS in the app's own tokens. Single dark look by choice. */
+:root { color-scheme: dark; --pg: #0C0A0E; --pg2: #151217; --edge: #2E2832; --tx: #E2DBD0; --mut: #9E95A0; --hd: #F4EBDD; --ac: #E8566D;
+  --serif: "Cormorant Garamond", Georgia, serif; --sans: "Hanken Grotesk", system-ui, sans-serif; --mono: ui-monospace, "SF Mono", Menlo, monospace; }
+html { background: var(--pg); }
+body { background: var(--pg); color: var(--tx); font: 400 15px/1.6 var(--sans); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 72px; }
+.doc { max-width: 1240px; margin: 0 auto; }
+header.top { padding: 56px 0 28px; border-bottom: 1px solid var(--edge); display: grid; gap: 14px; }
+.eyebrow { font: 600 12px/1.4 var(--sans); letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); }
+h1 { font: 500 60px/1.02 var(--serif); color: var(--hd); margin: 0; letter-spacing: 1px; text-wrap: balance; }
+h2 { font: 500 36px/1.1 var(--serif); color: var(--hd); margin: 0 0 6px; text-wrap: balance; }
+h3 { font: 600 12px/1.4 var(--sans); letter-spacing: 1.6px; text-transform: uppercase; color: var(--mut); margin: 30px 0 12px; }
+p { margin: 0 0 12px; max-width: 70ch; }
+code { font: 12.5px/1.4 var(--mono); color: var(--hd); }
+nav.jump { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 100; background: color-mix(in srgb, var(--pg) 92%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--edge); display: flex; gap: 6px 18px; flex-wrap: wrap; padding: 10px 0; font-size: 14px; }
+nav.jump a { color: var(--mut); text-decoration: none; } nav.jump a:hover, nav.jump a:focus-visible { color: var(--hd); }
+section.part { padding: 52px 0 12px; border-bottom: 1px solid var(--edge); scroll-margin-top: 56px; }
+.biomebar { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+.biomebar button { font: 600 13px/1 var(--sans); color: var(--mut); background: var(--pg2); border: 1px solid var(--edge); border-radius: 6px; padding: 10px 14px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.biomebar button[aria-pressed="true"] { color: var(--hd); border-color: var(--ac); }
+.biomebar button i { width: 12px; height: 12px; transform: rotate(45deg); display: inline-block; }
+.biomebar button:focus-visible { outline: 2px solid var(--hd); outline-offset: 2px; }
+/* Specimen stage paints the selected biome's backdrop */
+.stage { border-radius: 10px; border: 1px solid var(--edge); padding: 24px; background: var(--void); color: var(--text); position: relative; overflow: hidden; }
+.stage::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 110% 90% at 50% -10%, color-mix(in srgb, var(--mote) 12%, transparent) 0%, var(--ground) 40%, var(--void) 80%); }
+.stage > * { position: relative; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.spec { display: grid; gap: 10px; align-content: start; }
+.spec > .lbl { font: 600 11px/1.4 var(--sans); letter-spacing: 1.2px; text-transform: uppercase; color: var(--ash); }
+.spec > .lbl code { color: var(--bone); font-size: 11px; letter-spacing: 0; text-transform: none; }
+.spec > .note { font: 400 12.5px/1.5 var(--sans); color: var(--ash); }
+.sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.sw div { border: 1px solid var(--seam); border-radius: 6px; overflow: hidden; background: var(--shell); }
+.sw div b { display: block; height: 54px; }
+.sw div span { display: block; padding: 6px 8px; font: 600 12px/1.3 var(--sans); color: var(--text); }
+.sw div small { display: block; padding: 0 8px 7px; font: 400 11px/1.3 var(--mono); color: var(--ash); }
+.tbl { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--edge); vertical-align: top; }
+th { color: var(--mut); font: 600 11px/1.4 var(--sans); letter-spacing: 1.2px; text-transform: uppercase; }
+.typerow { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--seam) 70%, transparent); }
+.typerow .k { font: 400 12px/1.5 var(--mono); color: var(--ash); }
+.ruler { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.ruler div { display: grid; gap: 6px; justify-items: center; font: 400 11px/1 var(--mono); color: var(--ash); }
+.ruler b { background: var(--silk); display: block; }
+/* Screens */
+.screens { display: grid; gap: 40px; margin-top: 18px; }
+.scr { display: grid; gap: 12px; }
+.scr header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.scr header h4 { font: 500 24px/1.2 var(--serif); color: var(--hd); margin: 0; }
+.scr header code { color: var(--mut); }
+.scr .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--mut); }
+.scr .ctl button { font: 600 12px/1 var(--sans); color: var(--mut); background: var(--pg2); border: 1px solid var(--edge); border-radius: 5px; padding: 8px 10px; cursor: pointer; }
+.scr .ctl button[aria-pressed="true"] { color: var(--hd); border-color: var(--ac); }
+.scr .ctl input { width: 160px; accent-color: var(--ac); }
+.pair { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.frame { display: grid; gap: 6px; justify-items: start; }
+.frame > small { font: 600 11px/1 var(--sans); letter-spacing: 1.2px; text-transform: uppercase; color: var(--mut); }
+.zoomer { width: calc(393px * var(--z, 1)); height: calc(852px * var(--z, 1)); position: relative; border-radius: calc(46px * var(--z, 1)); overflow: hidden; outline: 1px solid var(--edge); background: #000; }
+.zoomer > .inner { transform: scale(var(--z, 1)); transform-origin: 0 0; width: 393px; height: 852px; position: absolute; left: 0; top: 0; }
+.zoomer img.real { position: absolute; inset: 0; width: 393px; height: 852px; display: block; }
+.zoomer .over { position: absolute; inset: 0; width: 393px; height: 852px; pointer-events: none; }
+.zoomer .over img { width: 393px; height: 852px; display: block; }
+.scr[data-mode="side"] .ov { display: none; }
+.scr[data-mode="swipe"] .real-frame, .scr[data-mode="blend"] .real-frame { display: none; }
+.scr[data-mode="swipe"] .over { clip-path: inset(0 0 0 var(--cut, 50%)); }
+.scr[data-mode="blend"] .over { opacity: var(--op, .5); }
+.scr[data-mode="swipe"] .over::before { content: ""; position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; background: #fff; box-shadow: 0 0 0 1px #000; z-index: 2; }
+.legend { font-size: 13.5px; color: var(--mut); max-width: 80ch; }
+@media (max-width: 720px) { h1 { font-size: 44px; } .typerow { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="doc">
+  <header class="top">
+    <div class="eyebrow">Hearthrise 0.7.0 · design reference · measured from app/lib and the iPhone 16 simulator</div>
+    <h1>Hearthrise Design Book</h1>
+    <p>The whole visual system of the app rebuilt in HTML and CSS at 1 CSS pixel per Flutter logical pixel: five biome palettes, type, spacing, the needle-cut frame, liquid glass, icons, every reusable component, motion, and each screen rebuilt and laid over its real simulator screenshot so you can check the match pixel by pixel.</p>
+  </header>
+  <nav class="jump" aria-label="Sections"><a href="#biomes">Biomes</a><a href="#type">Type</a><a href="#space">Space &amp; shape</a><a href="#glass">Glass</a><a href="#icons">Icons &amp; art</a><a href="#components">Components</a><a href="#motion">Motion</a><a href="#screens">Screens</a></nav>
+
+  <section class="part" id="biomes">
+    <h2>Biomes</h2>
+    <p>Five palettes of 22 colour tokens plus 4 glass tokens (<code>core/palette.dart</code>). One accent (silk) per biome; crimson-class accents mark only what matters. Choose a biome to repaint every specimen on this page.</p>
+    <div class="biomebar" role="group" aria-label="Biome" id="biomebar"></div>
+    <div class="stage" data-biome="pharloom" id="swatchstage"><div class="sw" id="swatches"></div></div>
+    <h3>Token roles</h3>
+    <div class="tbl"><table><thead><tr><th>Group</th><th>Tokens</th><th>Use</th></tr></thead><tbody>
+      <tr><td>Ground</td><td><code>void ground ground2 voidfall</code></td><td>Screen ground, backdrop gradient, the fallen screen</td></tr>
+      <tr><td>Surface</td><td><code>shell raised raised2 seam struckBg struckEdge deep</code></td><td>Panels, selected fills, default 1px edge (seam), featured edge (deep), struck rows</td></tr>
+      <tr><td>Action</td><td><code>silk silkHi onSilk</code></td><td>The single accent: CTA fill, selected edges, pips, threads; text on silk</td></tr>
+      <tr><td>Text</td><td><code>bone text ash</code></td><td>Display type and icons, body text, secondary text (4.5:1 on shell)</td></tr>
+      <tr><td>Marks</td><td><code>shard dim ink mote mask</code></td><td>Health shards and pips, decoration, ink outlines and scrims, backdrop motes, hit flash</td></tr>
+      <tr><td>Glass</td><td><code>glassFill glassFillHi glassLight glassKey</code></td><td>Resting fill (8% white dark / 60% shell light), pressed fill, rim light, key line</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section class="part" id="type">
+    <h2>Type</h2>
+    <p>Two bundled variable fonts: Cormorant Garamond for boss names and ritual moments, Hanken Grotesk for everything else. Nothing under 12 px, and 12 only for the tracked uppercase label.</p>
+    <div class="stage" data-biome="pharloom" data-follow>
+      <div class="typerow"><span class="k">displayMedium 44/1.1 w500 +1</span><span class="t-display-m">Run a 10K falls.</span></div>
+      <div class="typerow"><span class="k">displaySmall 34/1.15 w500 +1</span><span class="t-display-s">Evening.</span></div>
+      <div class="typerow"><span class="k">headlineMedium 28/1.15 w500 +1</span><span class="t-headline">Ship the portfolio</span></div>
+      <div class="typerow"><span class="k">sheet title 26/30 · alert 30/34</span><span class="t-title" style="font-size:26px;line-height:30px">How did the strike land?</span></div>
+      <div class="typerow"><span class="k">titleMedium 22/1.3 w500</span><span class="t-title">Today’s tasks</span></div>
+      <div class="typerow"><span class="k">flash 22 silk, slot 36</span><span class="t-flash">It is done.</span></div>
+      <div class="typerow"><span class="k">bodyLarge 16/1.5 w400</span><span class="t-body-l">A goal worth a fight</span></div>
+      <div class="typerow"><span class="k">task title 16/22 w500</span><span style="font:500 16px/22px 'Hanken Grotesk';color:var(--bone)">Write 200 words · daily</span></div>
+      <div class="typerow"><span class="k">bodyMedium 15/1.45 w400</span><span class="t-body-m">Night 1 at the hearth. Tell it how the day went.</span></div>
+      <div class="typerow"><span class="k">bodySmall 14/1.45 w400 ash</span><span class="t-body-s">Attempt 2 · 12 days left</span></div>
+      <div class="typerow"><span class="k">meta 13/18 ash</span><span style="font:400 13px/18px 'Hanken Grotesk';color:var(--ash)">Ship the portfolio · +1 embers</span></div>
+      <div class="typerow"><span class="k">labelSmall 12/1.4 w600 +1.6 caps</span><span class="t-label">Boss health</span></div>
+      <div class="typerow"><span class="k">buttons: ember 15 w700 · pill 15 w600 · alert 17 w600 · tab 11 w600</span><span class="row" style="gap:12px;flex-wrap:wrap"><span class="ember" style="min-height:44px">Rest at the hearth</span><span class="glass g-pill"><span>Cancel</span></span></span></div>
+    </div>
+  </section>
+
+  <section class="part" id="space">
+    <h2>Space and shape</h2>
+    <p>A 4 pt grid (<code>Space.xs 4 · sm 8 · md 16 · lg 24 · xl 40 · xxl 56</code>), 20 px screen sides, 48 px minimum touch targets. Content uses the needle-cut frame: a 1 px edge round a clipped fill, one radius in three sizes. State changes the edge colour, never the shape.</p>
+    <div class="stage" data-biome="pharloom" data-follow>
+      <h3 style="margin-top:0">Spacing</h3>
+      <div class="ruler"><div><b style="width:4px;height:4px"></b>4</div><div><b style="width:8px;height:8px"></b>8</div><div><b style="width:16px;height:16px"></b>16</div><div><b style="width:20px;height:20px;background:var(--deep)"></b>20 side</div><div><b style="width:24px;height:24px"></b>24</div><div><b style="width:40px;height:40px"></b>40</div><div><b style="width:48px;height:48px;background:var(--dim)"></b>48 target</div><div><b style="width:56px;height:56px"></b>56</div></div>
+      <h3>Needle frame: Cut.lg 8 · Cut.md 6 · Cut.sm 4</h3>
+      <div class="grid">
+        <div class="spec"><div class="nf" style="height:64px"></div><div class="lbl">lg 8 · panels, sheets · edge <code>seam</code></div></div>
+        <div class="spec"><div class="nf md hot" style="height:64px"></div><div class="lbl">md 6 · selected / hot · edge <code>silk</code></div></div>
+        <div class="spec"><div class="nf md ready" style="height:64px"></div><div class="lbl">md 6 · hold ready · edge <code>bone</code></div></div>
+        <div class="spec"><div class="nf deep raised2" style="height:64px"></div><div class="lbl">lg 8 · featured (pinned) · edge <code>deep</code>, fill <code>raised2</code></div></div>
+        <div class="spec"><div class="nf md struck" style="height:64px"></div><div class="lbl">md 6 · struck row · <code>struckBg / struckEdge</code></div></div>
+        <div class="spec"><div class="row" style="gap:10px"><span class="nf sm" style="width:90px;height:26px"></span><span class="chip soon" style="margin:0">in 59 min</span><span class="chip" style="margin:0">missed</span></div><div class="lbl">sm 4 · tags and deadline chips</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="part" id="glass">
+    <h2>Liquid glass</h2>
+    <p>Glass is chrome only: the tab bar, circle buttons, pills, switches, hold buttons, sheets and alerts. Layers bottom to top (<code>ui/glass_surface.dart</code>): drop shadow (black 35%, blur 14, 8 px down), backdrop blur σ16 (alert 24, sheet 28) with saturation 1.7, fill (white 8%), a 2 px key line in <code>glassKey</code>, a 5 px bottom shade at 28%, a 2 px inner ring at white 16%, a sheen on the top third at 152°, a 4 px conic rim light, and a glint arc with a dot at the top left. Presses scale to 1.04 over 350 ms with easeOutBack, the only overshoot in the app.</p>
+    <div class="stage" data-biome="pharloom" data-follow>
+      <div class="grid">
+        <div class="spec"><div class="row" style="gap:12px"><span class="glass g-circle"><svg data-i="back"></svg></span><span class="glass g-circle"><svg data-i="more"></svg></span><span class="glass g-circle hi"><svg data-i="profile"></svg></span><span class="glass g-circle tint"><svg data-i="settings"></svg></span></div><div class="lbl">Circle 44 · rest · pressed (<code>glassFillHi</code>) · tinted (silk 55%)</div></div>
+        <div class="spec"><div class="row" style="gap:12px;flex-wrap:wrap"><span class="glass g-pill"><span>Cancel</span></span><span class="glass g-pill"><span>Close</span></span><span class="glass g-pill"><span>Name a new boss</span></span></div><div class="lbl">Pill · 44 tall · pad 18 · 15 w600</div></div>
+        <div class="spec"><div class="row" style="gap:16px"><span class="glass g-switch"><b></b></span><span class="glass g-switch on"><b></b></span></div><div class="lbl">Switch 52 × 32 · diamond knob 14 at 8 / 30 · 300 ms easeOutBack</div></div>
+        <div class="spec"><div class="row" style="gap:16px"><span class="glass hold"><svg data-i="strike" data-s="18" data-w="1.8" style="color:var(--bone)"></svg></span><span class="glass hold"><span class="fill" style="height:23px"></span><svg data-i="strike" data-s="18" data-w="1.8" style="color:var(--bone);position:relative;z-index:5"></svg></span><span class="glass hold ready"><span class="fill" style="height:42px"></span><svg data-i="strike" data-s="18" data-w="1.8" style="color:var(--bone);position:relative;z-index:5"></svg></span></div><div class="lbl">Hold button 48 · idle · charging · ready (edge bone after 80%)</div></div>
+        <div class="spec" style="grid-column:1/-1"><div style="position:relative;height:96px"><div class="glass tabbar" style="left:0;right:auto;width:351px;bottom:16px"><span class="tab on"><svg data-nav="0"></svg>Home</span><span class="tab"><svg data-nav="1"></svg>Today</span><span class="tab"><svg data-nav="2"></svg>Bonfire</span><span class="tab"><svg data-nav="3"></svg>Profile</span></div></div><div class="lbl">Tab bar · stadium 62 · inset 21 · selected tab <code>glassFillHi</code> + 0.5 px ring · text scale clamped to 1</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="part" id="icons">
+    <h2>Icons and art</h2>
+    <p>All drawn in code on a 24-unit grid with square caps and round joins, stroke 1.6 (<code>ui/stroke_icon.dart</code>, <code>ui/nav_icon.dart</code>). The boss is an original ink figure in a 200 × 180 box (<code>ui/boss_art.dart</code>), redrawn in three jittered frames every 140 ms so the line boils. Relic emblems gain nicks with attempts.</p>
+    <div class="stage" data-biome="pharloom" data-follow>
+      <div class="grid">
+        <div class="spec"><div class="row" style="gap:18px;flex-wrap:wrap;color:var(--bone)"><svg data-i="back"></svg><svg data-i="more"></svg><svg data-i="check" style="color:var(--silk)"></svg><svg data-i="profile"></svg><svg data-i="settings"></svg><svg data-i="plus" data-w="1.8" style="color:var(--silk)"></svg><svg data-i="flame" style="color:var(--silk)"></svg><svg data-i="strike" data-w="1.8"></svg></div><div class="lbl">back · more · check · profile · settings · plus · flame · strike</div></div>
+        <div class="spec"><div class="row" style="gap:22px;color:var(--bone)"><svg data-nav="0"></svg><svg data-nav="1"></svg><svg data-nav="2"></svg><svg data-nav="3"></svg></div><div class="lbl">Tabs · mask · blade · bonfire · gem</div></div>
+        <div class="spec"><div class="row" style="gap:14px;align-items:center"><i class="pip p5"></i><i class="pip"></i><i class="pip p8"></i><i class="pip p12"></i><i class="pip p8 dim"></i></div><div class="lbl">Diamond pips 5 · 6 · 8 · 12 · dim</div></div>
+        <div class="spec"><div class="row" style="gap:16px;align-items:flex-end"><span data-boss="165"></span><span data-boss="72"></span></div><div class="lbl">Boss art · 165 on the boss screen · 72 on cards</div></div>
+        <div class="spec"><div class="row" style="gap:14px;align-items:center"><span data-emblem="64" data-nicks="0"></span><span data-emblem="64" data-nicks="3"></span><span data-emblem="64" data-nicks="6"></span><span data-emblem="64" data-nicks="10"></span></div><div class="lbl">Relic emblem · unmarked · worn (2–3) · scarred (4–8) · weathered (9+)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="part" id="components">
+    <h2>Components</h2>
+    <p>Every reusable widget in <code>app/lib/ui/</code>, rebuilt live. Switch biomes above to see them repaint.</p>
+    <div class="stage" data-biome="pharloom" data-follow>
+      <div class="grid">
+        <div class="spec"><div class="task"><span class="pips"><i class="pip"></i></span><span class="tt"><b>Write 200 words · daily</b><small>Ship the portfolio · +1 embers</small></span><span class="glass hold"><svg data-i="strike" data-s="18" data-w="1.8" style="color:var(--bone)"></svg></span></div><div class="lbl">TaskRowTile · idle · min 64 · pad L16 R8</div></div>
+        <div class="spec"><div class="task charge"><span class="pips"><i class="pip"></i><i class="pip"></i><i class="pip"></i></span><span class="tt"><b>Run the 10K</b><small>Run a 10K · +6 embers</small></span><span class="glass hold ready"><span class="fill" style="height:40px"></span><svg data-i="strike" data-s="18" data-w="1.8" style="color:var(--bone);position:relative;z-index:5"></svg></span></div><div class="lbl">Charging · edge silk · Boss-tier 3 pips</div></div>
+        <div class="spec"><div class="task done"><span class="pips"><i class="pip dim"></i></span><span class="tt"><b>Warm up 10 min</b><small>Struck · +1 embers</small></span><span class="chk"><svg data-i="check" style="color:var(--silk)"></svg></span></div><div class="lbl">Struck row · ink line through title</div></div>
+        <div class="spec"><div class="task"><span class="pips"><i class="pip"></i><i class="pip"></i></span><span class="tt"><b>Tempo run</b><small>Run a 10K · +3 embers</small></span><span class="chip soon">in 59 min</span><span class="glass hold"><svg data-i="strike" data-s="18" data-w="1.8" style="color:var(--bone)"></svg></span></div><div class="lbl">With a deadline chip (soon)</div></div>
+        <div class="spec"><div class="ember"><svg data-i="strike" data-s="18" data-w="1.8"></svg>Enter the fight</div><div class="ember off">Next</div><div class="lbl">EmberButton · min 52 · 15 w700 onSilk · disabled</div></div>
+        <div class="spec"><div class="action-row">Promise by…</div><div class="choice-row">In 1 hour</div><div class="choice-row off">Tonight</div><div class="lbl">ActionRow 52 · TimeChoiceRow 48 · disabled</div></div>
+        <div class="spec"><div class="segs"><span class="seg on">Fought well</span><span class="seg">Held on</span><span class="seg">I fell</span></div><div class="lbl">MoodChoice / SettingChoiceRow segments</div></div>
+        <div class="spec"><div class="segs"><span class="seg on" style="min-height:72px"><span class="col" style="align-items:center;gap:4px"><span class="row" style="gap:4px"><i class="pip"></i></span><span>Light</span><span class="t-body-s" style="font-weight:400">+1 embers</span></span></span><span class="seg" style="min-height:72px"><span class="col" style="align-items:center;gap:4px"><span class="row" style="gap:4px"><i class="pip dim"></i><i class="pip dim"></i></span><span>Heavy</span><span class="t-body-s" style="font-weight:400">+3 embers</span></span></span><span class="seg" style="min-height:72px"><span class="col" style="align-items:center;gap:4px"><span class="row" style="gap:4px"><i class="pip dim"></i><i class="pip dim"></i><i class="pip dim"></i></span><span>Boss-tier</span><span class="t-body-s" style="font-weight:400">+6 embers</span></span></span></div><div class="lbl">StrengthSegments · min 72</div></div>
+        <div class="spec"><div class="row" style="gap:8px;flex-wrap:wrap"><span class="fchip on">All</span><span class="fchip">The Day</span><span class="fchip">Ship the portfolio</span></div><div class="lbl">FilterChips · selected fill raised</div></div>
+        <div class="spec"><div class="field ph">A goal worth a fight</div><div class="uline">One line</div><div class="lbl">NeedleTextField (pad 16/14) · onboarding underline field</div></div>
+        <div class="spec"><div class="row" style="justify-content:space-between"><span class="t-label">Boss health</span><span class="t-body-s">8 / 12</span></div><div class="shards"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div><div class="lbl">ShardMeter · 12 shards skewed −0.42 · gap 3 · drain 900 ms</div></div>
+        <div class="spec"><div class="health"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="half"></i><i></i><i></i></div><div class="flasks"><i class="on"></i><i class="on"></i><i></i></div><div class="row" style="gap:10px"><span class="bars"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span><span style="width:37px;height:37px;display:grid;place-items:center"><span style="width:26px;height:26px;background:var(--silk);transform:rotate(45deg);display:grid;place-items:center"><b style="transform:rotate(-45deg);font:500 16px/1 'Cormorant Garamond',serif;color:var(--onSilk)">2</b></span></span></div><div class="lbl">Health 7.5 / 10 · flasks 2 / 3 · level bars and badge</div></div>
+        <div class="spec"><div class="thread"><i></i></div><div class="row" style="gap:0"><span style="flex:1;height:1px;background:var(--silk);opacity:.5"></span><span style="width:20px"></span><span style="flex:1;height:1px;background:var(--silk);opacity:.5"></span></div><div class="lbl">ThreadDivider · SnappingThread mid-snap</div></div>
+        <div class="spec"><div class="nf row" style="padding:12px 14px;min-height:56px;justify-content:space-between"><span class="t-body-m"><b class="w600 bone">All bosses</b><span class="ash"> · 2 active</span></span><span class="chev">›</span></div><div class="nf md row" style="padding:8px 16px;min-height:48px;justify-content:space-between"><span class="col"><span class="t-body-m bone">Tomorrow’s tasks</span><span class="t-body-s">2 of 3 chosen · Walk, Tempo run</span></span><span class="chev">›</span></div><div class="lbl">AllBossesRow · TomorrowRow</div></div>
+        <div class="spec"><div class="nf deep" style="padding:20px;background:linear-gradient(var(--raised2),var(--shell))"><div class="row" style="justify-content:space-between;align-items:flex-start"><div class="col"><span class="t-headline">The Day</span><span class="t-body-s">Daily tasks · Attempt 1</span></div><span data-boss="72"></span></div><div class="row" style="justify-content:space-between;margin-top:14px"><span class="t-label">Boss health</span><span class="t-body-s">0 / 12</span></div><div class="shards" style="margin:8px 0 16px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="ember"><svg data-i="strike" data-s="18" data-w="1.8"></svg>Enter the fight</div></div><div class="lbl">PinnedBossPanel · edge deep · raised2 → shell</div></div>
+        <div class="spec"><div class="nf" style="padding:20px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div class="col"><span class="t-headline">Learn Spanish</span><span class="t-body-s">Attempt 1 · Chapter II of II</span></div><span data-boss="72"></span></div><div class="shards h8" style="margin-top:16px"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="lbl">BossCardTile · All bosses</div></div>
+        <div class="spec"><div class="nf md" style="padding:16px"><span class="t-label">Today's three</span><div class="col gap8" style="margin-top:10px"><span class="row t-body-m" style="gap:8px;color:var(--ash);text-decoration:line-through"><svg data-i="check" data-s="16" style="color:var(--ash)"></svg>Warm up 10 min</span><span class="row t-body-m" style="gap:8px"><span style="width:14px;height:14px;border:1.5px solid var(--dim);border-radius:50%"></span>Write 200 words</span></div></div><div class="lbl">PlanBanner</div></div>
+        <div class="spec"><div class="nf md row" style="padding:8px 16px;min-height:48px;gap:14px;border-color:var(--silk);background:var(--raised)"><span class="col" style="gap:4px"><i class="pip"></i><i class="pip"></i></span><span class="col grow"><span class="t-body-m bone">Tempo 15 min</span><span class="t-body-s">Run a 10K · Light</span></span><i class="pip p12"></i></div><div class="nf md row" style="padding:8px 16px;min-height:48px;gap:14px"><span class="col"><i class="pip"></i></span><span class="col grow"><span class="t-body-m bone">Walk</span><span class="t-body-s">Ship the portfolio · Light</span></span><i class="pip p8 dim"></i></div><div class="lbl">PickToggleRow · selected · open</div></div>
+        <div class="spec"><div class="row" style="gap:16px"><span data-emblem="48"></span><span class="col"><span class="t-title">Run a 10K</span><span class="t-body-s">19 Oct 2026</span></span></div><div class="row" style="border-top:1px solid var(--seam);padding-top:10px"><span class="col center grow"><b style="font:600 17px/24px 'Hanken Grotesk';color:var(--text)">2</b><span class="t-body-s">Attempts</span></span><span style="width:1px;align-self:stretch;background:var(--seam)"></span><span class="col center grow"><b style="font:600 17px/24px 'Hanken Grotesk';color:var(--text)">1</b><span class="t-body-s">Days</span></span><span style="width:1px;align-self:stretch;background:var(--seam)"></span><span class="col center grow"><b style="font:600 17px/24px 'Hanken Grotesk';color:var(--text)">14</b><span class="t-body-s">Effort</span></span></div><div class="lbl">RelicTile · StatRow</div></div>
+        <div class="spec"><div class="nf md" style="padding:16px"><div class="t-title">Has Hearthrise left you feeling worse?</div><div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><span style="border:1px solid var(--dim);border-radius:24px;padding:12px 20px">Never</span><span style="border:1px solid var(--dim);border-radius:24px;padding:12px 20px">Sometimes</span><span style="border:1px solid var(--dim);border-radius:24px;padding:12px 20px">Often</span></div></div><div class="lbl">CheckInCard (stadium buttons: see findings)</div></div>
+        <div class="spec"><div class="nf md row" style="min-height:64px;padding:8px 20px;gap:16px;border-color:var(--silk)"><svg data-i="flame" style="color:var(--silk)"></svg><span class="t-body-m">Rest at the bonfire</span></div><div class="lbl">BonfireCard</div></div>
+        <div class="spec" style="grid-column:1/-1"><div style="position:relative;height:340px;border-radius:8px;overflow:hidden"><div class="scrim" style="position:absolute"></div><div class="sheet" style="position:absolute"><div class="in"><span class="grabber"></span><div class="sheet-head"><div><div class="t-label">Task actions</div><div class="t-title">Write 200 words</div></div><span class="glass g-pill"><span>Cancel</span></span></div><div class="thread"><i></i></div><div class="col gap8"><div class="action-row">Promise by…</div><div class="action-row">Mark as tried</div></div></div></div></div><div class="lbl">GlassSheet · radius 44 · blur 28 · shell 58% · pad 26/20/24 · gap 18 · scrim ink 62%</div></div>
+        <div class="spec" style="grid-column:1/-1"><div style="position:relative;height:300px;border-radius:8px;overflow:hidden"><div class="scrim" style="position:absolute"></div><div class="alert"><div class="in"><div class="t-label">Run a 10K</div><div class="t-title">Leave the fight?</div><div class="thread"><i></i></div><div class="t-body-m ash">Struck tasks stay struck and you keep 0 embers.</div></div><div class="acts"><div class="def">Keep fighting</div><div>Leave for now</div></div></div></div><div class="lbl">GlassAlert · max 334 · radius 34 · blur 24 · shell 62% · first action silk 28%</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="part" id="motion">
+    <h2>Motion</h2>
+    <p>Slow, never bouncy; exits faster than entrances. The only overshoot is the glass press. Reduce motion (system or in Settings) stills all of it.</p>
+    <div class="tbl"><table><thead><tr><th>Moment</th><th>Duration</th><th>Curve / detail</th></tr></thead><tbody>
+      <tr><td>Motion.quick: hold rollback, chevron turn</td><td>250 ms</td><td>easeInOut</td></tr>
+      <tr><td>Motion.fade: flash line, standard fade</td><td>600 ms</td><td>easeInOut</td></tr>
+      <tr><td>Motion.drain: shard meter</td><td>900 ms</td><td>easeInOut colour tween</td></tr>
+      <tr><td>Motion.dim: fallen screen</td><td>1400 ms</td><td>easeIn; thread snaps at 1.2 s, pip dims at 1.6 s</td></tr>
+      <tr><td>Page transition</td><td>route default</td><td>cross-fade with a 2% rise</td></tr>
+      <tr><td>Tab switch</td><td>280 ms</td><td>same fade and rise</td></tr>
+      <tr><td>Glass press</td><td>350 ms</td><td>scale 1.04, easeOutBack</td></tr>
+      <tr><td>Switch knob</td><td>300 ms</td><td>easeOutBack, 8 → 30 px</td></tr>
+      <tr><td>Hold to strike</td><td>300 / 600 / 1200 ms</td><td>Light / Heavy / Boss-tier; row trembles 1 px every 70 ms</td></tr>
+      <tr><td>Strike landing</td><td>1300 ms (1600 boss-tier)</td><td>hit 0–110 · shatter 110–500 (row shakes every 56 ms) · settle 500–1300; dust over the row</td></tr>
+      <tr><td>Struck row linger</td><td>1500 ms</td><td>row keeps its slot, then moves</td></tr>
+      <tr><td>Boss vanish</td><td>2400 ms</td><td>easeIn, 140 motes from the name</td></tr>
+      <tr><td>Victory reveal</td><td>5000 ms</td><td>five sections fade in turn</td></tr>
+      <tr><td>Backdrop</td><td>42 s loop</td><td>30 Hz; 14 motes rise; ink boil every 140 ms</td></tr>
+      <tr><td>Haptics</td><td>—</td><td>tick during hold; light / heavy / double heavy on landing; heavy on a fall</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section class="part" id="screens">
+    <h2>Screens, rebuilt and overlaid</h2>
+    <p class="legend">Each screen is rebuilt in the CSS on this page (left) next to its real iPhone 16 simulator screenshot (right). Switch to <b>Swipe</b> and drag the slider to wipe the real screenshot across the rebuild, or <b>Blend</b> to fade one into the other. Animated backdrop motes and the live clock are the expected differences.</p>
+    <div class="screens" id="screenlist"><!--SCREENS--></div>
+  </section>
+</div>
+
+<script src="hearth.js"></script>
+<script>
+const BIOMES = [['pharloom','Pharloom','#E8566D'],['docks','Deep Docks','#FF7A2E'],['choral','Choral Chambers','#94640F'],['moss','Moss Grotto','#3D6B2C'],['greymoor','Greymoor','#7FB2D9']];
+const TOKENS = ['void','ground','ground2','voidfall','shell','raised','raised2','seam','struckBg','struckEdge','deep','silk','silkHi','onSilk','bone','text','ash','shard','dim','ink','mote','mask','glassFill','glassFillHi','glassLight','glassKey'];
+const bar = document.getElementById('biomebar');
+const stages = () => document.querySelectorAll('#swatchstage, [data-follow]');
+function setBiome(id) {
+  stages().forEach(s => s.dataset.biome = id);
+  bar.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.b === id));
+  const cs = getComputedStyle(document.getElementById('swatchstage'));
+  document.getElementById('swatches').innerHTML = TOKENS.map(t => `<div><b style="background:var(--${t})"></b><span>${t}</span><small>${cs.getPropertyValue('--' + t).trim()}</small></div>`).join('');
+  try { localStorage.setItem('hr-biome', id); } catch (e) {}
+}
+bar.innerHTML = BIOMES.map(([id, n, c]) => `<button type="button" data-b="${id}" aria-pressed="false"><i style="background:${c}"></i>${n}</button>`).join('');
+bar.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setBiome(b.dataset.b); });
+let start = 'pharloom'; try { start = localStorage.getItem('hr-biome') || start; } catch (e) {}
+setBiome(start);
+
+// Screens: fit the phone frames to the width, and wire the compare controls.
+function fit() {
+  const w = document.querySelector('.doc').clientWidth;
+  const z = Math.min(1, (w - 2) / 393);
+  document.querySelectorAll('.zoomer').forEach(el => el.style.setProperty('--z', z.toFixed(4)));
+}
+addEventListener('resize', fit); fit();
+document.querySelectorAll('.scr').forEach(s => {
+  s.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
+    s.dataset.mode = b.dataset.mode; s.querySelectorAll('[data-mode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    s.querySelector('.rng').hidden = b.dataset.mode === 'side';
+  }));
+  s.querySelector('.rng').addEventListener('input', e => { s.style.setProperty('--cut', e.target.value + '%'); s.style.setProperty('--op', (e.target.value / 100).toFixed(2)); });
+});
+</script>

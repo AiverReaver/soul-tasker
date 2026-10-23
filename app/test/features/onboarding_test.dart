@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/glass_switch.dart';
+import 'package:hearthrise/ui/ember_button.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -35,14 +37,14 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     expect(find.text("Failing is fine. Quitting isn't."), findsOneWidget);
-    expect(find.text('HEARTHRISE'), findsNothing);
+    expect(find.byKey(const ValueKey('home-header')), findsNothing);
     await tearDownApp(tester, h);
   });
 
   testWidgets('an upgraded database opens Home', (tester) async {
     final h = Harness();
     await pumpApp(tester, h);
-    expect(find.text('HEARTHRISE'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
     expect(find.text("Failing is fine. Quitting isn't."), findsNothing);
     await tearDownApp(tester, h);
   });
@@ -51,14 +53,17 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _next(tester);
-    final next = find.widgetWithText(TextButton, 'Next');
-    expect(tester.widget<TextButton>(next).onPressed, isNull);
+    final off = find.widgetWithText(TextButton, 'Next');
+    final on = find.widgetWithText(EmberButton, 'Next');
+    expect(tester.widget<TextButton>(off).onPressed, isNull);
+    expect(on, findsNothing);
     await tester.enterText(_title, 'The Garage');
     await tester.pump();
-    expect(tester.widget<TextButton>(next).onPressed, isNotNull);
+    expect(on, findsOneWidget);
     await tester.enterText(_title, '   ');
     await tester.pump();
-    expect(tester.widget<TextButton>(next).onPressed, isNull);
+    expect(on, findsNothing);
+    expect(tester.widget<TextButton>(off).onPressed, isNull);
     await tearDownApp(tester, h);
   });
 
@@ -70,7 +75,7 @@ void main() {
     await _toPage(tester, 3, title: 'Run a 10K');
     expect(tester.testTextInput.hasAnyClients, isFalse);
 
-    await tester.tap(find.text('Add a phase'));
+    await tester.tap(find.text('Add a chapter'));
     await settle(tester);
     final added = find.byKey(const ValueKey('phase-3'));
     expect(
@@ -87,7 +92,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('phases: two suggestions; rename, add up to three, remove', (
+  testWidgets('chapters: two suggestions; rename, add up to three, remove', (
     tester,
   ) async {
     final h = Harness();
@@ -102,12 +107,12 @@ void main() {
     expect(find.text('The fight'), findsOneWidget);
 
     await tester.enterText(find.text('The fight'), 'The exam');
-    await tester.tap(find.text('Add a phase'));
+    await tester.tap(find.text('Add a chapter'));
     await settle(tester);
     expect(fields, findsNWidgets(3));
-    expect(find.text('Add a phase'), findsNothing);
+    expect(find.text('Add a chapter'), findsNothing);
 
-    await tester.tap(find.byTooltip('Remove phase 1'));
+    await tester.tap(find.byTooltip('Remove chapter 1'));
     await settle(tester);
     expect(fields, findsNWidgets(2));
     expect(find.text('Learn the pattern'), findsNothing);
@@ -115,7 +120,9 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('up to three daily foes; blank ones are dropped', (tester) async {
+  testWidgets('up to three daily tasks; blank ones are dropped', (
+    tester,
+  ) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _toPage(tester, 4);
@@ -125,12 +132,12 @@ void main() {
     );
     expect(fields, findsNWidgets(1));
     await tester.enterText(fields.first, 'Walk');
-    await tester.tap(find.text('Add a daily foe'));
+    await tester.tap(find.text('Add a daily task'));
     await settle(tester);
-    await tester.tap(find.text('Add a daily foe'));
+    await tester.tap(find.text('Add a daily task'));
     await settle(tester);
     expect(fields, findsNWidgets(3));
-    expect(find.text('Add a daily foe'), findsNothing);
+    expect(find.text('Add a daily task'), findsNothing);
     await tester.enterText(fields.at(2), 'Stretch');
     await _next(tester);
     await tester.tap(find.text('Begin'));
@@ -163,7 +170,7 @@ void main() {
       await pumpApp(tester, h, onboarded: false, reminders: reminders);
       await _toPage(tester, 5);
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byType(GlassSwitch));
       await tester.pump();
       await tester.tap(find.text('Begin'));
       await settle(tester);
@@ -172,7 +179,7 @@ void main() {
       expect(reminders.calls, isNot(contains('schedule:1260')));
       expect((await h.settings.read()).reminderEnabled, isFalse);
       expect((await h.settings.device()).onboarded, isTrue);
-      expect(find.text('HEARTHRISE'), findsOneWidget);
+      expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
       await tearDownApp(tester, h);
     },
   );
@@ -183,7 +190,7 @@ void main() {
     await pumpApp(tester, h, onboarded: false, reminders: reminders);
     await _toPage(tester, 5);
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(GlassSwitch));
     await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);
@@ -227,21 +234,46 @@ void main() {
     expect(walk.recurrence, Recurrence.daily);
     expect((await h.settings.device()).onboarded, isTrue);
 
-    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Walk · daily'), findsOneWidget);
+    expect(find.text('Walk'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Skip on any page lands on the empty Home, once', (tester) async {
+  testWidgets('every page says which step it is, with diamonds', (
+    tester,
+  ) async {
+    var h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    for (var n = 1; n <= 5; n++) {
+      await _toPage(tester, n);
+      expect(find.text('Step $n of 5'), findsOneWidget);
+      expect(find.byKey(const ValueKey('step-on')), findsNWidgets(n));
+      expect(find.byKey(const ValueKey('step-off')), findsNWidgets(5 - n));
+      await tearDownApp(tester, h);
+      h = Harness();
+      await pumpApp(tester, h, onboarded: false);
+    }
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('Skip jumps to page 5; Skip there lands on the empty Home', (
+    tester,
+  ) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _next(tester);
     await tester.tap(find.text('Skip'));
     await settle(tester);
 
-    expect(find.text('No boss stands before you.'), findsOneWidget);
+    expect(find.text('One last thing.'), findsOneWidget);
+    expect(find.text('Step 5 of 5'), findsOneWidget);
+    expect((await h.settings.device()).onboarded, isFalse);
+
+    await tester.tap(find.text('Skip'));
+    await settle(tester);
+    expect(find.text('Nothing stands in your way today.'), findsOneWidget);
     expect((await h.settings.device()).onboarded, isTrue);
     expect(await h.bosses.loadAll(), isEmpty);
     await tearDownApp(tester, h);
@@ -286,7 +318,7 @@ void main() {
     await tap(find.text('Begin'));
 
     expect(steps, lessThanOrEqualTo(12));
-    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 }
