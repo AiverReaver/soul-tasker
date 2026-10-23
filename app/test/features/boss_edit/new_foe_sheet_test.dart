@@ -59,6 +59,7 @@ void main() {
   ) async {
     await open(tester);
     await tester.enterText(find.byType(TextField), 'Call the bank');
+    await tester.pump();
     await tester.tap(find.text('Heavy'));
     await tester.tap(find.text('Add to today'));
     await settle(tester);
@@ -113,6 +114,7 @@ void main() {
     await settle(tester);
 
     await tester.enterText(find.byType(TextField), 'Stretch');
+    await tester.pump();
     await tester.tap(find.text('Add to today'));
     await settle(tester);
     final titles = (await h.reload(other)).standalone.map((t) => t.task.title);
@@ -127,6 +129,7 @@ void main() {
       await open(tester);
       expect(find.text('The Day'), findsWidgets);
       await tester.enterText(find.byType(TextField), 'Water plants');
+      await tester.pump();
       await tester.tap(find.text('Add to today'));
       await settle(tester);
 
@@ -137,4 +140,23 @@ void main() {
       await tearDownApp(tester, h);
     },
   );
+
+  testWidgets('Add to today is disabled until the task has a name', (
+    tester,
+  ) async {
+    await open(tester);
+    EmberButton add() => tester.widget<EmberButton>(
+      find.widgetWithText(EmberButton, 'Add to today'),
+    );
+    expect(add().onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField).first, '   ');
+    await tester.pump();
+    expect(add().onPressed, isNull);
+
+    await tester.enterText(find.byType(TextField).first, 'Call the bank');
+    await tester.pump();
+    expect(add().onPressed, isNotNull);
+    await tearDownApp(tester, h);
+  });
 }
