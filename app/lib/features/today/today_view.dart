@@ -207,7 +207,10 @@ class _TodayViewState extends ConsumerState<TodayView> {
             selected: _filter,
             onChanged: (id) => setState(() => _filter = id),
           ),
-        FlashLine(_flash),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
+          child: FlashLine(_flash),
+        ),
         if (isHome)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xs),
