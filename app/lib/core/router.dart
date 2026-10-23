@@ -14,12 +14,11 @@ import '../features/ritual/day_resolver.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/shell/hearth_shell.dart';
 import '../features/victory/victory_screen.dart';
+import 'tab_transition.dart';
 
-// Tabs swap in place: no page transition between them.
 GoRoute _tab(String path, Widget screen) => GoRoute(
   path: path,
-  pageBuilder: (_, state) =>
-      NoTransitionPage(key: state.pageKey, child: screen),
+  pageBuilder: (_, state) => tabPage(state.pageKey, screen),
 );
 
 GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
