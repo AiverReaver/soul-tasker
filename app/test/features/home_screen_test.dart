@@ -133,4 +133,46 @@ void main() {
     expect(find.text('Name a new boss'), findsOneWidget);
     await tearDownApp(tester, h);
   });
+
+  testWidgets('the struck count skips bosses set aside and follows the chip', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    final habit = await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
+    await h.attempts.strike(taskNamed(await h.reload(habit), 'Walk').task.id);
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('1 of 5 struck'), findsOneWidget);
+
+    await tester.tap(find.text(view.boss.title).first);
+    await settle(tester);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
+
+    await tester.tap(find.text('All'));
+    await settle(tester);
+    await h.bosses.setStatus(habit, BossStatus.waiting);
+    await settle(tester);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a struck one-time task stays in its group count on Home and '
+      'Today alike', (tester) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('1 of 4 struck'), findsOneWidget);
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+    expect(find.text('1 of 4 struck · hold to strike'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
 }

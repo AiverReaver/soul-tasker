@@ -23,13 +23,17 @@ import '../boss/task_row.dart';
 /// One run of rows under a label: a boss's dailies, its current chapter, or
 /// its tasks beyond the chapters.
 class TodayGroup {
-  const TodayGroup(this.label, this.tasks, this.count);
+  const TodayGroup(this.label, this.tasks, this.struck, this.total);
 
   final String label;
   final List<TaskView> tasks;
 
+  /// Struck and all tasks of the group, shown rows or not.
+  final int struck;
+  final int total;
+
   /// "N of M" struck, over every task of the group.
-  final String count;
+  String get count => '$struck of $total';
 }
 
 /// The day's groups for one boss, in Today order (plan §8.3): dailies, then
@@ -50,7 +54,8 @@ List<TodayGroup> todayGroups(
     return TodayGroup(
       label,
       shown,
-      '${all.where((t) => t.isStruck).length} of ${all.length}',
+      all.where((t) => t.isStruck).length,
+      all.length,
     );
   }
 
@@ -146,7 +151,6 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final tally = ref.watch(emberTallyProvider).value;
     final health = ref.watch(healthProvider).value;
     final picks = ref.watch(todayPicksProvider).value ?? const [];
-    final struck = ref.watch(daySummaryProvider).value?.strikes ?? 0;
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id)
@@ -155,6 +159,10 @@ class _TodayViewState extends ConsumerState<TodayView> {
 
     final open = [for (final g in groups) ...g.tasks.where((t) => !t.isStruck)]
         .length;
+    // Over the groups shown, so the count follows the chip and the bosses
+    // still in the fight, and matches the group headers.
+    final struck = groups.fold(0, (n, g) => n + g.struck);
+    final total = groups.fold(0, (n, g) => n + g.total);
     final isHome = widget.onNewFoe != null;
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -204,17 +212,17 @@ class _TodayViewState extends ConsumerState<TodayView> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xs),
             child: FoesHeader(
-              countLabel: '$struck of ${open + struck} struck',
+              countLabel: '$struck of $total struck',
               onNewFoe: widget.onNewFoe!,
             ),
           )
         else ...[
           Text('Today’s tasks', style: text.titleMedium),
-          if (open + struck > 0)
+          if (total > 0)
             Padding(
               padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
               child: Text(
-                '$struck of ${open + struck} struck · hold to strike',
+                '$struck of $total struck · hold to strike',
                 style: text.bodySmall,
               ),
             ),
