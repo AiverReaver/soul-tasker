@@ -100,8 +100,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// The Day is not counted: it is always there.
   int _count(List<BossView> bosses, BossStatus status) =>
-      bosses.where((b) => b.boss.status == status).length;
+      bosses.where((b) => b.boss.status == status && !b.isDay).length;
 
   Iterable<Widget> _pinned(List<BossView> bosses) sync* {
     final pinned = bosses.where(

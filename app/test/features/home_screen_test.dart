@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
+import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/flash_line.dart';
 import 'package:hearthrise/ui/glass_sheet.dart';
@@ -183,9 +184,16 @@ void main() {
     final h = Harness();
     final view = await h.seed();
     await h.bosses.ensureDayBoss();
-    await pumpApp(tester, h, location: '/bosses', tall: true);
+    await h.bosses.setPinned(dayBossId, isPinned: true);
+    await pumpApp(tester, h, tall: true);
 
-    await tester.longPress(find.text('The Day'));
+    // The Day is reached on Home only: its pinned panel.
+    await tester.longPress(
+      find.descendant(
+        of: find.byKey(const Key('pinned-boss-panel')),
+        matching: find.text('The Day'),
+      ),
+    );
     await settle(tester);
     expect(find.byType(GlassSheet), findsOneWidget);
     expect(
@@ -195,11 +203,13 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('Pin'), findsOneWidget);
+    expect(find.text('Unpin'), findsOneWidget);
     expect(find.text('Set waiting'), findsNothing);
     await tester.tap(find.text('Cancel'));
     await settle(tester);
 
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
     await tester.longPress(find.text(view.boss.title));
     await settle(tester);
     await tester.tap(find.text('Set waiting'));
@@ -215,6 +225,22 @@ void main() {
     await h.seed();
     await pumpApp(tester, h, tall: true);
     expect(tester.getTopLeft(find.byType(FlashLine)).dx, 20);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('The Day is left out of All bosses and its active count', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    await h.bosses.ensureDayBoss();
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('All bosses · 1 active'), findsOneWidget);
+
+    await tester.tap(find.text('All bosses · 1 active'));
+    await settle(tester);
+    expect(find.text('The Certification'), findsOneWidget);
+    expect(find.text('The Day'), findsNothing);
     await tearDownApp(tester, h);
   });
 }
