@@ -190,4 +190,11 @@ void main() {
     expect(input.commits.single.extensions, 0);
     expect(input.commits.single.outcome, isNull);
   });
+
+  test('a rest with a note counts as one bonfire lesson', () async {
+    await h.seed();
+    final days = DayDao(h.db, h.clock.call, h.attempts);
+    expect(await days.rest(lesson: 'Start the tempo run before work.'), isTrue);
+    expect((await signals.input()).bonfireLessons, 1);
+  });
 }
