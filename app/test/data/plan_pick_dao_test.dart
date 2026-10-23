@@ -116,4 +116,27 @@ void main() {
     await pumpEventQueue(times: 50);
     expect(seen.last.single.isStruck, isTrue);
   });
+
+  test('a pick struck before its day is left out; a struck daily counts '
+      'only on the day', () async {
+    final a = await h.seed();
+    final read = taskNamed(a, 'Read chapter 4').task.id;
+    final walk = taskNamed(a, 'Walk').task.id;
+    const tomorrow = '2026-10-14';
+    await picks.setPicks(tomorrow, [read, walk]);
+    await h.attempts.strike(read);
+    await h.attempts.strike(walk);
+
+    h.clock.now = DateTime(2026, 10, 14, 12);
+    final got = await picks.picksFor(tomorrow);
+    expect(got.map((p) => p.task.id), [walk]);
+    expect(got.single.isStruck, isFalse);
+  });
+
+  test('picks of a boss no longer active are left out', () async {
+    final a = await h.seed();
+    await picks.setPicks(day, [taskNamed(a, 'Walk').task.id]);
+    await h.bosses.setStatus(a.boss.id, BossStatus.waiting);
+    expect(await picks.picksFor(day), isEmpty);
+  });
 }
