@@ -2,7 +2,7 @@
 
 Source: `STAGES.md` (Stage 2) and `souls-task-tracker-design.md` (§ numbers below refer to it). Visual rules: `DESIGN.md`.
 Method: TDD (see `STAGES.md`, Development method). Every step below lists its tests first.
-Status: steps 1 to 9 (code and tests) done, uncommitted; steps 10 to 14 need a phone, the Android SDK and testers. Build order ran 2 before 1 (the haptics provider reads `settings.haptics`). `FeelReportData` lives in `data/feel_report_data.dart` so `data` never imports `features`. Stage 1 already shipped most of the Stage 2 prototype; this stage finishes the missing pieces, gets the feel onto real phones, and tunes it from tester feedback.
+Status: steps 1 to 9 (code and tests) done, committed in `8df02e3` (the feel report was later replaced by the tester report, `635d727`); steps 10 to 14 need a phone, the Android SDK and testers. Build order ran 2 before 1 (the haptics provider reads `settings.haptics`). `FeelReportData` lives in `data/feel_report_data.dart` so `data` never imports `features`. Stage 1 already shipped most of the Stage 2 prototype; this stage finishes the missing pieces, gets the feel onto real phones, and tunes it from tester feedback.
 
 ---
 

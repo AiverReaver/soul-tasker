@@ -2,7 +2,7 @@
 
 Source: `STAGES.md` (Stage 7) and `souls-task-tracker-design.md` (§ numbers below refer to it). Visual rules: `DESIGN.md`.
 Method: TDD (see `STAGES.md`, Development method). Every step below lists its tests first, then the code. This applies to the server too: Vitest tests against a real PostgreSQL, written before the route or rule they cover. UI follows `STAGES.md`, "UI components": new widgets go in `lib/ui/` as `StatelessWidget`s, with state in thin containers in `lib/features/`.
-Status: not started.
+Status: steps 1 to 11 done (code, tests and the scripted two-phone gate; merged in PR #6, `f7dca7d`). Step 12 (deploy and device checks) is not done: there is no hosted API yet, so gate item 7 is open.
 
 Prerequisites:
 - **Stage 6 gate.** `STAGES.md` says not to start the next stage until the gate passes, and Stage 6 steps 10 to 12 are still open. Steps 1 to 7 below touch no shipped build and can be written while the closed test runs, but nothing from Stage 7 is merged into a Play upload until the Stage 6 gate review (`STAGE6_RESULTS.md`) is done. Tuning changes from that review land first.

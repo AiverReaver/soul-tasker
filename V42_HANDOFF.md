@@ -1,5 +1,7 @@
 # Hearthrise v4.2 handoff
 
+Status: done. Steps 1 and 2 below are built and merged on `feat/day-boss-polish`; step 3 (tab labels) waits for the user. Kept for its known open issues and simulator notes.
+
 Paste this to start the next session.
 
 ---
