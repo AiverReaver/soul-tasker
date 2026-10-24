@@ -73,17 +73,47 @@ void main() {
 
     test('repaints when the line boils or a hit lands, not otherwise', () {
       final p = Biome.pharloom.palette;
-      final a = BossArtPainter(boilFrame: 0, hit: 0, palette: p);
+      final a = BossArtPainter(
+        design: BossDesign.porcelain,
+        boilFrame: 0,
+        seconds: 0,
+        hit: 0,
+        palette: p,
+      );
       expect(
-        a.shouldRepaint(BossArtPainter(boilFrame: 0, hit: 0, palette: p)),
+        a.shouldRepaint(
+          BossArtPainter(
+            design: BossDesign.porcelain,
+            boilFrame: 0,
+            seconds: 0,
+            hit: 0,
+            palette: p,
+          ),
+        ),
         false,
       );
       expect(
-        a.shouldRepaint(BossArtPainter(boilFrame: 1, hit: 0, palette: p)),
+        a.shouldRepaint(
+          BossArtPainter(
+            design: BossDesign.porcelain,
+            boilFrame: 1,
+            seconds: 0,
+            hit: 0,
+            palette: p,
+          ),
+        ),
         true,
       );
       expect(
-        a.shouldRepaint(BossArtPainter(boilFrame: 0, hit: 1, palette: p)),
+        a.shouldRepaint(
+          BossArtPainter(
+            design: BossDesign.porcelain,
+            boilFrame: 0,
+            seconds: 0,
+            hit: 1,
+            palette: p,
+          ),
+        ),
         true,
       );
     });
@@ -174,6 +204,7 @@ void main() {
             progressLabel: 'Chapter 1 of 2',
             health: 1,
             isPinned: pinned,
+            design: BossDesign.rotBloom,
             onTap: () {},
             onLongPress: () {},
           ),
@@ -181,6 +212,10 @@ void main() {
         await pump(true);
         expect(edge(tester), p.deep);
         expect(find.byType(BossArt), findsOneWidget);
+        expect(
+          tester.widget<BossArt>(find.byType(BossArt)).design,
+          BossDesign.rotBloom,
+        );
         await pump(false);
         expect(edge(tester), isNull);
       },

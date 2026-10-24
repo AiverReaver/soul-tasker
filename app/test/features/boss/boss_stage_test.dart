@@ -33,6 +33,21 @@ const _stampScale = ValueKey('boss-stamp-scale');
 const _felled = ValueKey('boss-felled');
 
 void main() {
+  testWidgets('the stage draws the boss in its own design', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: const Scaffold(
+          body: BossStage(health: 1, design: BossDesign.host),
+        ),
+      ),
+    );
+    expect(
+      tester.widget<BossArt>(find.byType(BossArt)).design,
+      BossDesign.host,
+    );
+  });
+
   group('Struck stamp', () {
     testWidgets('is absent until asked for', (tester) async {
       await tester.pumpWidget(_stage());

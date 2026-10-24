@@ -20,6 +20,7 @@ void main() {
             title: 'The Certification',
             subtitle: 'Attempt 2 · Chapter 1 of 3',
             health: 0.5,
+            design: BossDesign.matron,
             onEnter: () => enters++,
             onLongPress: () => longs++,
           ),
@@ -29,6 +30,10 @@ void main() {
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('Attempt 2 · Chapter 1 of 3'), findsOneWidget);
     expect(find.byType(BossArt), findsOneWidget);
+    expect(
+      tester.widget<BossArt>(find.byType(BossArt)).design,
+      BossDesign.matron,
+    );
     expect(find.byKey(const ValueKey('shard-on')), findsNWidgets(6));
     expect(find.text('Boss health'), findsOneWidget);
     expect(find.text('6 / 12'), findsOneWidget);

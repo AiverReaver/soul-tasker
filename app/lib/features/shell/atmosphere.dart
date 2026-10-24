@@ -48,6 +48,15 @@ class Atmosphere extends StatefulWidget {
     return (ms ~/ boilStep.inMilliseconds) % 3;
   }
 
+  /// Seconds into the ambient loop, for idle motion: 0 while still, and
+  /// outside any atmosphere.
+  static double secondsOf(BuildContext context) {
+    final clock = context
+        .dependOnInheritedWidgetOfExactType<_Clock>()
+        ?.notifier;
+    return (clock?.value ?? 0) * loop.inMilliseconds / 1000;
+  }
+
   @override
   State<Atmosphere> createState() => _AtmosphereState();
 }

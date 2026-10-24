@@ -18,6 +18,8 @@ class PinnedBossPanel extends StatelessWidget {
     required this.onEnter,
     required this.onLongPress,
     this.boilFrame = 0,
+    this.design = BossDesign.porcelain,
+    this.seconds = 0,
   });
 
   final String title;
@@ -28,6 +30,10 @@ class PinnedBossPanel extends StatelessWidget {
   final VoidCallback onEnter;
   final VoidCallback onLongPress;
   final int boilFrame;
+
+  /// Which of the cast the portrait shows, and its idle clock (see BossArt).
+  final BossDesign design;
+  final double seconds;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +73,12 @@ class PinnedBossPanel extends StatelessWidget {
                           ],
                         ),
                       ),
-                      BossArt(boilFrame: boilFrame, width: 72),
+                      BossArt(
+                        boilFrame: boilFrame,
+                        design: design,
+                        seconds: seconds,
+                        width: 72,
+                      ),
                     ],
                   ),
                 ),
