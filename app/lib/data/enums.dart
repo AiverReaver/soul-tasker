@@ -3,6 +3,7 @@
 // Weathering and kInscriptionMax live in core/ so lib/ui can use them
 // without importing data.
 export '../core/check_in.dart' show CheckInAnswer;
+export '../core/boss_design.dart';
 export '../core/weathering.dart';
 
 enum BossStatus { active, waiting, defeated }

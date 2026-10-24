@@ -8,6 +8,7 @@ import '../core/ids.dart';
 import '../core/palette.dart';
 import 'database.steps.dart';
 import 'day_dao.dart' show kFlaskCap;
+import 'day_boss.dart';
 import 'enums.dart';
 import 'relic_dao.dart';
 import 'sync_sql.dart';
@@ -54,7 +55,7 @@ class AppDatabase extends _$AppDatabase {
   final Clock _clock;
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   /// The hour a day ends. Every `dayOf` call reads this, so what is written
   /// and what is shown agree (plan step 1).
@@ -241,6 +242,18 @@ class AppDatabase extends _$AppDatabase {
       },
       from8To9: (m, schema) async {
         await m.addColumn(schema.settings, schema.settings.motionEffects);
+      },
+      from9To10: (m, schema) async {
+        await m.addColumn(schema.bosses, schema.bosses.design);
+        // Existing bosses take the cast in the order they were made, so two
+        // phones with the same bosses agree. The Day wears none.
+        await customStatement(
+          'UPDATE bosses SET design = (SELECT COUNT(*) FROM bosses b '
+          'WHERE b.id != ?1 AND (b.created_at < bosses.created_at '
+          'OR (b.created_at = bosses.created_at AND b.id < bosses.id))) % ?2 '
+          'WHERE id != ?1',
+          [dayBossId, BossDesign.values.length],
+        );
       },
     ),
     beforeOpen: (details) async {

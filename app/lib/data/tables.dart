@@ -24,6 +24,10 @@ class Bosses extends Table {
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get defeatedAt => dateTime().nullable()();
 
+  /// Which of the cast it is drawn as. Null on The Day, and on rows synced
+  /// from a phone that predates designs.
+  IntColumn get design => intEnum<BossDesign>().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

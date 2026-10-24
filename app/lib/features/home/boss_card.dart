@@ -82,6 +82,8 @@ class BossCard extends ConsumerWidget {
         ].join(' · '),
         health: view.health,
         boilFrame: Atmosphere.boilFrameOf(context),
+        design: boss.design ?? bossDesignFor(boss.id),
+        seconds: Atmosphere.secondsOf(context),
         onEnter: () => context.push('/boss/${boss.id}'),
         onLongPress: () => _actions(context, ref),
       );
@@ -94,6 +96,8 @@ class BossCard extends ConsumerWidget {
       isPinned: boss.isPinned,
       showHealth: boss.status == BossStatus.active && view.hasSegments,
       boilFrame: Atmosphere.boilFrameOf(context),
+      design: boss.design ?? bossDesignFor(boss.id),
+      seconds: Atmosphere.secondsOf(context),
       onTap: () => context.push('/boss/${boss.id}'),
       onLongPress: () => _actions(context, ref),
     );

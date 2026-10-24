@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/profile_dao.dart';
@@ -25,6 +26,13 @@ void main() {
     expect(find.bySemanticsLabel('Back'), findsOneWidget);
     expect(find.text('Chapter I of II'), findsOneWidget);
     expect(find.bySemanticsLabel('Boss actions'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the boss wears its stored design', (tester) async {
+    final second = (await h.seed()).boss; // not the first, default design
+    await pumpApp(tester, h, location: '/boss/${second.id}', tall: true);
+    expect(tester.widget<BossArt>(find.byType(BossArt)).design, second.design);
     await tearDownApp(tester, h);
   });
 

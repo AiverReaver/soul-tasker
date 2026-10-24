@@ -15,6 +15,7 @@ const kSyncColumns = <String, Map<String, String>>{
     'open_from_attempt': 'integer',
     'created_at': 'timestamptz',
     'defeated_at': 'timestamptz',
+    'design': 'integer',
   },
   'phases': {
     'boss_id': 'text',

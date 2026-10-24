@@ -154,6 +154,15 @@ class $BossesTable extends Bosses with TableInfo<$BossesTable, Boss> {
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<BossDesign?, int> design =
+      GeneratedColumn<int>(
+        'design',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<BossDesign?>($BossesTable.$converterdesignn);
+  @override
   List<GeneratedColumn> get $columns => [
     id,
     title,
@@ -168,6 +177,7 @@ class $BossesTable extends Bosses with TableInfo<$BossesTable, Boss> {
     createdAt,
     updatedAt,
     defeatedAt,
+    design,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -329,6 +339,12 @@ class $BossesTable extends Bosses with TableInfo<$BossesTable, Boss> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}defeated_at'],
       ),
+      design: $BossesTable.$converterdesignn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}design'],
+        ),
+      ),
     );
   }
 
@@ -341,6 +357,10 @@ class $BossesTable extends Bosses with TableInfo<$BossesTable, Boss> {
       const EnumIndexConverter<BossStatus>(BossStatus.values);
   static JsonTypeConverter2<ResetOnFail, int, int> $converterresetOnFail =
       const EnumIndexConverter<ResetOnFail>(ResetOnFail.values);
+  static JsonTypeConverter2<BossDesign, int, int> $converterdesign =
+      const EnumIndexConverter<BossDesign>(BossDesign.values);
+  static JsonTypeConverter2<BossDesign?, int?, int?> $converterdesignn =
+      JsonTypeConverter2.asNullable($converterdesign);
 }
 
 class Boss extends DataClass implements Insertable<Boss> {
@@ -359,6 +379,10 @@ class Boss extends DataClass implements Insertable<Boss> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? defeatedAt;
+
+  /// Which of the cast it is drawn as. Null on The Day, and on rows synced
+  /// from a phone that predates designs.
+  final BossDesign? design;
   const Boss({
     required this.id,
     required this.title,
@@ -373,6 +397,7 @@ class Boss extends DataClass implements Insertable<Boss> {
     required this.createdAt,
     required this.updatedAt,
     this.defeatedAt,
+    this.design,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -406,6 +431,11 @@ class Boss extends DataClass implements Insertable<Boss> {
     if (!nullToAbsent || defeatedAt != null) {
       map['defeated_at'] = Variable<DateTime>(defeatedAt);
     }
+    if (!nullToAbsent || design != null) {
+      map['design'] = Variable<int>(
+        $BossesTable.$converterdesignn.toSql(design),
+      );
+    }
     return map;
   }
 
@@ -432,6 +462,9 @@ class Boss extends DataClass implements Insertable<Boss> {
       defeatedAt: defeatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(defeatedAt),
+      design: design == null && nullToAbsent
+          ? const Value.absent()
+          : Value(design),
     );
   }
 
@@ -458,6 +491,9 @@ class Boss extends DataClass implements Insertable<Boss> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       defeatedAt: serializer.fromJson<DateTime?>(json['defeatedAt']),
+      design: $BossesTable.$converterdesignn.fromJson(
+        serializer.fromJson<int?>(json['design']),
+      ),
     );
   }
   @override
@@ -481,6 +517,9 @@ class Boss extends DataClass implements Insertable<Boss> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'defeatedAt': serializer.toJson<DateTime?>(defeatedAt),
+      'design': serializer.toJson<int?>(
+        $BossesTable.$converterdesignn.toJson(design),
+      ),
     };
   }
 
@@ -498,6 +537,7 @@ class Boss extends DataClass implements Insertable<Boss> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> defeatedAt = const Value.absent(),
+    Value<BossDesign?> design = const Value.absent(),
   }) => Boss(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -514,6 +554,7 @@ class Boss extends DataClass implements Insertable<Boss> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     defeatedAt: defeatedAt.present ? defeatedAt.value : this.defeatedAt,
+    design: design.present ? design.value : this.design,
   );
   Boss copyWithCompanion(BossesCompanion data) {
     return Boss(
@@ -544,6 +585,7 @@ class Boss extends DataClass implements Insertable<Boss> {
       defeatedAt: data.defeatedAt.present
           ? data.defeatedAt.value
           : this.defeatedAt,
+      design: data.design.present ? data.design.value : this.design,
     );
   }
 
@@ -562,7 +604,8 @@ class Boss extends DataClass implements Insertable<Boss> {
           ..write('openFromAttempt: $openFromAttempt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('defeatedAt: $defeatedAt')
+          ..write('defeatedAt: $defeatedAt, ')
+          ..write('design: $design')
           ..write(')'))
         .toString();
   }
@@ -582,6 +625,7 @@ class Boss extends DataClass implements Insertable<Boss> {
     createdAt,
     updatedAt,
     defeatedAt,
+    design,
   );
   @override
   bool operator ==(Object other) =>
@@ -599,7 +643,8 @@ class Boss extends DataClass implements Insertable<Boss> {
           other.openFromAttempt == this.openFromAttempt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.defeatedAt == this.defeatedAt);
+          other.defeatedAt == this.defeatedAt &&
+          other.design == this.design);
 }
 
 class BossesCompanion extends UpdateCompanion<Boss> {
@@ -616,6 +661,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> defeatedAt;
+  final Value<BossDesign?> design;
   final Value<int> rowid;
   const BossesCompanion({
     this.id = const Value.absent(),
@@ -631,6 +677,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.defeatedAt = const Value.absent(),
+    this.design = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   BossesCompanion.insert({
@@ -647,6 +694,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
     required DateTime createdAt,
     required DateTime updatedAt,
     this.defeatedAt = const Value.absent(),
+    this.design = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        title = Value(title),
@@ -668,6 +716,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? defeatedAt,
+    Expression<int>? design,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -684,6 +733,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (defeatedAt != null) 'defeated_at': defeatedAt,
+      if (design != null) 'design': design,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -702,6 +752,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? defeatedAt,
+    Value<BossDesign?>? design,
     Value<int>? rowid,
   }) {
     return BossesCompanion(
@@ -718,6 +769,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       defeatedAt: defeatedAt ?? this.defeatedAt,
+      design: design ?? this.design,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -768,6 +820,11 @@ class BossesCompanion extends UpdateCompanion<Boss> {
     if (defeatedAt.present) {
       map['defeated_at'] = Variable<DateTime>(defeatedAt.value);
     }
+    if (design.present) {
+      map['design'] = Variable<int>(
+        $BossesTable.$converterdesignn.toSql(design.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -790,6 +847,7 @@ class BossesCompanion extends UpdateCompanion<Boss> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('defeatedAt: $defeatedAt, ')
+          ..write('design: $design, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9383,6 +9441,7 @@ typedef $$BossesTableCreateCompanionBuilder = BossesCompanion Function({
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<DateTime?> defeatedAt,
+  Value<BossDesign?> design,
   Value<int> rowid,
 });
 typedef $$BossesTableUpdateCompanionBuilder = BossesCompanion Function({
@@ -9399,6 +9458,7 @@ typedef $$BossesTableUpdateCompanionBuilder = BossesCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> defeatedAt,
+  Value<BossDesign?> design,
   Value<int> rowid,
 });
 
@@ -9612,6 +9672,12 @@ class $$BossesTableFilterComposer
     column: $table.defeatedAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<BossDesign?, BossDesign, int> get design =>
+      $composableBuilder(
+        column: $table.design,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   Expression<bool> phasesRefs(
     Expression<bool> Function($$PhasesTableFilterComposer f) f,
@@ -9862,6 +9928,11 @@ class $$BossesTableOrderingComposer
     column: $table.defeatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get design => $composableBuilder(
+    column: $table.design,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$BossesTableAnnotationComposer
@@ -9926,6 +9997,9 @@ class $$BossesTableAnnotationComposer
     column: $table.defeatedAt,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<BossDesign?, int> get design =>
+      $composableBuilder(column: $table.design, builder: (column) => column);
 
   Expression<T> phasesRefs<T extends Object>(
     Expression<T> Function($$PhasesTableAnnotationComposer a) f,
@@ -10152,6 +10226,7 @@ class $$BossesTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> defeatedAt = const Value.absent(),
+                Value<BossDesign?> design = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BossesCompanion(
                 id: id,
@@ -10167,6 +10242,7 @@ class $$BossesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 defeatedAt: defeatedAt,
+                design: design,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -10184,6 +10260,7 @@ class $$BossesTableTableManager
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<DateTime?> defeatedAt = const Value.absent(),
+                Value<BossDesign?> design = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => BossesCompanion.insert(
                 id: id,
@@ -10199,6 +10276,7 @@ class $$BossesTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 defeatedAt: defeatedAt,
+                design: design,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

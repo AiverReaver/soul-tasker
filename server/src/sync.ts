@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { Type } from '@fastify/type-provider-typebox';
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import type pg from 'pg';
-import { EVENT_TABLES, NATURAL_KEY_TABLES, REFERENCES, SYNCED_COLUMNS } from './tables.ts';
+import { EVENT_TABLES, LATER_COLUMNS, NATURAL_KEY_TABLES, REFERENCES, SYNCED_COLUMNS } from './tables.ts';
 import { ErrorBody, PullResponse, PushRequest, PushResponse, ref } from './schemas.ts';
 
 /** Seams for tests: [beforeCommit] runs inside each push transaction. */
@@ -52,14 +52,17 @@ function validate(change: Change, now: Date) {
   }
   const row = change.row;
   if (!row) throw new Rejected('malformed', 'upsert without row');
-  const keys = Object.keys(row);
   const expected = Object.keys(columns);
-  if (keys.length !== expected.length || !expected.every((k) => k in row)) {
+  const later = LATER_COLUMNS[change.table];
+  if (
+    !Object.keys(row).every((k) => k in columns) ||
+    !expected.every((k) => k in row || later?.has(k))
+  ) {
     throw new Rejected('malformed', `columns must be exactly ${expected.join(', ')}`);
   }
   for (const [col, type] of Object.entries(columns)) {
     const v = row[col];
-    if (v === null) continue;
+    if (v === null || v === undefined) continue;
     const ok =
       type === 'text'
         ? typeof v === 'string'
@@ -155,7 +158,7 @@ class Push {
     const values = [
       this.userId,
       id,
-      ...cols.map((c) => this.dbValue(table, c, row[c])),
+      ...cols.map((c) => this.dbValue(table, c, row[c] ?? null)),
       ...(updatedAt === undefined ? [] : [updatedAt]),
       this.deviceId,
       await this.nextSeq(),
@@ -168,7 +171,8 @@ class Push {
   }
 
   private async update(table: string, id: string, row: Record<string, unknown>, updatedAt: string | undefined) {
-    const cols = Object.keys(SYNCED_COLUMNS[table]!);
+    // A column the app left out keeps what is stored.
+    const cols = Object.keys(SYNCED_COLUMNS[table]!).filter((c) => c in row);
     const sets = [...cols, ...(updatedAt === undefined ? [] : ['updated_at']), 'device_id', 'seq'];
     const values = [
       ...cols.map((c) => this.dbValue(table, c, row[c])),
