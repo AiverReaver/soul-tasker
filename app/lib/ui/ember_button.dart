@@ -16,8 +16,10 @@ class EmberButton extends StatelessWidget {
 
   final String label;
 
+  /// Null disables the button: it fades and reads as disabled.
+  final VoidCallback? onPressed;
+
   /// Optional [StrokeIcons] path drawn before the label.
-  final VoidCallback onPressed;
   final String? icon;
 
   static const height = 52.0;
@@ -25,7 +27,7 @@ class EmberButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.palette;
-    return NeedleFrame(
+    final button = NeedleFrame(
       tier: Cut.md,
       edge: p.silk,
       fill: p.silk,
@@ -63,6 +65,11 @@ class EmberButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+    return Semantics(
+      button: true,
+      enabled: onPressed != null,
+      child: Opacity(opacity: onPressed == null ? .4 : 1, child: button),
     );
   }
 }

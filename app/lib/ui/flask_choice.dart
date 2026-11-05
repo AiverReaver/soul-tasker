@@ -1,7 +1,9 @@
+import 'dart:math';
+
 import 'package:material_ui/material_ui.dart';
 
-import '../core/theme.dart';
-import 'ember_button.dart';
+import '../core/deadlines.dart';
+import 'glass_alert.dart';
 
 /// Asked when days passed without rest: spend a flask, or let the attempt
 /// fall. Calm and plain; nothing is lost by choosing either.
@@ -21,28 +23,19 @@ class FlaskChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return AlertDialog(
-      title: Text(
-        daysMissed == 1
-            ? 'A day passed without rest.'
-            : '$daysMissed days passed without rest.',
-        style: text.titleMedium,
-      ),
-      content: Text(
-        'You hold $flasks ${flasks == 1 ? 'flask' : 'flasks'}.',
-        style: text.bodyMedium,
-      ),
+    final spend = min(flasks, daysMissed);
+    final days = countWord(daysMissed);
+    return GlassAlert(
+      title: daysMissed == 1
+          ? 'A day passed without rest.'
+          : '${days[0].toUpperCase()}${days.substring(1)} days passed '
+                'without rest.',
+      body: 'You hold $flasks ${flasks == 1 ? 'flask' : 'flasks'}.',
       actions: [
-        TextButton(
-          onPressed: onLetFall,
-          child: Text(
-            'Let it fall',
-            style: TextStyle(color: context.palette.ash),
-          ),
-        ),
-        EmberButton(label: 'Use a flask', onPressed: onUseFlask),
+        spend == 1 ? 'Use a flask' : 'Use ${countWord(spend)} flasks',
+        'Let it fall',
       ],
+      onAction: (i) => i == 0 ? onUseFlask() : onLetFall(),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/deadlines.dart';
 import '../../core/missed_days.dart';
+import '../../core/theme.dart';
 import '../../data/enums.dart';
 import '../../data/health_dao.dart';
 import '../../data/providers.dart';
@@ -148,6 +149,7 @@ class _DayResolverState extends ConsumerState<DayResolver>
       final useFlask = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
+        barrierColor: context.palette.ink.withValues(alpha: .62),
         builder: (dialog) => FlaskChoice(
           daysMissed: pending.days.length,
           flasks: pending.flasks,

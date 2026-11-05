@@ -106,13 +106,31 @@ class PlanPickDao {
     if (ids.isEmpty) return const [];
     final byTask = {
       for (final view in await _bosses.loadAll())
-        for (final t in view.allTasks) t.task.id: (t, view.boss.title),
+        if (view.boss.status == BossStatus.active)
+          for (final t in view.allTasks) t.task.id: (t, view.boss.title),
     };
-    // Ids of tasks deleted since are skipped.
+    final struckOnDay = {
+      for (final a
+          in await (_db.select(_db.attempts)..where(
+                (a) =>
+                    a.outcome.equalsValue(Outcome.strike) &
+                    a.day.equals(day) &
+                    a.taskId.isIn(ids),
+              ))
+              .get())
+        a.taskId,
+    };
+    // Skipped: deleted tasks, bosses set aside or won, and one-time tasks
+    // already struck before the day, which are no longer the day's work.
     return [
       for (final id in ids)
         if (byTask[id] case (final t, final bossTitle))
-          PlannedTask(task: t.task, bossTitle: bossTitle, isStruck: t.isStruck),
+          if (struckOnDay.contains(id) || t.isDaily || !t.isStruck)
+            PlannedTask(
+              task: t.task,
+              bossTitle: bossTitle,
+              isStruck: struckOnDay.contains(id),
+            ),
     ];
   }
 

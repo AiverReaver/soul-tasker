@@ -167,10 +167,14 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
                 ],
               ),
             ),
-            EmberButton(
-              label: 'Add to today',
-              icon: StrokeIcons.strike,
-              onPressed: _add,
+            // Disabled until the task has a name.
+            ValueListenableBuilder(
+              valueListenable: _name,
+              builder: (_, name, _) => EmberButton(
+                label: 'Add to today',
+                icon: StrokeIcons.strike,
+                onPressed: name.text.trim().isEmpty ? null : _add,
+              ),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/flash_line.dart';
 import 'package:hearthrise/ui/glass_sheet.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
 import 'package:hearthrise/ui/hold_button.dart';
@@ -204,6 +205,16 @@ void main() {
     await tester.tap(find.text('Set waiting'));
     await settle(tester);
     expect((await h.reload(view.boss.id)).boss.status, BossStatus.waiting);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the flash line is inset 20 px like the rest of Home', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, tall: true);
+    expect(tester.getTopLeft(find.byType(FlashLine)).dx, 20);
     await tearDownApp(tester, h);
   });
 }

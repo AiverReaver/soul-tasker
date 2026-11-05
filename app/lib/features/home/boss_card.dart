@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/clock.dart';
+import '../../core/roman.dart';
 import '../../core/days_left.dart';
 import '../../data/boss_view.dart';
 import '../../data/day_boss.dart';
@@ -14,36 +15,30 @@ import '../../ui/glass_sheet.dart';
 import '../../ui/pinned_boss_panel.dart';
 import '../shell/atmosphere.dart';
 
+/// The card's progress line: The Day counts today's tasks; other bosses
+/// name their chapter.
+String bossProgressLabel(BossView view) {
+  if (view.isDay) {
+    final all = view.allTasks;
+    if (all.isEmpty) return 'No tasks today';
+    return '${all.where((t) => t.isStruck).length} of ${all.length} struck today';
+  }
+  if (!view.hasSegments) return 'Daily tasks';
+  final fighting = view.phases
+      .where((p) => p.tasks.any((t) => t.isSegment))
+      .toList();
+  final current = view.currentPhase;
+  return current == null
+      ? 'All chapters done'
+      : 'Chapter ${romanNumeral(fighting.indexOf(current) + 1)} of '
+            '${romanNumeral(fighting.length)}';
+}
+
 /// One boss on the home list (§6.1). Long-press for pin and status.
 class BossCard extends ConsumerWidget {
   const BossCard({super.key, required this.view});
 
   final BossView view;
-
-  String get _progress {
-    if (!view.hasSegments) return 'Daily tasks';
-    final fighting = view.phases
-        .where((p) => p.tasks.any((t) => t.isSegment))
-        .toList();
-    final current = view.currentPhase;
-    return current == null
-        ? 'All chapters done'
-        : 'Chapter ${_roman(fighting.indexOf(current) + 1)} of '
-              '${_roman(fighting.length)}';
-  }
-
-  static String _roman(int n) {
-    const parts = {10: 'X', 9: 'IX', 5: 'V', 4: 'IV', 1: 'I'};
-    var rest = n;
-    final out = StringBuffer();
-    for (final MapEntry(:key, :value) in parts.entries) {
-      while (rest >= key) {
-        out.write(value);
-        rest -= key;
-      }
-    }
-    return out.toString();
-  }
 
   Future<void> _actions(BuildContext context, WidgetRef ref) async {
     final boss = view.boss;
@@ -81,7 +76,7 @@ class BossCard extends ConsumerWidget {
       return PinnedBossPanel(
         title: boss.title,
         subtitle: [
-          _progress,
+          bossProgressLabel(view),
           'Attempt ${boss.attemptNumber}',
           ?daysLeftLabel(boss.targetDate, ref.read(clockProvider)()),
         ].join(' · '),
@@ -94,7 +89,7 @@ class BossCard extends ConsumerWidget {
     return BossCardTile(
       title: boss.title,
       attemptNumber: boss.attemptNumber,
-      progressLabel: _progress,
+      progressLabel: bossProgressLabel(view),
       health: view.health,
       isPinned: boss.isPinned,
       showHealth: boss.status == BossStatus.active && view.hasSegments,

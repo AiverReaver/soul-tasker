@@ -111,4 +111,18 @@ void main() {
     expect(find.text("TOMORROW'S THREE"), findsOneWidget);
     expect(find.text("TODAY'S THREE"), findsNothing);
   });
+
+  testWidgets('EmberButton with no onPressed looks and reads as disabled', (
+    tester,
+  ) async {
+    await _pump(tester, const EmberButton(label: 'Add', onPressed: null));
+    final fade = tester.widget<Opacity>(
+      find.ancestor(of: find.text('Add'), matching: find.byType(Opacity)),
+    );
+    expect(fade.opacity, lessThan(1));
+    expect(
+      tester.getSemantics(find.byType(EmberButton)),
+      isSemantics(isButton: true, hasEnabledState: true, isEnabled: false),
+    );
+  });
 }

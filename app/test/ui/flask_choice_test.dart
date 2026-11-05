@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/ui/flask_choice.dart';
+import 'package:hearthrise/ui/glass_alert.dart';
 import 'package:material_ui/material_ui.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
@@ -26,9 +27,11 @@ void main() {
       ),
     );
 
-    expect(find.text('2 days passed without rest.'), findsOneWidget);
+    expect(find.byType(GlassAlert), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Two days passed without rest.'), findsOneWidget);
     expect(find.text('You hold 3 flasks.'), findsOneWidget);
-    await tester.tap(find.text('Use a flask'));
+    await tester.tap(find.text('Use two flasks'));
     await tester.tap(find.text('Let it fall'));
     expect((used, fell), (1, 1));
   });
@@ -47,5 +50,19 @@ void main() {
     );
     expect(find.text('A day passed without rest.'), findsOneWidget);
     expect(find.text('You hold 1 flask.'), findsOneWidget);
+    expect(find.text('Use a flask'), findsOneWidget);
+  });
+
+  testWidgets('it offers only the flasks held', (tester) async {
+    await _pump(
+      tester,
+      FlaskChoice(
+        daysMissed: 3,
+        flasks: 2,
+        onUseFlask: () {},
+        onLetFall: () {},
+      ),
+    );
+    expect(find.text('Use two flasks'), findsOneWidget);
   });
 }
