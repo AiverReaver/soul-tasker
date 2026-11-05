@@ -74,9 +74,9 @@ class BossCard extends ConsumerWidget {
     final boss = view.boss;
     if (boss.isPinned && boss.status == BossStatus.active) {
       return PinnedBossPanel(
+        label: 'Boss · ${bossProgressLabel(view)}',
         title: boss.title,
         subtitle: [
-          bossProgressLabel(view),
           'Attempt ${boss.attemptNumber}',
           ?daysLeftLabel(boss.targetDate, ref.read(clockProvider)()),
         ].join(' · '),

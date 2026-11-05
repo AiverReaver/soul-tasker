@@ -22,9 +22,9 @@ abstract final class Space {
 
 // Shape: one radius, three sizes. Same in every biome, so it stays const.
 abstract final class Cut {
-  static const double lg = 8; // panels, sheets
-  static const double md = 6; // rows, buttons, fields
-  static const double sm = 4; // tags
+  static const double lg = 16; // panels, sheets, rows
+  static const double md = 12; // buttons, fields
+  static const double sm = 6; // tags
 }
 
 // Motion: slow, no bounce (§8.1). Exits faster than entrances.

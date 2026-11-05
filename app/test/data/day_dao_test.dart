@@ -28,6 +28,30 @@ void main() {
     12,
   );
 
+  group('weekStreak', () {
+    test('rests and flasks count; a day with no cover ends it', () async {
+      await h.seed();
+      expect((await days.weekStreak()).days, 0);
+      await days.rest();
+      expect((await days.weekStreak()).days, 1);
+      nextDay();
+      expect((await days.weekStreak()).days, 1, reason: 'today is still open');
+      await days.skipToday();
+      expect((await days.weekStreak()).days, 2);
+      nextDay();
+      nextDay();
+      expect((await days.weekStreak()).days, 0);
+    });
+
+    test('a light day counts only with a strike', () async {
+      final view = await h.seed();
+      await days.markLight();
+      expect((await days.weekStreak()).days, 0);
+      await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+      expect((await days.weekStreak()).days, 1);
+    });
+  });
+
   group('rest', () {
     test('writes a bonfire row, banks the carried embers, saves the lesson '
         '(trimmed)', () async {

@@ -2,16 +2,15 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
 import 'boss_art.dart';
-import 'ember_button.dart';
 import 'needle_frame.dart';
 import 'shard_meter.dart';
-import 'stroke_icon.dart';
 
-/// The pinned boss on Home: a featured panel with a deep edge, a small
-/// portrait, the shard meter and a way into the fight.
+/// The pinned boss on Home: a featured card with a deep edge, a portrait and
+/// the shard meter. The whole card is the way into the fight.
 class PinnedBossPanel extends StatelessWidget {
   const PinnedBossPanel({
     super.key,
+    required this.label,
     required this.title,
     required this.subtitle,
     required this.health,
@@ -22,6 +21,8 @@ class PinnedBossPanel extends StatelessWidget {
     this.seconds = 0,
   });
 
+  /// The line over the name, such as "Boss · Chapter I of III".
+  final String label;
   final String title;
   final String subtitle;
 
@@ -41,68 +42,65 @@ class PinnedBossPanel extends StatelessWidget {
     final p = context.palette;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: NeedleFrame(
-        key: const Key('pinned-boss-panel'),
-        edge: p.deep,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [p.raised2, p.shell],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(Space.md + Space.xs),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onLongPress: onLongPress,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title, style: text.headlineMedium),
-                            const SizedBox(height: Space.xs),
-                            Text(subtitle, style: text.bodySmall),
-                          ],
-                        ),
-                      ),
-                      BossArt(
-                        boilFrame: boilFrame,
-                        design: design,
-                        seconds: seconds,
-                        width: 72,
-                      ),
-                    ],
-                  ),
+      // The detector stays outside: excluding semantics would hide its actions.
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onEnter,
+        onLongPress: onLongPress,
+        child: Semantics(
+          button: true,
+          label:
+              'Enter the fight: $title. $subtitle. '
+              'Boss health ${shardsFor(health)} of ${ShardMeter.count}',
+          excludeSemantics: true,
+          child: NeedleFrame(
+            key: const Key('pinned-boss-panel'),
+            edge: p.deep,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  // 160 degrees.
+                  begin: const Alignment(-.34, -.94),
+                  end: const Alignment(.34, .94),
+                  colors: [p.raised, p.shell],
+                  stops: const [0, .62],
                 ),
-                const SizedBox(height: Space.md),
-                Row(
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 12, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: Space.md,
                   children: [
-                    Expanded(
-                      child: Text('Boss health', style: text.labelSmall),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: Space.xs,
+                            children: [
+                              Text(label.toUpperCase(), style: text.labelSmall),
+                              Text(title, style: text.headlineMedium),
+                              Text(subtitle, style: text.bodySmall),
+                            ],
+                          ),
+                        ),
+                        BossArt(
+                          boilFrame: boilFrame,
+                          design: design,
+                          seconds: seconds,
+                          width: 92,
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${shardsFor(health)} / ${ShardMeter.count}',
-                      style: text.bodySmall,
+                    Padding(
+                      padding: const EdgeInsets.only(right: Space.sm),
+                      child: ShardMeter(filled: shardsFor(health), height: 9),
                     ),
                   ],
                 ),
-                const SizedBox(height: Space.xs),
-                ShardMeter(filled: shardsFor(health)),
-                const SizedBox(height: Space.md),
-                EmberButton(
-                  label: 'Enter the fight',
-                  icon: StrokeIcons.strike,
-                  onPressed: onEnter,
-                ),
-              ],
+              ),
             ),
           ),
         ),

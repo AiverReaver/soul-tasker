@@ -111,6 +111,10 @@ final dayStatusProvider = StreamProvider(
   (ref) => ref.watch(dayDaoProvider).watchToday(),
 );
 
+final weekStreakProvider = StreamProvider(
+  (ref) => ref.watch(dayDaoProvider).watchWeekStreak(),
+);
+
 final planPickDaoProvider = Provider(
   (ref) => PlanPickDao(
     ref.watch(databaseProvider),

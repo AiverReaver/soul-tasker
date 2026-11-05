@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show immutable;
 
 import '../core/clock.dart';
 import '../core/missed_days.dart';
+import '../core/week_streak.dart';
 import 'attempt_dao.dart';
 import 'database.dart';
 import 'ember_dao.dart';
@@ -164,6 +165,40 @@ class DayDao {
     await _embers.bank();
     return true;
   });
+
+  /// The unbroken run and this week's row. A day is kept by the same cover
+  /// that spares a boss: a rest, a flask, or a light day with a strike.
+  Future<WeekStreak> weekStreak() async {
+    final logs = await _db.select(_db.dayLogs).get();
+    final strikes = {
+      for (final a in await (_db.select(
+        _db.attempts,
+      )..where((a) => a.outcome.equalsValue(Outcome.strike))).get())
+        a.day,
+    };
+    return weekStreakOn(
+      today: await _today(),
+      kept: {
+        for (final l in logs)
+          if (_isCover(l.kind) ||
+              (l.kind == DayKind.light && strikes.contains(l.day)))
+            l.day,
+      },
+    );
+  }
+
+  Stream<WeekStreak> watchWeekStreak() async* {
+    yield await weekStreak();
+    yield* _db
+        .tableUpdates(
+          TableUpdateQuery.onAllTables([
+            _db.dayLogs,
+            _db.attempts,
+            _db.userSettings,
+          ]),
+        )
+        .asyncMap((_) => weekStreak());
+  }
 
   Future<DaySummaryData> summary() async {
     final day = await _today();

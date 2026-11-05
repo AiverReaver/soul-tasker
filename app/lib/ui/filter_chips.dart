@@ -27,6 +27,7 @@ class FilterChips<T> extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
       padding: padding,
       child: Row(
         spacing: Space.sm,

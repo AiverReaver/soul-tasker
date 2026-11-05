@@ -4,72 +4,82 @@ import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/ui/needle_frame.dart';
 import 'package:hearthrise/ui/pinned_boss_panel.dart';
 import 'package:hearthrise/ui/shard_meter.dart';
-import 'package:hearthrise/ui/stroke_icon.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
-  testWidgets('a featured panel: deep edge, art, shard meter, enter button', (
-    tester,
-  ) async {
-    var enters = 0, longs = 0;
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildTheme(),
-        home: Scaffold(
-          body: PinnedBossPanel(
-            title: 'The Certification',
-            subtitle: 'Attempt 2 · Chapter 1 of 3',
-            health: 0.5,
-            design: BossDesign.matron,
-            onEnter: () => enters++,
-            onLongPress: () => longs++,
-          ),
+  Future<void> pump(
+    WidgetTester tester, {
+    VoidCallback? onEnter,
+    VoidCallback? onLongPress,
+  }) => tester.pumpWidget(
+    MaterialApp(
+      theme: buildTheme(),
+      home: Scaffold(
+        body: PinnedBossPanel(
+          label: 'Boss · Chapter I of III',
+          title: 'The Certification',
+          subtitle: 'Attempt 2 · 9 days left',
+          health: 0.5,
+          design: BossDesign.matron,
+          onEnter: onEnter ?? () {},
+          onLongPress: onLongPress ?? () {},
         ),
       ),
-    );
+    ),
+  );
+
+  testWidgets('a featured card: label, name, line, art and shards', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(find.text('BOSS · CHAPTER I OF III'), findsOneWidget);
     expect(find.text('The Certification'), findsOneWidget);
-    expect(find.text('Attempt 2 · Chapter 1 of 3'), findsOneWidget);
-    expect(find.byType(BossArt), findsOneWidget);
-    expect(
-      tester.widget<BossArt>(find.byType(BossArt)).design,
-      BossDesign.matron,
-    );
+    expect(find.text('Attempt 2 · 9 days left'), findsOneWidget);
+    final art = tester.widget<BossArt>(find.byType(BossArt));
+    expect(art.design, BossDesign.matron);
+    expect(art.width, 92);
     expect(find.byKey(const ValueKey('shard-on')), findsNWidgets(6));
-    expect(find.text('Boss health'), findsOneWidget);
-    expect(find.text('6 / 12'), findsOneWidget);
     expect(
       tester.widget<NeedleFrame>(find.byType(NeedleFrame).first).edge,
       Biome.pharloom.palette.deep,
     );
-    await tester.tap(find.text('Enter the fight'));
+  });
+
+  testWidgets('the art sits beside the name, never over it', (tester) async {
+    await pump(tester);
+    expect(
+      tester.getTopRight(find.text('The Certification')).dx,
+      lessThanOrEqualTo(tester.getTopLeft(find.byType(BossArt)).dx),
+    );
+  });
+
+  testWidgets('the whole card opens the fight; there is no extra button', (
+    tester,
+  ) async {
+    var enters = 0, longs = 0;
+    await pump(tester, onEnter: () => enters++, onLongPress: () => longs++);
+    expect(find.text('Enter the fight'), findsNothing);
+    expect(find.text('Boss health'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('shard-on')).first);
     expect(enters, 1);
+    await tester.tap(find.text('The Certification'));
+    expect(enters, 2);
     await tester.longPress(find.text('The Certification'));
     expect(longs, 1);
   });
 
-  testWidgets('no "Pinned" label, and the button carries the strike icon', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: buildTheme(),
-        home: Scaffold(
-          body: PinnedBossPanel(
-            title: 'The Certification',
-            subtitle: 'Attempt 2',
-            health: 0.5,
-            onEnter: () {},
-            onLongPress: () {},
-          ),
-        ),
-      ),
-    );
-    expect(find.text('Pinned'), findsNothing);
+  testWidgets('it speaks as a button that names the boss', (tester) async {
+    await pump(tester);
     expect(
-      find.byWidgetPredicate(
-        (w) => w is StrokeIcon && w.path == StrokeIcons.strike,
+      tester.getSemantics(find.bySemanticsLabel(RegExp('Enter the fight'))),
+      matchesSemantics(
+        label:
+            'Enter the fight: The Certification. Attempt 2 · 9 days left. '
+            'Boss health 6 of 12',
+        isButton: true,
+        hasTapAction: true,
+        hasLongPressAction: true,
       ),
-      findsOneWidget,
     );
   });
 
