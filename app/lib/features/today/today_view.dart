@@ -214,9 +214,8 @@ class _TodayViewState extends ConsumerState<TodayView> {
               ],
             ),
           ),
-        if (active.length > 1)
+        if (active.length > 1 && !isHome)
           FilterChips<String>(
-            padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
             labels: {
               null: 'All',
               for (final b in active) b.boss.id: b.boss.title,

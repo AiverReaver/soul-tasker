@@ -11,15 +11,11 @@ class FilterChips<T> extends StatelessWidget {
     required this.labels,
     required this.selected,
     required this.onChanged,
-    this.padding = EdgeInsets.zero,
   });
 
   final Map<T?, String> labels;
   final T? selected;
   final ValueChanged<T?> onChanged;
-
-  /// Inset of the scrolling row, so the first chip lines up with the page.
-  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +24,6 @@ class FilterChips<T> extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       clipBehavior: Clip.none,
-      padding: padding,
       child: Row(
         spacing: Space.sm,
         children: [

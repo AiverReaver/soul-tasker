@@ -4,6 +4,7 @@ import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/day_dao.dart';
 import 'package:hearthrise/data/enums.dart';
+import 'package:hearthrise/ui/filter_chips.dart';
 import 'package:hearthrise/ui/flash_line.dart';
 import 'package:hearthrise/ui/glass_sheet.dart';
 import 'package:hearthrise/ui/day_panel.dart';
@@ -144,6 +145,24 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('Home has no filter tabs; the Today tab keeps them', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    await h.bosses.ensureDayBoss();
+    await pumpApp(tester, h, tall: true);
+    expect(find.byType(FilterChips<String>), findsNothing);
+    await tearDownApp(tester, h);
+
+    final t = Harness();
+    await t.seed();
+    await t.bosses.ensureDayBoss();
+    await pumpApp(tester, t, location: '/today', tall: true);
+    expect(find.byType(FilterChips<String>), findsOneWidget);
+    await tearDownApp(tester, t);
+  });
+
   testWidgets('All bosses leads to the full list', (tester) async {
     final h = Harness();
     await h.seed();
@@ -155,9 +174,8 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the struck count skips bosses set aside and follows the chip', (
-    tester,
-  ) async {
+  testWidgets('the struck count skips bosses set aside and follows the Today '
+      'chip', (tester) async {
     final h = Harness();
     final view = await h.seed();
     final habit = await h.bosses.saveBoss(
@@ -172,15 +190,18 @@ void main() {
     await pumpApp(tester, h, tall: true);
     expect(find.text('1 of 5 struck'), findsOneWidget);
 
+    await tester.tap(find.text('Today'));
+    await settle(tester);
+    expect(find.text('1 of 5 struck · hold to strike'), findsOneWidget);
     await tester.tap(find.text(view.boss.title).first);
     await settle(tester);
-    expect(find.text('0 of 4 struck'), findsOneWidget);
+    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
 
     await tester.tap(find.text('All'));
     await settle(tester);
     await h.bosses.setStatus(habit, BossStatus.waiting);
     await settle(tester);
-    expect(find.text('0 of 4 struck'), findsOneWidget);
+    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -262,19 +283,14 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('The Day leads Home: first chip, first group, and its label '
-      'opens its screen', (tester) async {
+  testWidgets('The Day leads Home: first group, and its label opens its '
+      'screen', (tester) async {
     final h = Harness();
     await h.seed();
     await h.bosses.ensureDayBoss();
     await h.bosses.addQuickTask('Call the bank');
     await pumpApp(tester, h, tall: true);
 
-    final chips = tester.getTopLeft(find.text('The Day').first);
-    expect(
-      chips.dx,
-      lessThan(tester.getTopLeft(find.text('The Certification').first).dx),
-    );
     final headers = tester.widgetList<TaskGroupHeader>(
       find.byType(TaskGroupHeader),
     );
@@ -283,6 +299,18 @@ void main() {
     await tester.tap(find.text('THE DAY · DAILY'));
     await settle(tester);
     expect(find.byType(DayPanel), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('The Day leads the Today tab: first chip', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await h.bosses.ensureDayBoss();
+    await pumpApp(tester, h, location: '/today', tall: true);
+    expect(
+      tester.getTopLeft(find.text('The Day').first).dx,
+      lessThan(tester.getTopLeft(find.text('The Certification').first).dx),
+    );
     await tearDownApp(tester, h);
   });
 }

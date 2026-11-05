@@ -1,13 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../core/theme.dart';
-import 'glass_surface.dart';
 import 'stroke_icon.dart';
 
-/// The foe row's strike button, drawn only: a 48 px glass ring (no blur: it
-/// sits on a solid row) with a silk fill rising to [progress] and the strike
-/// icon in bone. [isReady] turns the edge bone. The gesture stays in
-/// `HoldToStrike`.
+/// The foe row's strike button, drawn only: the strike icon in silk, with no
+/// surface of its own. While held, a silk fill rises to [progress] behind a
+/// bone icon. The gesture stays in `HoldToStrike`.
 class HoldButton extends StatelessWidget {
   const HoldButton({
     super.key,
@@ -21,7 +19,6 @@ class HoldButton extends StatelessWidget {
   final String semanticLabel;
 
   static const size = 48.0;
-  static const _inner = 46.0;
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +27,8 @@ class HoldButton extends StatelessWidget {
       label: semanticLabel,
       button: true,
       excludeSemantics: true,
-      child: GlassSurface(
-        shape: const GlassShape.circle(),
-        blur: 0,
-        edge: isReady ? p.bone : p.ink,
-        edgeWidth: 1.5,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(Cut.md),
         child: SizedBox.square(
           dimension: size,
           child: Stack(
@@ -43,17 +37,19 @@ class HoldButton extends StatelessWidget {
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: 1,
+                bottom: 0,
                 child: SizedBox(
                   key: const ValueKey('hold-fill'),
-                  height: progress.clamp(0, 1) * _inner,
-                  child: ColoredBox(color: p.silk.withValues(alpha: .78)),
+                  height: progress.clamp(0, 1) * size,
+                  child: ColoredBox(
+                    color: p.silk.withValues(alpha: isReady ? 1 : .78),
+                  ),
                 ),
               ),
               StrokeIcon(
                 path: StrokeIcons.strike,
-                color: p.bone,
-                size: 18,
+                color: progress > 0 ? p.bone : p.silk,
+                size: 20,
                 strokeWidth: 1.8,
               ),
             ],
