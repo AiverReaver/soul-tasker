@@ -115,6 +115,14 @@ class _BossScreenState extends ConsumerState<BossScreen> {
       case BossAction.victory:
         await confirmDefeat(context, ref, boss.id);
       case BossAction.failed:
+        final choice = await showGlassAlert(
+          context,
+          label: boss.title,
+          title: 'End attempt ${boss.attemptNumber}?',
+          body: 'Your embers stay. ${boss.title} waits for the next attempt.',
+          actions: const ['Keep fighting', 'End attempt'],
+        );
+        if (choice != 1 || !mounted) return;
         await _fall();
     }
   }

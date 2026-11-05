@@ -258,21 +258,25 @@ class BossDao {
         );
   }
 
-  /// A quick task: a daily task on The Day, light unless [weight] says more. Returns its id.
-  Future<String> addQuickTask(String title, {Weight weight = Weight.light}) =>
-      _db.transaction(() async {
-        await ensureDayBoss();
-        final count = await (_db.select(
-          _db.tasks,
-        )..where((t) => t.bossId.equals(dayBossId))).get();
-        return _upsertTask(
-          dayBossId,
-          null,
-          TaskDraft(title: title, weight: weight, recurrence: Recurrence.daily),
-          count.length,
-          _clock(),
-        );
-      });
+  /// A quick task on The Day: one-time unless [recurrence] says daily, light
+  /// unless [weight] says more. Returns its id.
+  Future<String> addQuickTask(
+    String title, {
+    Weight weight = Weight.light,
+    Recurrence recurrence = Recurrence.none,
+  }) => _db.transaction(() async {
+    await ensureDayBoss();
+    final count = await (_db.select(
+      _db.tasks,
+    )..where((t) => t.bossId.equals(dayBossId))).get();
+    return _upsertTask(
+      dayBossId,
+      null,
+      TaskDraft(title: title, weight: weight, recurrence: recurrence),
+      count.length,
+      _clock(),
+    );
+  });
 
   /// Waiting or defeated cancels the boss's open commitments, so they never
   /// expire while it rests (Stage 4 plan D11). Defeat is final: it writes the

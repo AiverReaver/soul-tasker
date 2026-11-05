@@ -167,7 +167,7 @@ class DayDao {
   });
 
   /// The unbroken run and this week's row. A day is kept by the same cover
-  /// that spares a boss: a rest, a flask, or a light day with a strike.
+  /// that spares a boss: a rest, a flask, or a strike.
   Future<WeekStreak> weekStreak() async {
     final logs = await _db.select(_db.dayLogs).get();
     final strikes = {
@@ -180,9 +180,8 @@ class DayDao {
       today: await _today(),
       kept: {
         for (final l in logs)
-          if (_isCover(l.kind) ||
-              (l.kind == DayKind.light && strikes.contains(l.day)))
-            l.day,
+          if (_isCover(l.kind)) l.day,
+        ...strikes,
       },
     );
   }
@@ -250,7 +249,8 @@ class DayDao {
     return true;
   });
 
-  /// Marks today a light day. It counts only if a task is struck (D8).
+  /// Marks today a light day. Any strike now keeps a day, so the row is a
+  /// record only.
   Future<bool> markLight() => _db.transaction(() async {
     final day = await _today();
     if ((await _kindsOn(day)).contains(DayKind.light)) return false;
@@ -278,7 +278,6 @@ class DayDao {
       lastResolved: last,
       today: today,
       restedDays: daysOf(_isCover),
-      lightDays: daysOf((k) => k == DayKind.light),
       strikeDays: {for (final a in strikes) a.day},
     );
   }
@@ -307,7 +306,7 @@ class DayDao {
     ];
   }
 
-  /// The days that ended with no rest, flask or valid light day, and the
+  /// The days that ended with no rest, flask or strike, and the
   /// bosses that would fall for them. Reads only.
   Future<PendingDays> pending() async {
     final s = await _db.select(_db.settings).getSingle();

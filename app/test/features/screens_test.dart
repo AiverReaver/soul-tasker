@@ -142,6 +142,7 @@ void main() {
     expect(find.textContaining('Attempt 1'), findsOneWidget);
 
     await tapBossAction(tester, 'This attempt failed');
+    await tester.tap(find.text('End attempt'));
     await settle(tester);
     await tester.enterText(
       find.byType(TextField),

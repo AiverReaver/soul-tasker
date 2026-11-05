@@ -67,6 +67,7 @@ void main() {
       );
 
       await tapBossAction(tester, 'This attempt failed');
+      await tester.tap(find.text('End attempt'));
       await settle(tester);
 
       expect(player.calls, isOn ? ['play:fallen'] : isEmpty);

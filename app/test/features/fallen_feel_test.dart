@@ -14,7 +14,8 @@ import 'pump.dart';
 const _heavy = 'HapticFeedbackType.heavyImpact';
 
 Future<void> _declareFall(WidgetTester tester) async {
-  await tapBossAction(tester, 'This attempt failed', settleAfter: false);
+  await tapBossAction(tester, 'This attempt failed');
+  await tester.tap(find.text('End attempt'));
 }
 
 /// Lowest opacity among the fade transitions around the fallen text.

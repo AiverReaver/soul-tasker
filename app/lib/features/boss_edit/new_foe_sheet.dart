@@ -11,6 +11,7 @@ import '../../ui/action_row.dart';
 import '../../ui/glass_sheet.dart';
 import '../../ui/needle_frame.dart';
 import '../../ui/needle_text_field.dart';
+import '../../ui/setting_switch_row.dart';
 import '../../ui/strength_segments.dart';
 import '../../ui/stroke_icon.dart';
 
@@ -30,7 +31,11 @@ Future<void> showNewFoeSheet(
   final (boss, task) = result;
   final dao = ref.read(bossDaoProvider);
   if (boss.isDay) {
-    await dao.addQuickTask(task.title, weight: task.weight);
+    await dao.addQuickTask(
+      task.title,
+      weight: task.weight,
+      recurrence: task.recurrence,
+    );
     return;
   }
   await dao.saveBoss(BossDraft.fromView(boss).withTask(task, null));
@@ -48,6 +53,7 @@ class NewFoeSheet extends StatefulWidget {
 class _NewFoeSheetState extends State<NewFoeSheet> {
   final _name = TextEditingController();
   Weight _weight = Weight.light;
+  bool _isDaily = false;
   late BossView _boss =
       widget.bosses.where((b) => b.isDay).firstOrNull ??
       widget.bosses.where((b) => b.boss.isPinned).firstOrNull ??
@@ -84,7 +90,14 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
   void _add() {
     final title = _name.text.trim();
     if (title.isEmpty) return;
-    Navigator.pop(context, (_boss, TaskDraft(title: title, weight: _weight)));
+    Navigator.pop(context, (
+      _boss,
+      TaskDraft(
+        title: title,
+        weight: _weight,
+        recurrence: _isDaily ? Recurrence.daily : Recurrence.none,
+      ),
+    ));
   }
 
   @override
@@ -166,6 +179,11 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
                   ),
                 ],
               ),
+            ),
+            SettingSwitchRow(
+              title: 'Repeat daily',
+              value: _isDaily,
+              onChanged: (v) => setState(() => _isDaily = v),
             ),
             // Disabled until the task has a name.
             ValueListenableBuilder(

@@ -71,13 +71,14 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     );
   }
 
-  Future<void> _finish({required bool save}) async {
+  /// Saves the boss if it has a title; [remind] also sets up the reminder.
+  Future<void> _finish({required bool remind}) async {
     if (_isBusy) return;
     setState(() => _isBusy = true);
     final bosses = ref.read(bossDaoProvider);
     final settings = ref.read(settingsDaoProvider);
     final reset = (await settings.read()).defaultResetOnFail;
-    if (save && _hasTitle) {
+    if (_hasTitle) {
       await bosses.saveBoss(
         BossDraft(
           title: _title,
@@ -99,7 +100,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         ),
         allowEmpty: true,
       );
-      if (_wantsReminder) {
+      if (remind && _wantsReminder) {
         // A refusal leaves the reminder off; onboarding still finishes.
         await ref
             .read(reminderCoordinatorProvider)
@@ -143,8 +144,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       body: body,
       isLast: isLast,
       canAdvance: canAdvance,
-      onNext: isLast ? () => _finish(save: true) : _next,
-      onSkip: isLast ? () => _finish(save: false) : _skipToEnd,
+      onNext: isLast ? () => _finish(remind: true) : _next,
+      // Skip on the last page skips the reminder, never the boss typed so far.
+      onSkip: isLast ? () => _finish(remind: false) : _skipToEnd,
     );
 
     return Scaffold(

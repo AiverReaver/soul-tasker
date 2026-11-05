@@ -286,6 +286,26 @@ void main() {
     await h.db.close();
   });
 
+  testWidgets('Skip on the last page keeps the boss and skips the reminder', (
+    tester,
+  ) async {
+    final h = Harness();
+    final reminders = FakeReminders();
+    await pumpApp(tester, h, onboarded: false, reminders: reminders);
+    await _toPage(tester, 5);
+    await tester.tap(find.byType(GlassSwitch));
+    await tester.pump();
+    await tester.tap(find.text('Skip'));
+    await settle(tester);
+
+    final bosses = await h.bosses.loadAll();
+    expect(bosses.single.boss.title, 'The Certification');
+    expect(reminders.calls, isNot(contains('permission')));
+    expect((await h.settings.read()).reminderEnabled, isFalse);
+    expect((await h.settings.device()).onboarded, isTrue);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('the happy path takes at most 12 taps and entries', (
     tester,
   ) async {

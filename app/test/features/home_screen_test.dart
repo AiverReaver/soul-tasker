@@ -3,6 +3,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/boss_view.dart';
 import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/day_dao.dart';
+import 'package:hearthrise/data/ember_dao.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/filter_chips.dart';
 import 'package:hearthrise/ui/flash_line.dart';
@@ -283,6 +284,25 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('a strike shows its embers on Home at once, before any rest', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.attempts.strike(view.phases.first.tasks.first.task.id);
+    final earned = (await EmberDao(h.db, h.clock.call).tally()).carried;
+    expect(earned, greaterThan(0));
+    await pumpApp(tester, h, tall: true);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('home-header')),
+        matching: find.text('$earned'),
+      ),
+      findsOneWidget,
+    );
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('The Day leads Home: first group, and its label opens its '
       'screen', (tester) async {
     final h = Harness();
@@ -294,9 +314,9 @@ void main() {
     final headers = tester.widgetList<TaskGroupHeader>(
       find.byType(TaskGroupHeader),
     );
-    expect(headers.first.label, 'The Day · daily');
+    expect(headers.first.label, 'The Day');
 
-    await tester.tap(find.text('THE DAY · DAILY'));
+    await tester.tap(find.text('THE DAY'));
     await settle(tester);
     expect(find.byType(DayPanel), findsOneWidget);
     await tearDownApp(tester, h);

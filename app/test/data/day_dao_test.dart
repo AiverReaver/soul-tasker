@@ -43,9 +43,8 @@ void main() {
       expect((await days.weekStreak()).days, 0);
     });
 
-    test('a light day counts only with a strike', () async {
+    test('a strike keeps the day at once, with no rest', () async {
       final view = await h.seed();
-      await days.markLight();
       expect((await days.weekStreak()).days, 0);
       await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
       expect((await days.weekStreak()).days, 1);

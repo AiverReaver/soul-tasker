@@ -74,6 +74,16 @@ void main() {
       expect((await days.pending()).days, ['2026-10-14']);
     });
 
+    test('a day with a strike and no rest is not pending', () async {
+      final view = await h.seed();
+      at(14);
+      await h.attempts.strike(view.phases.first.tasks.first.task.id);
+      at(15);
+      expect((await days.pending()).days, isEmpty);
+      expect(await days.resolve(), 0);
+      expect(await falls(), isEmpty);
+    });
+
     test('a rested day is not pending', () async {
       await h.seed();
       at(14);

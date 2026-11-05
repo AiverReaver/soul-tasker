@@ -11,19 +11,16 @@ String shiftDay(String day, int delta) {
 /// Days that ended after [lastResolved] and before [today] with no cover,
 /// oldest first (Stage 3 plan D3).
 ///
-/// A day is covered by a bonfire or flask row ([restedDays]), or by a light
-/// day that also had a strike. Striking alone does not cover it. [today] has
+/// A day is covered by a bonfire or flask row ([restedDays]), or by any
+/// strike that day: doing the work keeps the day, rest or not. [today] has
 /// not ended, so it is never judged.
 List<String> missedDays({
   required String lastResolved,
   required String today,
   required Set<String> restedDays,
-  required Set<String> lightDays,
   required Set<String> strikeDays,
 }) {
-  bool isCovered(String d) =>
-      restedDays.contains(d) ||
-      (lightDays.contains(d) && strikeDays.contains(d));
+  bool isCovered(String d) => restedDays.contains(d) || strikeDays.contains(d);
   // ISO dates compare correctly as strings.
   return [
     for (

@@ -173,6 +173,30 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('This attempt failed asks first; Keep fighting changes nothing', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tapBossAction(tester, 'This attempt failed');
+    expect(find.text('End attempt 1?'), findsOneWidget);
+    expect(find.text('Fallen.'), findsNothing);
+
+    await tester.tap(find.text('Keep fighting'));
+    await settle(tester);
+    expect(find.text('Fallen.'), findsNothing);
+    expect((await h.reload(id)).boss.attemptNumber, 1);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('End attempt opens the fallen moment', (tester) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tapBossAction(tester, 'This attempt failed');
+    await tester.tap(find.text('End attempt'));
+    await settle(tester);
+    expect(find.text('Fallen.'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('Keep fighting closes the alert and changes nothing', (
     tester,
   ) async {

@@ -114,7 +114,14 @@ BossView buildBossView({
       TaskView(t, isStruck: isStruck(t, floor)),
   ];
 
-  final own = tasks.where((t) => t.bossId == boss.id).toList();
+  // The Day refills each morning: a one-time task struck on an earlier day
+  // has left it.
+  bool isDone(Task t) =>
+      boss.id == dayBossId &&
+      t.recurrence != Recurrence.daily &&
+      (strikes[t.id] ?? const []).any((a) => a.day != today);
+
+  final own = tasks.where((t) => t.bossId == boss.id && !isDone(t)).toList();
   final ownPhases = phases.where((p) => p.bossId == boss.id).toList()
     ..sort((a, b) => a.position.compareTo(b.position));
 

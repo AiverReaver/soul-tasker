@@ -31,6 +31,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _header() {
     final now = ref.watch(clockProvider)();
     final profile = ref.watch(profileProvider).value;
+    // Earned embers show at once; resting banks them.
+    final tally = ref.watch(emberTallyProvider).value;
     final level = profile?.level;
     // Bars fill with the share of this level's embers already earned.
     final bars = level == null
@@ -39,7 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return HomeHeader(
       dateLine: formatDayLabel(dayOf(now)),
       greeting: greetingFor(now.hour),
-      embers: profile?.banked ?? 0,
+      embers: tally == null ? 0 : tally.carried + tally.banked,
       level: level?.level ?? 1,
       levelBars: bars.clamp(0, 5),
       percentToNext: level == null
