@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/core/theme.dart';
 import 'package:hearthrise/ui/filter_chips.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -35,5 +36,28 @@ void main() {
     expect(picked, isNull);
     await tester.tap(find.text('Garage'));
     expect(picked, 'b');
+  });
+
+  testWidgets('the scroller does not clip the chips\' ink line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTheme(),
+        home: Scaffold(
+          body: FilterChips<String>(
+            labels: const {null: 'All'},
+            selected: null,
+            onChanged: (_) {},
+          ),
+        ),
+      ),
+    );
+    expect(
+      tester
+          .widget<SingleChildScrollView>(find.byType(SingleChildScrollView))
+          .clipBehavior,
+      Clip.none,
+    );
   });
 }

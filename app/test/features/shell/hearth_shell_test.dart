@@ -46,26 +46,20 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Today with no pinned boss opens the tasks list', (tester) async {
-    final h = Harness();
-    await h.seed();
-    await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
-    expect(find.text('Today’s tasks'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('Today with a pinned boss opens that boss’s fight (Q1)', (
-    tester,
-  ) async {
-    final h = Harness();
-    final view = await h.seed();
-    await h.bosses.setPinned(view.boss.id, isPinned: true);
-    await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
-    expect(find.text('Chapter I of II'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
+  for (final isPinned in [false, true]) {
+    testWidgets('Today opens the tasks list, pinned boss or not ($isPinned)', (
+      tester,
+    ) async {
+      final h = Harness();
+      final view = await h.seed();
+      await h.bosses.setPinned(view.boss.id, isPinned: isPinned);
+      await pumpApp(tester, h, tall: true);
+      await tester.tap(find.text('Today'));
+      await settle(tester);
+      expect(find.text('Today’s tasks'), findsOneWidget);
+      expect(find.textContaining('hold to strike'), findsOneWidget);
+      expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 1);
+      await tearDownApp(tester, h);
+    });
+  }
 }

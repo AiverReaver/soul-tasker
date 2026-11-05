@@ -18,6 +18,8 @@ class BossCardTile extends StatelessWidget {
     required this.onLongPress,
     this.showHealth = false,
     this.boilFrame = 0,
+    this.design = BossDesign.porcelain,
+    this.seconds = 0,
   });
 
   final String title;
@@ -33,6 +35,10 @@ class BossCardTile extends StatelessWidget {
 
   /// Which boil drawing the portrait's ink is on (see BossArt).
   final int boilFrame;
+
+  /// Which of the cast the portrait shows, and its idle clock (see BossArt).
+  final BossDesign design;
+  final double seconds;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +72,12 @@ class BossCardTile extends StatelessWidget {
                       children: [
                         Expanded(child: _heading(context, text)),
                         const SizedBox(width: Space.sm),
-                        BossArt(boilFrame: boilFrame, width: 72),
+                        BossArt(
+                          boilFrame: boilFrame,
+                          design: design,
+                          seconds: seconds,
+                          width: 72,
+                        ),
                       ],
                     ),
                     if (showHealth) ...[

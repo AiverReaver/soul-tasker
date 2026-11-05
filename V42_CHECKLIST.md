@@ -24,5 +24,5 @@ Tick a box only when the work is done, tested and (for UI) seen in a screenshot.
 
 ## Code later (after the design is approved)
 
-- [ ] 11. Home phase grouping in the app.
-- [ ] 12. Day boss polish in the app (Home card, empty state).
+- [x] 11. Home phase grouping in the app (`6d11e96`).
+- [x] 12. Day boss polish in the app (Home card, empty state): `ac20a26`, `a31e3d4`, `a3b9a10`, and The Day leads Home (`699ddbd`, `2121580`).

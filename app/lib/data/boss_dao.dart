@@ -107,6 +107,7 @@ class BossDao {
       final now = _clock();
       final bossId = draft.id ?? newId();
       final meaning = draft.defeatMeaning.trim();
+      final design = await _leastWornDesign();
       await _db
           .into(_db.bosses)
           .insert(
@@ -117,6 +118,7 @@ class BossDao {
               status: BossStatus.active,
               resetOnFail: draft.resetOnFail,
               targetDate: Value(draft.targetDate),
+              design: Value(design),
               createdAt: now,
               updatedAt: now,
             ),
@@ -223,6 +225,19 @@ class BossDao {
           ),
         );
     return id;
+  }
+
+  /// The design fewest bosses wear, first in the cast on a tie, so no two
+  /// share one until all are in use. An edit keeps the boss's own.
+  Future<BossDesign> _leastWornDesign() async {
+    final worn = {for (final d in BossDesign.values) d: 0};
+    final rows = await (_db.select(
+      _db.bosses,
+    )..where((b) => b.design.isNotNull())).get();
+    for (final b in rows) {
+      worn[b.design!] = worn[b.design!]! + 1;
+    }
+    return BossDesign.values.reduce((a, b) => worn[b]! < worn[a]! ? b : a);
   }
 
   /// Makes The Day if it is missing; leaves an existing one as it is.

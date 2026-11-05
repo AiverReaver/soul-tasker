@@ -115,7 +115,6 @@ class TaskRowTile extends StatelessWidget {
       child: _TapRegion(
         onTap: onTap,
         builder: (absorb) => NeedleFrame(
-          tier: Cut.md,
           edge: isDone
               ? p.struckEdge
               : phase == RowPhase.charge

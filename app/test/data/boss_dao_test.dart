@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/data/boss_draft.dart';
+import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/data/enums.dart';
 
 import 'harness.dart';
@@ -27,6 +28,37 @@ void main() {
       'Sit the exam',
     ]);
     expect(view.currentPhase!.phase.name, 'Learn');
+  });
+
+  test(
+    'each new boss wears the design least in use; The Day wears none',
+    () async {
+      await h.bosses.ensureDayBoss();
+      final worn = [for (var i = 0; i < 9; i++) (await h.seed()).boss.design];
+      // All eight before any repeats, then round again.
+      expect(worn.take(8), BossDesign.values);
+      expect(worn.last, BossDesign.values.first);
+      final day = await (h.db.select(
+        h.db.bosses,
+      )..where((b) => b.id.equals(dayBossId))).getSingle();
+      expect(day.design, isNull);
+    },
+  );
+
+  test('editing a boss keeps its design', () async {
+    await h.seed();
+    final view = await h.seed();
+    await h.bosses.saveBoss(
+      BossDraft(
+        id: view.boss.id,
+        title: 'Renamed',
+        resetOnFail: ResetOnFail.nothing,
+        phases: const [],
+        standalone: const [TaskDraft(title: 'Walk')],
+      ),
+    );
+    final after = (await h.bosses.loadBoss(view.boss.id))!;
+    expect(after.boss.design, view.boss.design);
   });
 
   test('rejects a draft without a title or tasks', () {

@@ -12,6 +12,7 @@ import '../../ui/bonfire_card.dart';
 import '../../ui/all_bosses_row.dart';
 import '../boss_edit/new_foe_sheet.dart';
 import '../../ui/home_header.dart';
+import '../../ui/week_streak_card.dart';
 import '../today/today_view.dart';
 import 'boss_card.dart';
 
@@ -83,10 +84,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     leading: [
                       _header(),
                       ..._pinned(value),
-                      AllBossesRow(
-                        active: _count(value, BossStatus.active),
-                        waiting: _count(value, BossStatus.waiting),
-                        onTap: () => context.push('/bosses'),
+                      if (ref.watch(weekStreakProvider).value
+                          case final streak?)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                          child: WeekStreakCard(streak: streak),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AllBossesRow(
+                          active: _count(value, BossStatus.active),
+                          waiting: _count(value, BossStatus.waiting),
+                          onTap: () => context.push('/bosses'),
+                        ),
                       ),
                     ],
                     onNewFoe: () => _newFoe(value),

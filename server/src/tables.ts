@@ -23,6 +23,7 @@ export const SYNCED_COLUMNS: Record<string, Record<string, ColumnType>> = {
     open_from_attempt: i,
     created_at: ts,
     defeated_at: ts,
+    design: i,
   },
   phases: { boss_id: t, name: t, position: i, open_from_attempt: i, created_at: ts },
   tasks: {
@@ -95,6 +96,12 @@ export const SYNCED_COLUMNS: Record<string, Record<string, ColumnType>> = {
     first_day: t,
     sound: b,
   },
+};
+
+// Columns added after launch. An app from before one may leave it out of a
+// push; the row is still taken and the stored value kept.
+export const LATER_COLUMNS: Record<string, ReadonlySet<string>> = {
+  bosses: new Set(['design']),
 };
 
 /** Insert-once tables (D5): never updated, so no updated_at. Attempts are

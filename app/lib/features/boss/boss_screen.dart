@@ -226,7 +226,11 @@ class _BossScreenState extends ConsumerState<BossScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  BossStage(health: view.health, felled: isFelled),
+                  BossStage(
+                    health: view.health,
+                    design: boss.design ?? bossDesignFor(boss.id),
+                    felled: isFelled,
+                  ),
                   const SizedBox(height: Space.sm),
                   Text(boss.title, style: text.displaySmall),
                   if (boss.defeatMeaning case final meaning?) ...[

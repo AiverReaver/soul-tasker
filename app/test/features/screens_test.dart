@@ -3,6 +3,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/features/boss_edit/boss_edit_screen.dart';
 import 'package:hearthrise/features/boss/boss_stage.dart';
+import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -46,6 +47,13 @@ void main() {
       greaterThan(pinnedY.dy),
     );
     expect(other.boss.id, isNot(pinned.boss.id));
+    // Each card and the pinned panel wear their boss's stored design, and
+    // two bosses never share one while designs are left.
+    expect(pinned.boss.design, isNot(other.boss.design));
+    expect(
+      tester.widgetList<BossArt>(find.byType(BossArt)).map((a) => a.design),
+      containsAll([pinned.boss.design, other.boss.design]),
+    );
     await tearDownApp(tester, h);
   });
 
