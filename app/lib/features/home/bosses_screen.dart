@@ -68,8 +68,9 @@ class _BossList extends StatefulWidget {
 class _BossListState extends State<_BossList> {
   bool _showWaiting = false;
 
+  // The Day lives on Home, not in this list.
   List<BossView> _with(BossStatus status) =>
-      widget.bosses.where((b) => b.boss.status == status).toList();
+      widget.bosses.where((b) => b.boss.status == status && !b.isDay).toList();
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/features/today/today_view.dart';
 import 'package:hearthrise/ui/task_group_header.dart';
 
@@ -81,5 +82,16 @@ void main() {
     expect(find.text('Walk · daily'), findsNothing);
     expect(find.text('Walk'), findsOneWidget);
     await tearDownApp(tester, h);
+  });
+
+  test('an empty Day still has its group, so Home can open it', () async {
+    final h = Harness();
+    await h.bosses.ensureDayBoss();
+    final groups = todayGroups(await h.reload(dayBossId));
+    expect(
+      [for (final g in groups) (g.label, g.tasks.length, g.count)],
+      [('The Day', 0, 'No tasks yet')],
+    );
+    await h.db.close();
   });
 }
