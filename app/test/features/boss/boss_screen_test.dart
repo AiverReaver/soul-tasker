@@ -177,7 +177,7 @@ void main() {
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
     expect(
-      find.text('Each strike takes shards from the Certification.'),
+      find.text('Each strike takes shards from this boss.'),
       findsOneWidget,
     );
     final view = await h.reload(id);

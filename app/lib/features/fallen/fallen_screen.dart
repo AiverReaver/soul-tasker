@@ -112,10 +112,6 @@ class _FallenScreenState extends State<FallenScreen>
     }
   }
 
-  /// "The Certification" stays as it is; "Warden" becomes "The Warden".
-  static String _the(String title) =>
-      title.startsWith('The ') ? title : 'The $title';
-
   /// 0 to 1 over [ms] .. [ms] + 400.
   double _since(int ms) =>
       ((_clock.value * _span.inMilliseconds - ms) / 400).clamp(0.0, 1.0);
@@ -182,7 +178,7 @@ class _FallenScreenState extends State<FallenScreen>
               size: 10,
             ),
             Text(
-              '${formatHealth(health)} / ${formatHealth(st.maxHealth!)}',
+              'Health ${formatHealth(health)}/${formatHealth(st.maxHealth!)}',
               style: text.bodyMedium,
             ),
           ],
@@ -234,7 +230,8 @@ class _FallenScreenState extends State<FallenScreen>
                     Text(
                       switch (widget.story) {
                         final st? =>
-                          'Attempt ${st.attempt} ends. ${_the(st.bossTitle)} remains, '
+                          // Quoted, so any title reads right: “Finish my tax return” remains.
+                          'Attempt ${st.attempt} ends. “${st.bossTitle}” remains, '
                               'and so do you.',
                         null => 'Rest, then rise.',
                       },

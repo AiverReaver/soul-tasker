@@ -302,7 +302,8 @@ class _BossScreenState extends ConsumerState<BossScreen> {
             isFelled
                 ? '${boss.title} kneels. Chapter '
                       '${romanNumeral(view.phases.indexOf(current) + 1)} awaits.'
-                : 'Each strike takes shards from ${_withThe(boss.title)}.',
+                // No title here: "the {title}" misreads for most titles.
+                : 'Each strike takes shards from this boss.',
             style: text.bodySmall?.copyWith(color: p.ash),
           )
         else
@@ -377,9 +378,6 @@ class _BossScreenState extends ConsumerState<BossScreen> {
   );
 
   /// "the Certification" for "The Certification", "the Habit" for "Habit".
-  static String _withThe(String title) =>
-      title.startsWith('The ') ? 'the ${title.substring(4)}' : 'the $title';
-
   Widget _currentHeading(BuildContext context, PhaseView ph) {
     final text = Theme.of(context).textTheme;
     final struck = ph.tasks.where((t) => t.isStruck).length;
