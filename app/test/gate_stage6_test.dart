@@ -56,10 +56,8 @@ void main() {
       'Zorblax the Unnamed',
     );
     await tester.pump();
-    for (var i = 0; i < 3; i++) {
-      await tester.tap(find.text('Next'));
-      await settle(tester);
-    }
+    await tester.tap(find.text('Next'));
+    await settle(tester);
     await tester.tap(find.text('Begin'));
     await settle(tester);
     expect(find.text('All bosses · 1 active'), findsOneWidget);

@@ -99,7 +99,7 @@ void main() {
           withRelic: false,
           onboarded: false,
           after: (tester) async {
-            for (var page = 1; page <= 4; page++) {
+            for (var page = 1; page <= 2; page++) {
               if (page == 2) {
                 await tester.enterText(
                   find.byKey(const ValueKey('boss-title')),
@@ -107,23 +107,16 @@ void main() {
                 );
                 await tester.pump();
               }
-              if (page == 3) {
-                await tester.ensureVisible(find.text('Add a chapter'));
-                await tester.tap(find.text('Add a chapter'));
-                await settle(tester);
-              }
-              if (page == 4) {
-                await tester.ensureVisible(find.text('Add a daily task'));
-                await tester.tap(find.text('Add a daily task'));
-                await settle(tester);
-                await tester.ensureVisible(find.text('Add a daily task'));
-                await tester.tap(find.text('Add a daily task'));
-                await settle(tester);
-              }
               await tester.tap(find.text('Next'));
               await settle(tester);
               expect(tester.takeException(), isNull, reason: 'page $page');
             }
+            await tester.enterText(
+              find.byKey(const ValueKey('next-step')),
+              'A next step with a rather long name, to see it wrap',
+            );
+            await tester.pump();
+            expect(tester.takeException(), isNull, reason: 'page 3');
           },
         );
       });

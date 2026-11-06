@@ -48,15 +48,6 @@ class BossDraft {
     this.standalone = const [],
   });
 
-  /// A new boss starts with two suggested phases (§6.2).
-  factory BossDraft.fresh(ResetOnFail reset) => BossDraft(
-    resetOnFail: reset,
-    phases: const [
-      PhaseDraft(name: 'Learn the pattern'),
-      PhaseDraft(name: 'The fight'),
-    ],
-  );
-
   factory BossDraft.fromView(BossView view) {
     TaskDraft task(TaskView t) => TaskDraft(
       id: t.task.id,

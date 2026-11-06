@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:hearthrise/ui/ember_button.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:material_ui/material_ui.dart';
@@ -27,10 +26,9 @@ Future<void> _toPage(
     await tester.pump();
     await _next(tester);
   }
-  for (var p = 3; p < page; p++) {
-    await _next(tester);
-  }
 }
+
+final _step = find.byKey(const ValueKey('next-step'));
 
 void main() {
   testWidgets('a fresh database opens the welcome, not Home', (tester) async {
@@ -94,177 +92,69 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('typing after Next does not leak into the boss name', (
+  testWidgets('the boss title does not keep focus on the next page', (
     tester,
   ) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _toPage(tester, 3, title: 'Run a 10K');
+    expect(find.text("What's the very next step?"), findsOneWidget);
     expect(tester.testTextInput.hasAnyClients, isFalse);
-
-    await tester.tap(find.text('Add a chapter'));
-    await settle(tester);
-    final added = find.byKey(const ValueKey('phase-3'));
-    expect(
-      tester
-          .widget<EditableText>(
-            find.descendant(of: added, matching: find.byType(EditableText)),
-          )
-          .focusNode
-          .hasFocus,
-      isTrue,
-    );
-    await tester.enterText(added, 'Race day');
-    await tester.pump();
     await tearDownApp(tester, h);
   });
 
-  testWidgets('chapters: two suggestions; rename, add up to three, remove', (
-    tester,
-  ) async {
+  testWidgets('no chapters, dailies or reminder in onboarding', (tester) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _toPage(tester, 3);
-
-    final fields = find.byWidgetPredicate(
-      (w) => w is TextFormField && w.key.toString().contains('phase-'),
-    );
-    expect(fields, findsNWidgets(2));
-    expect(find.text('Learn the pattern'), findsOneWidget);
-    expect(find.text('The fight'), findsOneWidget);
-
-    await tester.enterText(find.text('The fight'), 'The exam');
-    await tester.tap(find.text('Add a chapter'));
-    await settle(tester);
-    expect(fields, findsNWidgets(3));
     expect(find.text('Add a chapter'), findsNothing);
-
-    await tester.tap(find.byTooltip('Remove chapter 1'));
-    await settle(tester);
-    expect(fields, findsNWidgets(2));
-    expect(find.text('Learn the pattern'), findsNothing);
-    expect(find.text('The exam'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('up to three daily tasks; blank ones are dropped', (
-    tester,
-  ) async {
-    final h = Harness();
-    await pumpApp(tester, h, onboarded: false);
-    await _toPage(tester, 4);
-
-    final fields = find.byWidgetPredicate(
-      (w) => w is TextFormField && w.key.toString().contains('daily-'),
-    );
-    expect(fields, findsNWidgets(1));
-    await tester.enterText(fields.first, 'Walk');
-    await tester.tap(find.text('Add a daily task'));
-    await settle(tester);
-    await tester.tap(find.text('Add a daily task'));
-    await settle(tester);
-    expect(fields, findsNWidgets(3));
     expect(find.text('Add a daily task'), findsNothing);
-    await tester.enterText(fields.at(2), 'Stretch');
-    await _next(tester);
-    await tester.tap(find.text('Begin'));
-    await settle(tester);
-
-    final tasks = await h.db.select(h.db.tasks).get();
-    expect(tasks.map((t) => t.title).toList()..sort(), ['Stretch', 'Walk']);
+    expect(find.text('Evening reminder'), findsNothing);
+    expect(find.text('Begin'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the last page shows the gentle line and the reminder time', (
-    tester,
-  ) async {
-    final h = Harness();
-    await pumpApp(tester, h, onboarded: false);
-    await _toPage(tester, 5);
-    expect(
-      find.text('Gentle mode: nothing is lost but health.'),
-      findsOneWidget,
-    );
-    expect(find.text('9:00 PM'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets(
-    'turning the reminder on asks permission; denial still finishes',
-    (tester) async {
-      final h = Harness();
-      final reminders = FakeReminders(grants: false);
-      await pumpApp(tester, h, onboarded: false, reminders: reminders);
-      await _toPage(tester, 5);
-
-      await tester.tap(find.byType(GlassSwitch));
-      await tester.pump();
-      await tester.tap(find.text('Begin'));
-      await settle(tester);
-
-      expect(reminders.calls, contains('permission'));
-      expect(reminders.calls, isNot(contains('schedule:1260')));
-      expect((await h.settings.read()).reminderEnabled, isFalse);
-      expect((await h.settings.device()).onboarded, isTrue);
-      expect(find.byKey(const ValueKey('home-header')), findsOneWidget);
-      await tearDownApp(tester, h);
-    },
-  );
-
-  testWidgets('a granted reminder is scheduled', (tester) async {
-    final h = Harness();
-    final reminders = FakeReminders();
-    await pumpApp(tester, h, onboarded: false, reminders: reminders);
-    await _toPage(tester, 5);
-
-    await tester.tap(find.byType(GlassSwitch));
-    await tester.pump();
-    await tester.tap(find.text('Begin'));
-    await settle(tester);
-
-    expect(
-      reminders.calls,
-      containsAllInOrder(['permission', 'schedule:1260']),
-    );
-    expect((await h.settings.read()).reminderEnabled, isTrue);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('Begin saves the boss, sets onboarded, lands on Home', (
+  testWidgets('Begin saves the next step as a one-time task with health', (
     tester,
   ) async {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _toPage(tester, 3);
-    await _next(tester);
-    await tester.enterText(
-      find.byWidgetPredicate(
-        (w) => w is TextFormField && w.key.toString().contains('daily-'),
-      ),
-      'Walk',
-    );
-    await _next(tester);
+    await tester.enterText(_step, 'Book the exam');
+    await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);
 
-    final bosses = await h.bosses.loadAll();
-    expect(bosses, hasLength(1));
-    final boss = bosses.single;
+    final boss = (await h.bosses.loadAll()).single;
     expect(boss.boss.title, 'The Certification');
-    expect(boss.phases.map((p) => p.phase.name), [
-      'Learn the pattern',
-      'The fight',
-    ]);
-    final walk = boss.standalone.single.task;
-    expect(walk.title, 'Walk');
-    expect(walk.weight, Weight.light);
-    expect(walk.recurrence, Recurrence.daily);
+    // In a chapter, so it is a health segment (audit #7: no health before).
+    expect(boss.phases.single.phase.name, 'First steps');
+    final task = boss.phases.single.tasks.single.task;
+    expect(task.title, 'Book the exam');
+    expect(task.recurrence, Recurrence.none);
+    expect(boss.segments, hasLength(1));
+    expect(boss.standalone, isEmpty);
     expect((await h.settings.device()).onboarded, isTrue);
 
     expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('Walk'), findsOneWidget);
+    expect(find.text('Book the exam'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the next step is optional: Begin saves the title alone', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    await _toPage(tester, 3);
+    await tester.tap(find.text('Begin'));
+    await settle(tester);
+    final boss = (await h.bosses.loadAll()).single;
+    expect(boss.boss.title, 'The Certification');
+    expect(boss.phases, isEmpty);
+    expect(boss.standalone, isEmpty);
     await tearDownApp(tester, h);
   });
 
@@ -273,11 +163,11 @@ void main() {
   ) async {
     var h = Harness();
     await pumpApp(tester, h, onboarded: false);
-    for (var n = 1; n <= 5; n++) {
+    for (var n = 1; n <= 3; n++) {
       await _toPage(tester, n);
-      expect(find.text('Step $n of 5'), findsOneWidget);
+      expect(find.text('Step $n of 3'), findsOneWidget);
       expect(find.byKey(const ValueKey('step-on')), findsNWidgets(n));
-      expect(find.byKey(const ValueKey('step-off')), findsNWidgets(5 - n));
+      expect(find.byKey(const ValueKey('step-off')), findsNWidgets(3 - n));
       await tearDownApp(tester, h);
       h = Harness();
       await pumpApp(tester, h, onboarded: false);
@@ -285,7 +175,7 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Skip jumps to page 5; Skip there lands on the empty Home', (
+  testWidgets('Skip jumps to page 3; Skip there lands on the empty Home', (
     tester,
   ) async {
     final h = Harness();
@@ -294,8 +184,8 @@ void main() {
     await tester.tap(find.text('Skip'));
     await settle(tester);
 
-    expect(find.text('One last thing.'), findsOneWidget);
-    expect(find.text('Step 5 of 5'), findsOneWidget);
+    expect(find.text("What's the very next step?"), findsOneWidget);
+    expect(find.text('Step 3 of 3'), findsOneWidget);
     expect((await h.settings.device()).onboarded, isFalse);
 
     await tester.tap(find.text('Skip'));
@@ -313,31 +203,30 @@ void main() {
     await h.db.close();
   });
 
-  testWidgets('Skip on the last page keeps the boss and skips the reminder', (
+  testWidgets('Skip on the last page keeps the boss and its next step', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    await _toPage(tester, 3);
+    await tester.enterText(_step, 'Book the exam');
+    await tester.pump();
+    await tester.tap(find.text('Skip'));
+    await settle(tester);
+
+    final boss = (await h.bosses.loadAll()).single;
+    expect(boss.boss.title, 'The Certification');
+    expect(boss.phases.single.tasks.single.task.title, 'Book the exam');
+    expect((await h.settings.device()).onboarded, isTrue);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the happy path takes five taps and entries, no permission ask', (
     tester,
   ) async {
     final h = Harness();
     final reminders = FakeReminders();
     await pumpApp(tester, h, onboarded: false, reminders: reminders);
-    await _toPage(tester, 5);
-    await tester.tap(find.byType(GlassSwitch));
-    await tester.pump();
-    await tester.tap(find.text('Skip'));
-    await settle(tester);
-
-    final bosses = await h.bosses.loadAll();
-    expect(bosses.single.boss.title, 'The Certification');
-    expect(reminders.calls, isNot(contains('permission')));
-    expect((await h.settings.read()).reminderEnabled, isFalse);
-    expect((await h.settings.device()).onboarded, isTrue);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('the happy path takes at most 12 taps and entries', (
-    tester,
-  ) async {
-    final h = Harness();
-    await pumpApp(tester, h, onboarded: false);
     var steps = 0;
     Future<void> tap(Finder f) async {
       steps++;
@@ -354,18 +243,12 @@ void main() {
     await tap(find.text('Next'));
     await type(_title, 'The Certification');
     await tap(find.text('Next'));
-    await tap(find.text('Next'));
-    await type(
-      find.byWidgetPredicate(
-        (w) => w is TextFormField && w.key.toString().contains('daily-'),
-      ),
-      'Walk',
-    );
-    await tap(find.text('Next'));
+    await type(_step, 'Book the exam');
     await tap(find.text('Begin'));
 
-    expect(steps, lessThanOrEqualTo(12));
+    expect(steps, 5);
     expect(find.text('All bosses · 1 active'), findsOneWidget);
+    expect(reminders.calls, isNot(contains('permission')));
     await tearDownApp(tester, h);
   });
 }
