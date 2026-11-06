@@ -39,6 +39,7 @@ class DaySummaryData {
     required this.falls,
     required this.lessons,
     required this.embers,
+    this.banked = 0,
     this.dayLesson,
   });
 
@@ -47,6 +48,9 @@ class DaySummaryData {
   final int falls;
   final List<String> lessons;
   final EmberTally embers;
+
+  /// Embers today's rest made permanent; 0 before the rest.
+  final int banked;
 
   /// The lesson written at today's bonfire rest, if any.
   final String? dayLesson;
@@ -210,8 +214,14 @@ class DayDao {
               (l) => l.day.equals(day) & l.kind.equalsValue(DayKind.bonfire),
             ))
             .get();
+    final banks =
+        await (_db.select(_db.emberEvents)..where(
+              (e) => e.day.equals(day) & e.kind.equalsValue(EmberKind.bank),
+            ))
+            .get();
     return DaySummaryData(
       dayLesson: rested.map((l) => l.lesson).nonNulls.firstOrNull,
+      banked: banks.fold(0, (n, e) => n + e.amount),
       strikes: count(Outcome.strike),
       tried: count(Outcome.tried),
       falls: count(Outcome.fallen),

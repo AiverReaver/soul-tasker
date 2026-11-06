@@ -75,6 +75,25 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('after the rest, the empty list says so', (tester) async {
+    final h = Harness();
+    final id = await h.bosses.saveBoss(
+      const BossDraft(
+        title: 'The Habit',
+        resetOnFail: ResetOnFail.nothing,
+        phases: [],
+        standalone: [TaskDraft(title: 'Walk', recurrence: Recurrence.daily)],
+      ),
+    );
+    final view = await h.reload(id);
+    await h.attempts.strike(taskNamed(view, 'Walk').task.id);
+    await DayDao(h.db, h.clock.call, h.attempts).rest();
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('You’ve rested. See you tomorrow.'), findsOneWidget);
+    expect(find.text('All tasks struck. Rest at the bonfire'), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('the bottom bar stays on every tab: Today, Bosses, Profile', (
     tester,
   ) async {

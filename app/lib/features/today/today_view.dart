@@ -174,6 +174,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
     final tally = ref.watch(emberTallyProvider).value;
     final health = ref.watch(healthProvider).value;
     final picks = ref.watch(todayPicksProvider).value ?? const [];
+    final isRested = ref.watch(dayStatusProvider).value?.isRested ?? false;
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id)
@@ -253,7 +254,9 @@ class _TodayViewState extends ConsumerState<TodayView> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, Space.xl, 20, 0),
             child: Text(
-              struck > 0
+              isRested
+                  ? 'You’ve rested. See you tomorrow.'
+                  : struck > 0
                   ? 'All tasks struck. Rest at the bonfire'
                   : 'Nothing stands in your way today.',
               textAlign: TextAlign.center,

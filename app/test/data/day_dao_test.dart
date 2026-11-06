@@ -165,6 +165,16 @@ void main() {
       expect(s.lessons, isEmpty);
     });
 
+    test('counts the embers today\'s rest banked', () async {
+      final view = await h.seed();
+      await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+      expect((await days.summary()).banked, 0);
+      await days.rest();
+      expect((await days.summary()).banked, 3);
+      h.clock.now = h.clock.now.add(const Duration(days: 1));
+      expect((await days.summary()).banked, 0);
+    });
+
     test('leaves out other days, and follows the rollover hour', () async {
       final view = await h.seed();
       h.clock.now = DateTime(2026, 10, 14, 1);
