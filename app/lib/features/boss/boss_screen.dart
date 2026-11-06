@@ -314,11 +314,14 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           else
             _header2(context, ph.phase.name, isDone: ph.isDone),
           for (final t in ph.tasks) row(t),
+          _addTask(view, phaseId: ph.phase.id),
         ],
         if (view.standalone.isNotEmpty) ...[
-          _header2(context, 'Beyond the chapters'),
+          _header2(context, 'Other tasks'),
           for (final t in view.standalone) row(t),
         ],
+        // Other tasks, or the first task of a boss with no chapters.
+        if (view.standalone.isNotEmpty || view.phases.isEmpty) _addTask(view),
       ],
     );
   }
@@ -365,6 +368,13 @@ class _BossScreenState extends ConsumerState<BossScreen> {
       ],
     );
   }
+
+  /// The inline add under a chapter ([phaseId]) or under Other tasks.
+  Widget _addTask(BossView view, {String? phaseId}) => ActionRow(
+    label: 'Add a task',
+    onTap: () =>
+        showNewFoeSheet(context, ref, bosses: [view], phaseId: phaseId),
+  );
 
   /// "the Certification" for "The Certification", "the Habit" for "Habit".
   static String _withThe(String title) =>

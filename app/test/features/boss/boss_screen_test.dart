@@ -29,6 +29,75 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('each chapter has an inline Add a task that adds to it', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tester.ensureVisible(find.text('Add a task').first);
+    await settle(tester);
+    await tester.tap(find.text('Add a task').first);
+    await settle(tester);
+    expect(find.text('What will you do?'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, 'Mock exam');
+    await tester.pump();
+    await tester.tap(find.text('Add to today'));
+    await settle(tester);
+
+    final after = await h.reload(id);
+    expect(
+      after.phases.first.tasks.map((t) => t.task.title),
+      contains('Mock exam'),
+    );
+    expect(
+      after.standalone.map((t) => t.task.title),
+      isNot(contains('Mock exam')),
+    );
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('tasks outside a chapter sit under Other tasks', (tester) async {
+    final draft = BossDraft.fromView(await h.reload(id));
+    await h.bosses.saveBoss(
+      draft.withTask(const TaskDraft(title: 'Stretch'), null),
+    );
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tester.scrollUntilVisible(
+      find.text('Stretch'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('OTHER TASKS'), findsOneWidget);
+    expect(find.textContaining('Beyond the chapters'), findsNothing);
+    // Its own inline add sits under it.
+    await tester.scrollUntilVisible(
+      find.text('Add a task').last,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a boss with no chapters adds its first task to First steps', (
+    tester,
+  ) async {
+    final bare = await h.bosses.saveBoss(
+      const BossDraft(title: 'File my taxes', resetOnFail: ResetOnFail.nothing),
+      allowEmpty: true,
+    );
+    await pumpApp(tester, h, location: '/boss/$bare', tall: true);
+    await tester.tap(find.text('Add a task'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField).last, 'Gather receipts');
+    await tester.pump();
+    await tester.tap(find.text('Add to today'));
+    await settle(tester);
+
+    final after = await h.reload(bare);
+    expect(after.phases.single.phase.name, 'First steps');
+    expect(after.segments.single.task.title, 'Gather receipts');
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('the boss wears its stored design', (tester) async {
     final second = (await h.seed()).boss; // not the first, default design
     await pumpApp(tester, h, location: '/boss/${second.id}', tall: true);

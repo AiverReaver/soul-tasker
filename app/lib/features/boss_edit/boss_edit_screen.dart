@@ -332,7 +332,7 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           child: const Text('Add a chapter'),
         ),
         const SizedBox(height: Space.lg),
-        Text('Beyond the chapters', style: _serifHead(text)),
+        Text('Other tasks', style: _serifHead(text)),
         const SizedBox(height: Space.xs),
         Text(
           'Tasks that belong to the boss but no chapter, like daily habits.',

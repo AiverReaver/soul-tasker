@@ -144,8 +144,11 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Add to today'));
     await settle(tester);
-    final titles = (await h.reload(other)).standalone.map((t) => t.task.title);
-    expect(titles, contains('Stretch'));
+    // No chapters yet: a one-time task opens First steps, so it has health.
+    final after = await h.reload(other);
+    expect(after.phases.single.phase.name, 'First steps');
+    expect(after.segments.single.task.title, 'Stretch');
+    expect(after.standalone.map((t) => t.task.title), ['Walk']);
     await tearDownApp(tester, h);
   });
 

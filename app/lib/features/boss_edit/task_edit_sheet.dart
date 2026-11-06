@@ -132,7 +132,7 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
                   ),
                 const DropdownMenuItem(
                   value: _beyond,
-                  child: Text('Beyond the chapters'),
+                  child: Text('Other tasks'),
                 ),
               ],
               onChanged: (v) => setState(() => _phase = v ?? _beyond),

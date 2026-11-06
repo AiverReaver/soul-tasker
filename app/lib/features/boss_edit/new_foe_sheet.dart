@@ -22,6 +22,7 @@ Future<void> showNewFoeSheet(
   BuildContext context,
   WidgetRef ref, {
   required List<BossView> bosses,
+  String? phaseId,
 }) async {
   final result = await showGlassSheet<(BossView, TaskDraft)>(
     context,
@@ -38,7 +39,21 @@ Future<void> showNewFoeSheet(
     );
     return;
   }
-  await dao.saveBoss(BossDraft.fromView(boss).withTask(task, null));
+  final draft = BossDraft.fromView(boss);
+  // A boss with no chapters gets one, so its first one-time task has health.
+  if (phaseId == null &&
+      draft.phases.isEmpty &&
+      task.recurrence == Recurrence.none) {
+    await dao.saveBoss(
+      draft.copyWith(
+        phases: [
+          PhaseDraft(name: 'First steps', tasks: [task]),
+        ],
+      ),
+    );
+    return;
+  }
+  await dao.saveBoss(draft.withTask(task, phaseId));
 }
 
 class NewFoeSheet extends StatefulWidget {
