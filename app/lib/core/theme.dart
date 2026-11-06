@@ -101,6 +101,15 @@ ThemeData buildTheme([Biome biome = Biome.pharloom]) {
     ),
     fontFamily: _body,
     dialogTheme: DialogThemeData(backgroundColor: p.shell),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: p.raised,
+      contentTextStyle: TextStyle(
+        fontFamily: _body,
+        fontSize: 15,
+        color: p.text,
+      ),
+      actionTextColor: p.silk,
+    ),
     timePickerTheme: TimePickerThemeData(
       backgroundColor: p.shell,
       hourMinuteColor: p.raised,

@@ -50,15 +50,32 @@ class TaskRow extends ConsumerWidget {
 
   Future<void> _strike(BuildContext context, WidgetRef ref) async {
     final health = ref.read(healthDaoProvider);
+    final attempts = ref.read(attemptDaoProvider);
+    final messenger = ScaffoldMessenger.of(context);
     final wasAlive = !await health.isDeadToday();
-    final result = await ref.read(attemptDaoProvider).strike(view.task.id);
+    final result = await attempts.strike(view.task.id);
     // Settling a passed deadline first can deal the final blow.
     if (wasAlive && await health.isDeadToday()) {
       final day = await health.today();
       if (context.mounted) await showHealthFall(context, ref, day);
     }
     if (!context.mounted) return;
-    if (!result.isVanquished) return onMessage('It is done.');
+    onMessage(''); // the hold hint is answered
+    if (!result.isVanquished) {
+      // A wrong strike is one tap from undone; a defeat has its own confirm.
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: const Text('It is done.'),
+            action: SnackBarAction(
+              label: 'Undo',
+              onPressed: () => attempts.undoStrike(result),
+            ),
+          ),
+        );
+      return;
+    }
     await confirmDefeat(context, ref, _bossId);
   }
 
@@ -148,6 +165,7 @@ class TaskRow extends ConsumerWidget {
       compact: compact,
       tapMode: tapMode,
       onStrike: () => _strike(context, ref),
+      onHint: () => onMessage('Press and hold to strike.'),
       onTried: () => _act(context, ref, _Action.tried),
       deadline: label == null
           ? null

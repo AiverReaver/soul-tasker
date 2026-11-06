@@ -104,6 +104,10 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Clean strike'));
     await settle(tester);
+    // The "It is done · Undo" bar covers the next row until it goes.
+    ScaffoldMessenger.of(tester.element(holdButton('Chapter task 2')))
+        .hideCurrentSnackBar();
+    await settle(tester);
     await tester.tap(holdButton('Chapter task 2'));
     await settle(tester);
     await tester.tap(find.text('Clean strike'));

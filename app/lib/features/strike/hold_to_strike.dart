@@ -1,4 +1,6 @@
-import 'package:flutter/gestures.dart' show kTouchSlop;
+import 'dart:math' as math;
+
+import 'package:flutter/gestures.dart' show kLongPressTimeout, kTouchSlop;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -24,6 +26,7 @@ class HoldToStrike extends ConsumerStatefulWidget {
     this.onTried,
     this.tapMode = false,
     this.onOpenActions,
+    this.onHint,
     this.deadline,
     this.bossName,
     this.compact = false,
@@ -41,6 +44,9 @@ class HoldToStrike extends ConsumerStatefulWidget {
 
   /// Tapping the row away from the hold button.
   final VoidCallback? onOpenActions;
+
+  /// A short tap on the hold button: the needle shakes and this says "hold".
+  final VoidCallback? onHint;
 
   /// Opens the meta line: "{bossName} · +N embers".
   final String? bossName;
@@ -68,6 +74,9 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   /// The task dissolving into dust once struck.
   late final AnimationController _dust = AnimationController(vsync: this);
 
+  /// The shake a short tap gets: "not a tap, a hold".
+  late final AnimationController _nudge = AnimationController(vsync: this);
+
   late final AnimationController _progress =
       AnimationController(
           vsync: this,
@@ -81,6 +90,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
 
   /// Where the current press began; null once it has turned into a scroll.
   Offset? _downAt;
+  Duration _downStamp = Duration.zero;
 
   @override
   void didUpdateWidget(HoldToStrike old) {
@@ -95,6 +105,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
     _progress.dispose();
     _sweep.dispose();
     _dust.dispose();
+    _nudge.dispose();
     super.dispose();
   }
 
@@ -166,9 +177,21 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
     widget.onStrike();
   }
 
-  void _start(Offset position) {
-    _downAt = position;
+  void _start(PointerDownEvent e) {
+    _downAt = e.position;
+    _downStamp = e.timeStamp;
     if (!widget.isDone) _progress.forward();
+  }
+
+  void _release(PointerUpEvent e) {
+    final isTap =
+        _downAt != null && e.timeStamp - _downStamp < kLongPressTimeout;
+    _cancel();
+    if (!isTap || widget.isDone || widget.onHint == null) return;
+    _nudge
+      ..duration = motionOf(context, const Duration(milliseconds: 360))
+      ..forward(from: 0);
+    widget.onHint!();
   }
 
   // A finger that travels past touch slop is scrolling, not holding (§7.1).
@@ -203,6 +226,13 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
         : RowPhase.idle;
   }
 
+  /// Three quick swings that die out.
+  Offset get _nudgeShake {
+    if (!_nudge.isAnimating) return Offset.zero;
+    final v = _nudge.value;
+    return Offset(math.sin(v * math.pi * 6) * 4 * (1 - v), 0);
+  }
+
   /// The design's charge tremble: 1 px left, then right, every 70 ms.
   Offset get _tremble {
     if (_progress.status != AnimationStatus.forward) return Offset.zero;
@@ -223,9 +253,9 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
       return GestureDetector(onTap: _land, child: button);
     }
     return Listener(
-      onPointerDown: (e) => _start(e.position),
+      onPointerDown: _start,
       onPointerMove: (e) => _onMove(e.position),
-      onPointerUp: (_) => _cancel(),
+      onPointerUp: _release,
       onPointerCancel: (_) => _cancel(),
       child: button,
     );
@@ -237,13 +267,14 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
     final embers = widget.compact ? '+${weight.embers}' : weight.emberNote;
     final lead = widget.isDone ? 'Struck' : widget.bossName;
     return AnimatedBuilder(
-      animation: Listenable.merge([_progress, _sweep, _dust]),
+      animation: Listenable.merge([_progress, _sweep, _dust, _nudge]),
       // The shatter throws the row; a light strike throws it less.
       builder: (context, _) => Transform.translate(
         key: kStrikeShakeKey,
         offset:
             rowShakeAt(_strikeClock) * (weight == Weight.light ? 0.6 : 1) +
-            _tremble,
+            _tremble +
+            _nudgeShake,
         child: TaskRowTile(
           title: widget.title,
           pips: weight.index + 1,

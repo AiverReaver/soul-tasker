@@ -15,6 +15,7 @@ Widget _host({
   bool tapMode = false,
   required VoidCallback onStrike,
   required VoidCallback onTried,
+  VoidCallback? onHint,
 }) => ProviderScope(
   overrides: [RecordingHaptics().asOverride],
   child: MaterialApp(
@@ -27,6 +28,7 @@ Widget _host({
         tapMode: tapMode,
         onStrike: onStrike,
         onTried: onTried,
+        onHint: onHint,
       ),
     ),
   ),
@@ -45,14 +47,38 @@ Future<void> _hold(WidgetTester tester) async {
 }
 
 void main() {
-  late int strikes, tries;
-  setUp(() => strikes = tries = 0);
+  late int strikes, tries, hints;
+  setUp(() => strikes = tries = hints = 0);
 
   Widget host({bool tapMode = false}) => _host(
     tapMode: tapMode,
     onStrike: () => strikes++,
     onTried: () => tries++,
+    onHint: () => hints++,
   );
+
+  testWidgets('a short tap on the needle nudges it and asks for a hold', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.tap(holdButton('The task'));
+    await tester.pump(_frame);
+    await tester.pump(_frame * 3);
+    expect(hints, 1);
+    final shake = tester.widget<Transform>(find.byKey(kStrikeShakeKey));
+    expect(shake.transform.getTranslation().x, isNot(0), reason: 'it shakes');
+    await tester.pumpAndSettle();
+    expect(strikes + tries, 0);
+  });
+
+  testWidgets('a scroll that starts on the needle is not a tap', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.drag(holdButton('The task'), const Offset(0, 80));
+    await tester.pumpAndSettle();
+    expect(hints, 0);
+  });
 
   testWidgets('the beats play first; the sheet opens when they end', (
     tester,
@@ -113,5 +139,6 @@ void main() {
     await tester.tap(find.text('Clean strike'));
     await tester.pumpAndSettle();
     expect(strikes, 1);
+    expect(hints, 0, reason: 'a tap is the strike in tap mode');
   });
 }

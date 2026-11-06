@@ -9,6 +9,13 @@ void main() {
       expect(t.dialogTheme.backgroundColor, b.palette.shell);
     });
 
+    test('${b.label}: snack bars wear the shell, text and silk', () {
+      final t = buildTheme(b).snackBarTheme;
+      expect(t.backgroundColor, b.palette.raised);
+      expect(t.contentTextStyle?.color, b.palette.text);
+      expect(t.actionTextColor, b.palette.silk);
+    });
+
     test('${b.label}: boss title style sits in the TextTheme at 28', () {
       expect(buildTheme(b).textTheme.headlineMedium?.fontSize, 28);
     });
