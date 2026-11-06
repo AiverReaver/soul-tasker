@@ -87,15 +87,12 @@ class OnboardingPage extends StatelessWidget {
                     style: TextStyle(color: context.palette.ash),
                   ),
                 ),
-                canAdvance
-                    ? EmberButton(
-                        label: isLast ? 'Begin' : 'Next',
-                        onPressed: onNext,
-                      )
-                    : TextButton(
-                        onPressed: null,
-                        child: Text(isLast ? 'Begin' : 'Next'),
-                      ),
+                // Same button dimmed when disabled, so Skip never moves
+                // under a thumb aimed at Next.
+                EmberButton(
+                  label: isLast ? 'Begin' : 'Next',
+                  onPressed: canAdvance ? onNext : null,
+                ),
               ],
             ),
           ),

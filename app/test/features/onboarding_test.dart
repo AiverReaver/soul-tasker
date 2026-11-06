@@ -56,6 +56,19 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('Skip stays put when Next is disabled on the boss page', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    final skipOnWelcome = tester.getCenter(find.text('Skip'));
+    await _next(tester);
+    expect(find.text('Name your first boss.'), findsOneWidget);
+    // A thumb aimed at Next must not land on Skip (audit: 0 bosses saved).
+    expect(tester.getCenter(find.text('Skip')), skipOnWelcome);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('an upgraded database opens Home', (tester) async {
     final h = Harness();
     await pumpApp(tester, h);
@@ -68,17 +81,16 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, onboarded: false);
     await _next(tester);
-    final off = find.widgetWithText(TextButton, 'Next');
-    final on = find.widgetWithText(EmberButton, 'Next');
-    expect(tester.widget<TextButton>(off).onPressed, isNull);
-    expect(on, findsNothing);
+    VoidCallback? next() => tester
+        .widget<EmberButton>(find.widgetWithText(EmberButton, 'Next'))
+        .onPressed;
+    expect(next(), isNull);
     await tester.enterText(_title, 'The Garage');
     await tester.pump();
-    expect(on, findsOneWidget);
+    expect(next(), isNotNull);
     await tester.enterText(_title, '   ');
     await tester.pump();
-    expect(on, findsNothing);
-    expect(tester.widget<TextButton>(off).onPressed, isNull);
+    expect(next(), isNull);
     await tearDownApp(tester, h);
   });
 

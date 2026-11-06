@@ -102,7 +102,7 @@ class _TaskEditSheetState extends State<_TaskEditSheet> {
                   StrengthOption(
                     label: w.label,
                     pips: w.index + 1,
-                    note: '+${w.embers} embers',
+                    note: w.emberNote,
                   ),
               ],
               selected: _task.weight.index,

@@ -19,6 +19,14 @@ void main() {
 
     expect(find.text('No boss stands before you.'), findsOneWidget);
     expect(find.text('Name a new boss'), findsOneWidget);
+    // The button sits under the line, centred, not pinned to the left edge.
+    expect(
+      tester.getCenter(find.text('Name a new boss')).dx,
+      moreOrLessEquals(
+        tester.getCenter(find.text('No boss stands before you.')).dx,
+        epsilon: 1,
+      ),
+    );
     await tearDownApp(tester, h);
   });
 

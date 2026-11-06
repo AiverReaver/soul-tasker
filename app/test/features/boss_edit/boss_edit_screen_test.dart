@@ -24,6 +24,22 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('Save with an unnamed chapter says why instead of nothing', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/new', tall: true);
+    await tester.enterText(find.byType(TextField).first, 'Run a 5k');
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(
+      find.text('Name every chapter, or remove the empty one.'),
+      findsOneWidget,
+    );
+    expect(find.text('A new boss'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('edit mode loads the boss, its chapters and tasks', (
     tester,
   ) async {

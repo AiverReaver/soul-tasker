@@ -133,7 +133,7 @@ class _NewFoeSheetState extends State<NewFoeSheet> {
                       StrengthOption(
                         label: w.label,
                         pips: w.index + 1,
-                        note: '+${w.embers} embers',
+                        note: w.emberNote,
                       ),
                   ],
                   selected: _weight.index,

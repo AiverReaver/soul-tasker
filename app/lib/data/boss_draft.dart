@@ -98,6 +98,14 @@ class BossDraft {
       isNamed &&
       (standalone.isNotEmpty || phases.any((p) => p.tasks.isNotEmpty));
 
+  /// Why [canSave] is false, in words for the Save button; null when it can.
+  String? get missing {
+    if (title.trim().isEmpty) return 'Name the boss first.';
+    if (!isNamed) return 'Name every chapter, or remove the empty one.';
+    if (!canSave) return 'Add a task to fight.';
+    return null;
+  }
+
   /// Removes the task with [taskId] from wherever it is.
   BossDraft withoutTask(String taskId) => copyWith(
     phases: [

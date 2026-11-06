@@ -31,6 +31,9 @@ class BossEditScreen extends ConsumerStatefulWidget {
 class _BossEditScreenState extends ConsumerState<BossEditScreen> {
   BossDraft? _draft;
   String? _error;
+
+  /// Set by a refused Save, so the screen says what is missing.
+  bool _triedSave = false;
   final _title = TextEditingController();
   final _meaning = TextEditingController();
 
@@ -197,7 +200,11 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
                   ),
                   GlassPillButton(
                     label: 'Save',
-                    onTap: draft != null && draft.canSave ? _save : null,
+                    onTap: draft == null
+                        ? null
+                        : draft.canSave
+                        ? _save
+                        : () => setState(() => _triedSave = true),
                   ),
                 ],
               ),
@@ -206,6 +213,19 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: ThreadDivider(),
             ),
+            if (_triedSave && draft?.missing != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    draft!.missing!,
+                    style: text.bodyMedium?.copyWith(
+                      color: context.palette.silk,
+                    ),
+                  ),
+                ),
+              ),
             Expanded(
               child: draft == null
                   ? Center(child: Text(_error ?? ''))

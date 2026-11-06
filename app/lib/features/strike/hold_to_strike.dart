@@ -234,7 +234,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
   @override
   Widget build(BuildContext context) {
     final weight = widget.weight;
-    final embers = '+${weight.embers}${widget.compact ? '' : ' embers'}';
+    final embers = widget.compact ? '+${weight.embers}' : weight.emberNote;
     final lead = widget.isDone ? 'Struck' : widget.bossName;
     return AnimatedBuilder(
       animation: Listenable.merge([_progress, _sweep, _dust]),

@@ -77,12 +77,13 @@ class _BossListState extends State<_BossList> {
     final text = Theme.of(context).textTheme;
     final active = _with(BossStatus.active);
     final waiting = _with(BossStatus.waiting);
+    final newBossButton = GlassPillButton(
+      label: 'Name a new boss',
+      onTap: () => context.push('/boss/new'),
+    );
     final newBoss = Align(
       alignment: Alignment.centerLeft,
-      child: GlassPillButton(
-        label: 'Name a new boss',
-        onTap: () => context.push('/boss/new'),
-      ),
+      child: newBossButton,
     );
 
     // Defeated bosses live on as relics, not here (Stage 5 plan D8).
@@ -93,7 +94,7 @@ class _BossListState extends State<_BossList> {
           children: [
             Text('No boss stands before you.', style: text.bodyLarge),
             const SizedBox(height: Space.md),
-            newBoss,
+            newBossButton,
           ],
         ),
       );

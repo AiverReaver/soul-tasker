@@ -35,7 +35,7 @@ void main() {
     expect(find.text('Name the task'), findsOneWidget);
     for (final w in Weight.values) {
       expect(find.text(w.label), findsOneWidget);
-      expect(find.text('+${w.embers} embers'), findsOneWidget);
+      expect(find.text(w.emberNote), findsOneWidget);
     }
     expect(find.text('Strikes at'), findsOneWidget);
     expect(find.text('The Certification'), findsWidgets);
