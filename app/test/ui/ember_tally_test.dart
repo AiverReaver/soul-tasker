@@ -19,10 +19,19 @@ void main() {
     expect(find.text('Banked 42'), findsOneWidget);
   });
 
+  testWidgets('before the first rest it shows one number and says what it is', (
+    tester,
+  ) async {
+    await _pump(tester, const EmberTally(carried: 3, banked: 0));
+    expect(find.text('Embers 3'), findsOneWidget);
+    expect(find.text('Earned by striking. Rest to keep them.'), findsOneWidget);
+    expect(find.textContaining('Carried'), findsNothing);
+    expect(find.textContaining('Banked'), findsNothing);
+  });
+
   testWidgets('EmberTally shows zeros without error', (tester) async {
     await _pump(tester, const EmberTally(carried: 0, banked: 0));
-    expect(find.text('Carried 0'), findsOneWidget);
-    expect(find.text('Banked 0'), findsOneWidget);
+    expect(find.text('Embers 0'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

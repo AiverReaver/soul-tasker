@@ -26,6 +26,15 @@ void main() {
       expect(find.bySemanticsLabel('Health 10 of 10'), findsOneWidget);
     });
 
+    testWidgets('names itself with a visible Health 10/10 label', (
+      tester,
+    ) async {
+      await _pump(tester, const PlayerHealthBar(health: 20, max: 20));
+      expect(find.text('Health 10/10'), findsOneWidget);
+      await _pump(tester, const PlayerHealthBar(health: 7, max: 20));
+      expect(find.text('Health 3.5/10'), findsOneWidget);
+    });
+
     testWidgets('a half point draws a half pip', (tester) async {
       await _pump(tester, const PlayerHealthBar(health: 7, max: 20));
       expect(find.byKey(const ValueKey('health-full')), findsNWidgets(3));
