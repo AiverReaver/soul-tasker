@@ -244,7 +244,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
             Padding(
               padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
               child: Text(
-                '$struck of $total struck · hold a task to strike it off',
+                '$struck of $total struck · hold the needle on a task to strike it off',
                 style: text.bodySmall,
               ),
             ),

@@ -384,7 +384,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           ),
           const SizedBox(height: Space.xs),
           Text(
-            '$struck of ${ph.tasks.length} struck · hold a task to strike it off',
+            '$struck of ${ph.tasks.length} struck · hold the needle on a task to strike it off',
             style: text.bodySmall,
           ),
           const SizedBox(height: Space.sm),

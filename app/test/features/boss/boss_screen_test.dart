@@ -89,7 +89,7 @@ void main() {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
     expect(find.text('Learn'), findsOneWidget);
     expect(
-      find.text('0 of 3 struck · hold a task to strike it off'),
+      find.text('0 of 3 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
     await h.attempts.strike(
@@ -97,7 +97,7 @@ void main() {
     );
     await settle(tester);
     expect(
-      find.text('1 of 3 struck · hold a task to strike it off'),
+      find.text('1 of 3 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
     await tearDownApp(tester, h);

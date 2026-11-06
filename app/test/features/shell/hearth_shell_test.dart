@@ -58,7 +58,7 @@ void main() {
       await settle(tester);
       expect(find.text('Today’s tasks'), findsOneWidget);
       expect(
-        find.textContaining('hold a task to strike it off'),
+        find.textContaining('hold the needle on a task to strike it off'),
         findsOneWidget,
       );
       expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 1);

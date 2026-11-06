@@ -84,7 +84,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(
-      find.text('0 of 4 struck · hold a task to strike it off'),
+      find.text('0 of 4 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
     expect(find.byType(GlassTabBar), findsOneWidget);
@@ -197,13 +197,13 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(
-      find.text('1 of 5 struck · hold a task to strike it off'),
+      find.text('1 of 5 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
     await tester.tap(find.text(view.boss.title).first);
     await settle(tester);
     expect(
-      find.text('0 of 4 struck · hold a task to strike it off'),
+      find.text('0 of 4 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
 
@@ -212,7 +212,7 @@ void main() {
     await h.bosses.setStatus(habit, BossStatus.waiting);
     await settle(tester);
     expect(
-      find.text('0 of 4 struck · hold a task to strike it off'),
+      find.text('0 of 4 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
     await tearDownApp(tester, h);
@@ -228,7 +228,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(
-      find.text('1 of 4 struck · hold a task to strike it off'),
+      find.text('1 of 4 struck · hold the needle on a task to strike it off'),
       findsOneWidget,
     );
     await tearDownApp(tester, h);
