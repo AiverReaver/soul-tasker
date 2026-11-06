@@ -81,13 +81,14 @@ void main() {
     final player = FakeSoundPlayer();
     final h = Harness();
     await h.settings.setSound(true);
+    h.clock.now = DateTime(2026, 10, 13, 19); // the card shows in the evening
     await pumpApp(tester, h, overrides: [player.asOverride]);
 
-    await tester.tap(find.text('Bonfire'));
+    await tester.tap(find.text('Rest at the bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.bySemanticsLabel('Back'));
     await settle(tester);
     expect(player.calls, ['hum:start', 'hum:stop']);
     await tearDownApp(tester, h);
@@ -97,8 +98,9 @@ void main() {
     final player = FakeSoundPlayer();
     final h = Harness();
     await h.settings.setSound(true);
+    h.clock.now = DateTime(2026, 10, 13, 19); // the card shows in the evening
     await pumpApp(tester, h, overrides: [player.asOverride]);
-    await tester.tap(find.text('Bonfire'));
+    await tester.tap(find.text('Rest at the bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 

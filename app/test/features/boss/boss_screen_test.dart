@@ -289,7 +289,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('All bosses · 1 active'));
+    await tester.tap(find.text('Bosses'));
     await settle(tester);
     await tester.tap(find.text('The Certification'));
     await settle(tester);

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hearthrise/ui/glass_tab_bar.dart';
+import 'package:hearthrise/ui/nav_icon.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'glass_host.dart';
@@ -12,14 +13,20 @@ void main() {
     ),
   );
 
-  testWidgets('four labelled tabs with the shell keys', (tester) async {
+  testWidgets('three labelled tabs with the shell keys', (tester) async {
     await tester.pumpWidget(bar());
-    for (final label in ['Home', 'Today', 'Bonfire', 'Profile']) {
+    for (final label in ['Today', 'Bosses', 'Profile']) {
       expect(find.text(label), findsOneWidget);
     }
-    for (var i = 0; i < 4; i++) {
+    expect(find.text('Home'), findsNothing);
+    expect(find.text('Bonfire'), findsNothing);
+    // Today a blade, Bosses a mask, Profile a gem.
+    for (final (i, glyph) in [1, 0, 3].indexed) {
       expect(find.byKey(ValueKey('nav-item-$i')), findsOneWidget);
-      expect(find.byKey(ValueKey('nav-icon-$i')), findsOneWidget);
+      expect(
+        tester.widget<NavIcon>(find.byKey(ValueKey('nav-icon-$i'))).index,
+        glyph,
+      );
     }
     expect(find.byKey(const ValueKey('nav-bar')), findsOneWidget);
   });
@@ -30,9 +37,9 @@ void main() {
     await tester.pumpWidget(bar(selected: 2));
     expect(find.byKey(const ValueKey('nav-diamond')), findsOneWidget);
     expect(
-      tester.getSemantics(find.bySemanticsLabel('Bonfire')),
+      tester.getSemantics(find.bySemanticsLabel('Profile')),
       matchesSemantics(
-        label: 'Bonfire',
+        label: 'Profile',
         isButton: true,
         isSelected: true,
         hasSelectedState: true,
@@ -40,9 +47,9 @@ void main() {
       ),
     );
     expect(
-      tester.getSemantics(find.bySemanticsLabel('Home')),
+      tester.getSemantics(find.bySemanticsLabel('Today')),
       matchesSemantics(
-        label: 'Home',
+        label: 'Today',
         isButton: true,
         hasSelectedState: true,
         hasTapAction: true,
@@ -53,8 +60,8 @@ void main() {
   testWidgets('a tap fires onTap with the index', (tester) async {
     int? got;
     await tester.pumpWidget(bar(onTap: (i) => got = i));
-    await tester.tap(find.byKey(const ValueKey('nav-item-3')));
-    expect(got, 3);
+    await tester.tap(find.byKey(const ValueKey('nav-item-2')));
+    expect(got, 2);
   });
 
   testWidgets('a 62 px pill floating 21 px in', (tester) async {

@@ -69,6 +69,16 @@ void main() {
     );
     expect(added.weight, Weight.heavy);
     expect(find.text('A new task'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Call the bank'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Call the bank'), findsOneWidget);
     await tearDownApp(tester, h);
   });

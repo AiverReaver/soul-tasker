@@ -41,7 +41,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.bySemanticsLabel('Your profile'), findsOneWidget);
+    expect(find.bySemanticsLabel('Your profile'), findsNothing);
+    // Its own node, not merged into the eyebrow beside it.
     expect(find.bySemanticsLabel('Settings'), findsOneWidget);
     expect(find.text('Today’s tasks'), findsOneWidget);
     expect(find.text('0 of 4 struck'), findsOneWidget);
@@ -74,47 +75,28 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the bottom bar stays on every tab: Bosses, Today, Bonfire and '
-      'Relics', (tester) async {
+  testWidgets('the bottom bar stays on every tab: Today, Bosses, Profile', (
+    tester,
+  ) async {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
     expect(find.byType(GlassTabBar), findsOneWidget);
-
-    await tester.tap(find.text('Today'));
-    await settle(tester);
-    expect(
-      find.text('0 of 4 struck · hold the needle on a task to strike it off'),
-      findsOneWidget,
-    );
-    expect(find.byType(GlassTabBar), findsOneWidget);
-    await tester.tap(find.text('Home'));
-    await settle(tester);
     expect(find.text('0 of 4 struck'), findsOneWidget);
+
+    await tester.tap(find.text('Bosses'));
+    await settle(tester);
+    expect(find.text('All bosses'), findsOneWidget);
+    expect(find.byType(GlassTabBar), findsOneWidget);
 
     await tester.tap(find.text('Profile'));
     await settle(tester);
     expect(find.text('Hall of relics'), findsOneWidget);
     expect(find.byType(GlassTabBar), findsOneWidget);
 
-    await tester.tap(find.text('Bonfire'));
+    await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('BONFIRE'), findsOneWidget);
-    expect(find.byType(GlassTabBar), findsOneWidget);
-
-    await tester.tap(find.text('Home'));
-    await settle(tester);
-    expect(find.bySemanticsLabel('Your profile'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('the bar marks the tab you are on, also when opened by URL', (
-    tester,
-  ) async {
-    final h = Harness();
-    await pumpApp(tester, h, location: '/bonfire', tall: true);
-    final bar = tester.widget<GlassTabBar>(find.byType(GlassTabBar));
-    expect(bar.selected, 2);
+    expect(find.text('0 of 4 struck'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -141,7 +123,16 @@ void main() {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
-    expect(find.byType(WeekStreakCard), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byType(WeekStreakCard),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Begins today'), findsOneWidget);
     await DayDao(h.db, h.clock.call, h.attempts).rest();
     await settle(tester);
@@ -149,31 +140,24 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Home has no filter tabs; the Today tab keeps them', (
+  testWidgets('Today shows boss filter chips once there are two bosses', (
     tester,
   ) async {
     final h = Harness();
     await h.seed();
     await h.bosses.ensureDayBoss();
     await pumpApp(tester, h, tall: true);
-    expect(find.byType(FilterChips<String>), findsNothing);
-    await tearDownApp(tester, h);
-
-    final t = Harness();
-    await t.seed();
-    await t.bosses.ensureDayBoss();
-    await pumpApp(tester, t, location: '/today', tall: true);
     expect(find.byType(FilterChips<String>), findsOneWidget);
-    await tearDownApp(tester, t);
+    await tearDownApp(tester, h);
   });
 
-  testWidgets('All bosses leads to the full list', (tester) async {
+  testWidgets('the Bosses tab leads to the full list', (tester) async {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
-    await tester.tap(find.text('All bosses · 1 active'));
+    await tester.tap(find.text('Bosses'));
     await settle(tester);
+    expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('Name a new boss'), findsOneWidget);
     await tearDownApp(tester, h);
   });
@@ -194,43 +178,26 @@ void main() {
     await pumpApp(tester, h, tall: true);
     expect(find.text('1 of 5 struck'), findsOneWidget);
 
-    await tester.tap(find.text('Today'));
-    await settle(tester);
-    expect(
-      find.text('1 of 5 struck · hold the needle on a task to strike it off'),
-      findsOneWidget,
-    );
     await tester.tap(find.text(view.boss.title).first);
     await settle(tester);
-    expect(
-      find.text('0 of 4 struck · hold the needle on a task to strike it off'),
-      findsOneWidget,
-    );
+    expect(find.text('0 of 4 struck'), findsOneWidget);
 
     await tester.tap(find.text('All'));
     await settle(tester);
     await h.bosses.setStatus(habit, BossStatus.waiting);
     await settle(tester);
-    expect(
-      find.text('0 of 4 struck · hold the needle on a task to strike it off'),
-      findsOneWidget,
-    );
+    expect(find.text('0 of 4 struck'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('a struck one-time task stays in its group count on Home and '
-      'Today alike', (tester) async {
+  testWidgets('a struck one-time task stays in its group count', (
+    tester,
+  ) async {
     final h = Harness();
     final view = await h.seed();
     await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
     await pumpApp(tester, h, tall: true);
     expect(find.text('1 of 4 struck'), findsOneWidget);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
-    expect(
-      find.text('1 of 4 struck · hold the needle on a task to strike it off'),
-      findsOneWidget,
-    );
     await tearDownApp(tester, h);
   });
 
@@ -263,7 +230,7 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await settle(tester);
 
-    await tester.tap(find.text('All bosses · 1 active'));
+    await tester.tap(find.text('Bosses'));
     await settle(tester);
     await tester.longPress(find.text(view.boss.title));
     await settle(tester);
@@ -283,16 +250,12 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('The Day is left out of All bosses and its active count', (
-    tester,
-  ) async {
+  testWidgets('The Day is left out of the Bosses tab', (tester) async {
     final h = Harness();
     await h.seed();
     await h.bosses.ensureDayBoss();
     await pumpApp(tester, h, tall: true);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
-
-    await tester.tap(find.text('All bosses · 1 active'));
+    await tester.tap(find.text('Bosses'));
     await settle(tester);
     expect(find.text('The Certification'), findsOneWidget);
     expect(find.text('The Day'), findsNothing);
@@ -337,14 +300,64 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('The Day leads the Today tab: first chip', (tester) async {
+  testWidgets('The Day leads the chips: first chip', (tester) async {
     final h = Harness();
     await h.seed();
     await h.bosses.ensureDayBoss();
-    await pumpApp(tester, h, location: '/today', tall: true);
+    await pumpApp(tester, h, tall: true);
     expect(
       tester.getTopLeft(find.text('The Day').first).dx,
       lessThan(tester.getTopLeft(find.text('The Certification').first).dx),
+    );
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the bonfire card waits for evening or a cleared day', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    h.clock.now = DateTime(2026, 10, 13, 10);
+    await pumpApp(tester, h, tall: true);
+    expect(find.text('Rest at the bonfire'), findsNothing);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('in the evening the bonfire card opens the bonfire, with back', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    h.clock.now = DateTime(2026, 10, 13, 19);
+    await pumpApp(tester, h, tall: true);
+    await tester.tap(find.text('Rest at the bonfire'));
+    await settle(tester);
+    expect(find.text('BONFIRE'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await settle(tester);
+    expect(find.text('Today’s tasks'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('tasks come before the week streak, so they sit high', (
+    tester,
+  ) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, tall: true);
+    await tester.scrollUntilVisible(
+      find.byType(WeekStreakCard),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(
+      tester.getTopLeft(find.byType(WeekStreakCard)).dy,
+      greaterThan(tester.getTopLeft(find.text('Walk')).dy),
     );
     await tearDownApp(tester, h);
   });

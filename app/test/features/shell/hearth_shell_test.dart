@@ -25,43 +25,65 @@ void main() {
     tester,
   ) async {
     final h = Harness();
-    await pumpApp(tester, h, location: '/bonfire', tall: true);
+    await pumpApp(tester, h, location: '/profile', tall: true);
     expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 2);
     await tearDownApp(tester, h);
   });
 
-  testWidgets('tabs go to their routes', (tester) async {
+  testWidgets('three tabs: Today, Bosses, Profile; root tabs have no back', (
+    tester,
+  ) async {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
+    expect(find.text('Home'), findsNothing);
+    expect(find.text('Bonfire'), findsNothing);
+
+    await tester.tap(find.text('Bosses'));
+    await settle(tester);
+    expect(find.text('All bosses'), findsOneWidget);
+    expect(find.bySemanticsLabel('Back'), findsNothing);
+    expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 1);
+
     await tester.tap(find.text('Profile'));
     await settle(tester);
     expect(find.text('Hall of relics'), findsOneWidget);
-    await tester.tap(find.text('Bonfire'));
+    expect(find.bySemanticsLabel('Back'), findsNothing);
+
+    await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('BONFIRE'), findsOneWidget);
-    await tester.tap(find.text('Home'));
-    await settle(tester);
-    expect(find.text('BONFIRE'), findsNothing);
+    expect(find.text('Today’s tasks'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the old /today link lands on Today', (tester) async {
+    final h = Harness();
+    await h.seed();
+    await pumpApp(tester, h, location: '/today', tall: true);
+    expect(find.text('Today’s tasks'), findsOneWidget);
+    expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 0);
     await tearDownApp(tester, h);
   });
 
   for (final isPinned in [false, true]) {
-    testWidgets('Today opens the tasks list, pinned boss or not ($isPinned)', (
+    testWidgets('Today is one screen: health, embers, hint, add ($isPinned)', (
       tester,
     ) async {
       final h = Harness();
       final view = await h.seed();
       await h.bosses.setPinned(view.boss.id, isPinned: isPinned);
       await pumpApp(tester, h, tall: true);
-      await tester.tap(find.text('Today'));
-      await settle(tester);
       expect(find.text('Today’s tasks'), findsOneWidget);
+      expect(find.text('Health 10/10'), findsOneWidget);
+      expect(find.text('Embers 0'), findsOneWidget);
       expect(
-        find.textContaining('hold the needle on a task to strike it off'),
+        find.text('Hold the needle on a task to strike it off'),
         findsOneWidget,
       );
-      expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 1);
+      expect(find.byKey(const ValueKey('new-foe')), findsOneWidget);
+      // Bosses is a tab now, so Today has no All bosses row.
+      expect(find.textContaining('All bosses'), findsNothing);
+      expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 0);
       await tearDownApp(tester, h);
     });
   }

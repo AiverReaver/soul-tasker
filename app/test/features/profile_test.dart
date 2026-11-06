@@ -36,13 +36,15 @@ Future<String> _relic(Harness h, String title, {int falls = 0}) async {
 }
 
 void main() {
-  testWidgets('the Home app bar opens the profile', (tester) async {
+  testWidgets('the Profile tab opens the profile, with no back circle', (
+    tester,
+  ) async {
     final h = Harness();
     await pumpApp(tester, h);
-    await tester.tap(find.bySemanticsLabel('Your profile'));
+    await tester.tap(find.text('Profile'));
     await settle(tester);
     expect(find.text('PROFILE'), findsOneWidget);
-    expect(find.byType(GlassCircleButton), findsOneWidget);
+    expect(find.byType(GlassCircleButton), findsNothing);
     await tearDownApp(tester, h);
   });
 

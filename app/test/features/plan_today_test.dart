@@ -16,9 +16,7 @@ void main() {
       h.bosses,
       h.clock.call,
     ).setPicks('2026-10-13', [taskNamed(view, 'Read chapter 4').task.id]);
-    await pumpApp(tester, h);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.byType(PlanBanner), findsOneWidget);
     expect(find.text("TODAY'S THREE"), findsOneWidget);
@@ -28,9 +26,7 @@ void main() {
   testWidgets('Today hides the block when nothing is planned', (tester) async {
     final h = Harness();
     await h.seed();
-    await pumpApp(tester, h);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.byType(PlanBanner), findsNothing);
     await tearDownApp(tester, h);
@@ -44,9 +40,7 @@ void main() {
       h.bosses,
       h.clock.call,
     ).setPicks('2026-10-14', [taskNamed(view, 'Walk').task.id]);
-    await pumpApp(tester, h);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
+    await pumpApp(tester, h, tall: true);
 
     expect(find.byType(PlanBanner), findsNothing);
     await tearDownApp(tester, h);
@@ -58,9 +52,7 @@ void main() {
     final h = Harness();
     final view = await h.seed();
     await h.attempts.strike(taskNamed(view, 'Walk').task.id);
-    await pumpApp(tester, h);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
+    await pumpApp(tester, h, tall: true);
 
     // One label per run: dailies, the current chapter, the rest.
     expect(find.text('THE CERTIFICATION · DAILY'), findsOneWidget);

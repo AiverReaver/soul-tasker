@@ -25,6 +25,8 @@ class GlassTapTarget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
+    // Its own node, so a label beside it never merges into the button.
+    container: true,
     label: semanticLabel,
     button: toggled == null,
     toggled: toggled,

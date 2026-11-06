@@ -3,10 +3,10 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../ui/glass_tab_bar.dart';
 
-/// The four tab routes, in bar order.
-const kTabPaths = ['/', '/today', '/bonfire', '/profile'];
+/// The three tab routes, in bar order (first-session audit #9).
+const kTabPaths = ['/', '/bosses', '/profile'];
 
-/// Keeps the floating glass bar on Home, Today, Bonfire and Profile. The
+/// Keeps the floating glass bar on Today, Bosses and Profile. The
 /// selected tab follows the location, so a deep link lights the right one.
 class HearthShell extends StatelessWidget {
   const HearthShell({super.key, required this.location, required this.child});

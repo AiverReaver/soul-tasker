@@ -60,7 +60,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     await close();
     final bossId = (await h.bosses.loadAll()).single.boss.id;
     at(1, 20);

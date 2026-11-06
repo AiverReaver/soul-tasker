@@ -173,8 +173,10 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
                       children: [
                         GlassCircleButton(
                           icon: StrokeIcons.back,
-                          semanticLabel: 'Back to bosses',
-                          onTap: () => context.go('/'),
+                          semanticLabel: 'Back',
+                          onTap: () => context.canPop()
+                              ? context.pop()
+                              : context.go('/'),
                         ),
                         Text('BONFIRE', style: text.labelSmall),
                       ],

@@ -39,7 +39,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     expect(reminders.calls, isNot(contains('permission')));
     // Leave the app view; keep the database for the rest of the script.
     await tester.pumpWidget(const SizedBox());

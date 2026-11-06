@@ -209,9 +209,6 @@ void main() {
 
     expect(find.text('The Certification'), findsNothing);
     expect(find.text('VANQUISHED (1)'), findsNothing);
-    expect(find.text('All bosses · 0 active'), findsOneWidget);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
     expect(find.text('Sit the exam'), findsNothing);
     await tearDownApp(tester, h);
   });

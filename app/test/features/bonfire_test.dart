@@ -150,15 +150,6 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the Bonfire tab opens the bonfire', (tester) async {
-    await pumpApp(tester, h);
-
-    await tester.tap(find.text('Bonfire'));
-    await settle(tester);
-    expect(find.text('BONFIRE'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
   group('Tomorrow’s tasks (Q5)', () {
     Future<void> open(WidgetTester tester) async {
       await pumpApp(tester, h, location: '/bonfire', tall: true);

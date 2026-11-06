@@ -97,18 +97,6 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('the back circle leaves the list', (tester) async {
-    final h = Harness();
-    await h.seed();
-    await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('All bosses · 1 active'));
-    await settle(tester);
-    await tester.tap(find.bySemanticsLabel('Back'));
-    await settle(tester);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
   testWidgets('screens sit on the Pharloom night; a boss stands on its page', (
     tester,
   ) async {
@@ -203,7 +191,8 @@ void main() {
     final h2 = Harness();
     await h2.seed();
     await pumpApp(tester, h2, tall: true);
-    await tester.tap(find.text('Today'));
+    // Health, embers and the hint sit above the list now; bring it up.
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
     await settle(tester);
     expect(find.text('Book the room'), findsOneWidget);
     expect(find.text('Walk'), findsOneWidget);

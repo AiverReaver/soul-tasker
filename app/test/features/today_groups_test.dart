@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hearthrise/data/day_boss.dart';
 import 'package:hearthrise/features/today/today_view.dart';
 import 'package:hearthrise/ui/task_group_header.dart';
@@ -74,6 +75,9 @@ void main() {
     final h = Harness();
     await h.seed();
     await pumpApp(tester, h, tall: true);
+    // Health, embers and the hint sit above the list now; bring it up.
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await settle(tester);
     expect(find.byType(TaskGroupHeader), findsNWidgets(3));
     expect(find.text('THE CERTIFICATION · CHAPTER I · LEARN'), findsOneWidget);
     expect(find.text('0 of 2'), findsOneWidget);

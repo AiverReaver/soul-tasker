@@ -136,7 +136,7 @@ void main() {
     expect(boss.standalone, isEmpty);
     expect((await h.settings.device()).onboarded, isTrue);
 
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
     expect(find.text('Book the exam'), findsOneWidget);
@@ -247,7 +247,7 @@ void main() {
     await tap(find.text('Begin'));
 
     expect(steps, 5);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     expect(reminders.calls, isNot(contains('permission')));
     await tearDownApp(tester, h);
   });
