@@ -159,7 +159,46 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('back without saving changes nothing', (tester) async {
+  testWidgets('back with unsaved changes asks; Discard leaves them unsaved', (
+    tester,
+  ) async {
+    final view = await h.seed();
+    await pumpApp(
+      tester,
+      h,
+      location: '/boss/${view.boss.id}',
+      tall: true,
+    );
+    await tester.tap(find.byType(GlassCircleButton).last); // ⋯
+    await settle(tester);
+    await tester.tap(find.text('Edit'));
+    await settle(tester);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'The Certification'),
+      'Changed',
+    );
+    await tester.pump();
+
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await settle(tester);
+    expect(find.text('Discard changes?'), findsOneWidget);
+    await tester.tap(find.text('Keep editing'));
+    await settle(tester);
+    expect(find.text('Edit boss'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Changed'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await settle(tester);
+    await tester.tap(find.text('Discard'));
+    await settle(tester);
+    expect(find.text('Edit boss'), findsNothing);
+    expect((await h.reload(view.boss.id)).boss.title, 'The Certification');
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('back with nothing changed leaves without asking', (
+    tester,
+  ) async {
     final view = await h.seed();
     await pumpApp(
       tester,
@@ -167,14 +206,10 @@ void main() {
       location: '/boss/${view.boss.id}/edit',
       tall: true,
     );
-    await tester.enterText(
-      find.widgetWithText(TextField, 'The Certification'),
-      'Changed',
-    );
-    await tester.pump();
-    await tester.tap(find.byType(GlassCircleButton).first);
+    await tester.tap(find.bySemanticsLabel('Back'));
     await settle(tester);
-    expect((await h.reload(view.boss.id)).boss.title, 'The Certification');
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Edit boss'), findsNothing);
     await tearDownApp(tester, h);
   });
 
