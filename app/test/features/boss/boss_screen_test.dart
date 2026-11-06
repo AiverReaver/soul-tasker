@@ -88,12 +88,18 @@ void main() {
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
     expect(find.text('Learn'), findsOneWidget);
-    expect(find.text('0 of 3 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('0 of 3 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
     await h.attempts.strike(
       (await h.reload(id)).phases.first.tasks.first.task.id,
     );
     await settle(tester);
-    expect(find.text('1 of 3 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('1 of 3 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
     await tearDownApp(tester, h);
   });
 

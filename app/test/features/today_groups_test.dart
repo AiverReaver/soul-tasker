@@ -90,7 +90,7 @@ void main() {
     final groups = todayGroups(await h.reload(dayBossId));
     expect(
       [for (final g in groups) (g.label, g.tasks.length, g.count)],
-      [('The Day', 0, 'No tasks yet')],
+      [('The Day', 0, 'For one-off tasks today')],
     );
     await h.db.close();
   });

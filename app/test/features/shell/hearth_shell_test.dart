@@ -57,7 +57,10 @@ void main() {
       await tester.tap(find.text('Today'));
       await settle(tester);
       expect(find.text('Today’s tasks'), findsOneWidget);
-      expect(find.textContaining('hold to strike'), findsOneWidget);
+      expect(
+        find.textContaining('hold a task to strike it off'),
+        findsOneWidget,
+      );
       expect(tester.widget<GlassTabBar>(find.byType(GlassTabBar)).selected, 1);
       await tearDownApp(tester, h);
     });

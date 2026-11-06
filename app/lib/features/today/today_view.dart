@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/roman.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
+import '../../data/day_boss.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
@@ -41,7 +42,9 @@ class TodayGroup {
   final int total;
 
   /// "N of M" struck, over every task of the group.
-  String get count => total == 0 ? 'No tasks yet' : '$struck of $total';
+  String get count => total == 0
+      ? (bossId == dayBossId ? 'For one-off tasks today' : 'No tasks yet')
+      : '$struck of $total';
 }
 
 /// The day's groups for one boss, in Today order (plan §8.3): dailies, then
@@ -241,7 +244,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
             Padding(
               padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
               child: Text(
-                '$struck of $total struck · hold to strike',
+                '$struck of $total struck · hold a task to strike it off',
                 style: text.bodySmall,
               ),
             ),

@@ -40,14 +40,22 @@ void main() {
     expect(find.text('BONFIRE'), findsOneWidget);
     expect(find.text('Rest a while.'), findsOneWidget);
     expect(
-      find.text('Night 1 at the hearth. Tell it how the day went.'),
+      find.text(
+        'Night 1 at the hearth. Resting ends the day and banks your embers.',
+      ),
       findsOneWidget,
     );
     expect(find.text('How did today go?'), findsOneWidget);
     for (final l in ['Fought well', 'Held on', 'I fell']) {
       expect(find.text(l), findsOneWidget);
     }
-    expect(find.text('Flasks restored'), findsOneWidget);
+    expect(find.text('Flasks after rest'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'each covers a missed day or buys a deadline more time',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('One thing for tomorrow'), findsOneWidget);
     expect(find.text('Write before noon'), findsOneWidget);
     expect(find.text('Tomorrow’s tasks'), findsOneWidget);
@@ -70,7 +78,9 @@ void main() {
     expect(tester.getSize(restButton()).width, greaterThan(width - 60));
     expect(find.byType(ThreadDivider), findsOneWidget);
     final subtitle = tester.widget<Text>(
-      find.text('Night 1 at the hearth. Tell it how the day went.'),
+      find.text(
+        'Night 1 at the hearth. Resting ends the day and banks your embers.',
+      ),
     );
     expect(subtitle.style?.color, Biome.pharloom.palette.ash);
     await tearDownApp(tester, h);

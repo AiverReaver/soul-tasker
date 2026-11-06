@@ -87,7 +87,7 @@ void main() {
     final h = Harness();
     await pumpApp(tester, h, location: '/profile');
     expect(
-      find.text('No bosses vanquished yet. The first relic awaits.'),
+      find.text('No relics yet. Beat a boss to keep one here.'),
       findsOneWidget,
     );
     await tearDownApp(tester, h);

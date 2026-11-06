@@ -24,7 +24,7 @@ class EmberTally extends StatelessWidget {
             style: style?.copyWith(color: context.palette.silk),
           ),
           Text(
-            'Earned by striking. Rest to keep them.',
+            'Earned by striking. Rest to bank them.',
             style: Theme.of(context).textTheme.bodySmall
                 ?.copyWith(color: context.palette.ash),
           ),
@@ -36,7 +36,7 @@ class EmberTally extends StatelessWidget {
       spacing: Space.lg,
       children: [
         Text(
-          'Carried $carried',
+          'To bank $carried',
           style: style?.copyWith(color: context.palette.silk),
         ),
         Text(

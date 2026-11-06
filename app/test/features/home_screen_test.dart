@@ -83,7 +83,10 @@ void main() {
 
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('0 of 4 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
     expect(find.byType(GlassTabBar), findsOneWidget);
     await tester.tap(find.text('Home'));
     await settle(tester);
@@ -193,16 +196,25 @@ void main() {
 
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('1 of 5 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('1 of 5 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
     await tester.tap(find.text(view.boss.title).first);
     await settle(tester);
-    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('0 of 4 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('All'));
     await settle(tester);
     await h.bosses.setStatus(habit, BossStatus.waiting);
     await settle(tester);
-    expect(find.text('0 of 4 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('0 of 4 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
     await tearDownApp(tester, h);
   });
 
@@ -215,7 +227,10 @@ void main() {
     expect(find.text('1 of 4 struck'), findsOneWidget);
     await tester.tap(find.text('Today'));
     await settle(tester);
-    expect(find.text('1 of 4 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('1 of 4 struck · hold a task to strike it off'),
+      findsOneWidget,
+    );
     await tearDownApp(tester, h);
   });
 

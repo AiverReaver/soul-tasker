@@ -15,7 +15,7 @@ void main() {
     tester,
   ) async {
     await _pump(tester, const EmberTally(carried: 7, banked: 42));
-    expect(find.text('Carried 7'), findsOneWidget);
+    expect(find.text('To bank 7'), findsOneWidget);
     expect(find.text('Banked 42'), findsOneWidget);
   });
 
@@ -24,7 +24,7 @@ void main() {
   ) async {
     await _pump(tester, const EmberTally(carried: 3, banked: 0));
     expect(find.text('Embers 3'), findsOneWidget);
-    expect(find.text('Earned by striking. Rest to keep them.'), findsOneWidget);
+    expect(find.text('Earned by striking. Rest to bank them.'), findsOneWidget);
     expect(find.textContaining('Carried'), findsNothing);
     expect(find.textContaining('Banked'), findsNothing);
   });

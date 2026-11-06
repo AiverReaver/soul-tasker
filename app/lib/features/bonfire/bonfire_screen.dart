@@ -259,7 +259,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
       ),
       const SizedBox(height: Space.sm),
       Text(
-        'Night $night at the hearth. Tell it how the day went.',
+        'Night $night at the hearth. Resting ends the day and banks your embers.',
         textAlign: TextAlign.center,
         style: text.bodyMedium?.copyWith(color: context.palette.ash),
       ),
@@ -283,11 +283,11 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
               spacing: 2,
               children: [
                 Text(
-                  'Flasks restored',
+                  'Flasks after rest',
                   style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  '$flasks of $kFlaskCap · ready for tomorrow',
+                  '$flasks of $kFlaskCap · each covers a missed day or buys a deadline more time',
                   style: text.bodySmall,
                 ),
               ],
