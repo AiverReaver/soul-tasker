@@ -43,8 +43,6 @@ void main() {
 
       await tester.tap(holdButton('Sit the exam'));
       await settle(tester);
-      await tester.tap(find.text('Clean strike'));
-      await settle(tester);
       await tester.tap(find.text('Defeated'));
       await settle(tester);
 

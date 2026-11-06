@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/ui/flash_line.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../data/harness.dart';
 import '../../support/hold_finders.dart';
@@ -16,8 +18,6 @@ void main() {
 
     await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
-    await tester.tap(find.text('Clean strike'));
-    await settle(tester);
     expect(find.text('It is done.'), findsOneWidget);
     expect(
       taskNamed(await h.reload(view.boss.id), 'Read chapter 4').isStruck,
@@ -31,6 +31,39 @@ void main() {
       isFalse,
     );
     expect(await h.db.select(h.db.attempts).get(), isEmpty);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a strike asks nothing; "Only partly" turns it into a try', (
+    tester,
+  ) async {
+    final h = Harness();
+    final view = await h.seed();
+    await h.settings.setTapMode(true);
+    await pumpApp(tester, h, tall: true);
+
+    await tester.tap(holdButton('Read chapter 4'));
+    await settle(tester);
+    expect(find.text('HOW DID THE STRIKE LAND?'), findsNothing);
+    // Two choices need longer than the default 4 s to read.
+    expect(
+      tester.widget<SnackBar>(find.byType(SnackBar)).duration,
+      const Duration(seconds: 6),
+    );
+    expect(
+      taskNamed(await h.reload(view.boss.id), 'Read chapter 4').isStruck,
+      isTrue,
+    );
+
+    await tester.tap(find.text('Only partly'));
+    await settle(tester);
+    final attempts = await h.db.select(h.db.attempts).get();
+    expect(attempts.single.outcome, Outcome.tried);
+    expect(
+      taskNamed(await h.reload(view.boss.id), 'Read chapter 4').isStruck,
+      isFalse,
+    );
+    expect(find.text('You tried. That counts.'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -66,8 +99,6 @@ void main() {
     await h.settings.setTapMode(true);
     await settle(tester);
     await tester.tap(holdButton('Read chapter 4'));
-    await settle(tester);
-    await tester.tap(find.text('Clean strike'));
     await settle(tester);
     expect(find.text('Press and hold to strike.'), findsNothing);
     await tearDownApp(tester, h);

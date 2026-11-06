@@ -18,7 +18,6 @@ Widget _host(
   bool isDone = false,
   bool reduceMotion = false,
   VoidCallback? onStrike,
-  VoidCallback? onTried,
 }) => ProviderScope(
   overrides: [RecordingHaptics().asOverride],
   child: MaterialApp(
@@ -34,7 +33,6 @@ Widget _host(
         isDone: isDone,
         tapMode: tapMode,
         onStrike: onStrike ?? () {},
-        onTried: onTried,
       ),
     ),
   ),
@@ -129,7 +127,7 @@ void main() {
   });
 
   testWidgets('a struck task bursts into dust', (tester) async {
-    await tester.pumpWidget(_host(Weight.light, onTried: () {}));
+    await tester.pumpWidget(_host(Weight.light));
     await _strikeByHold(tester, Weight.light);
     await tester.pump(_frame * 3);
     expect(find.byKey(kDustPainterKey), findsOneWidget);

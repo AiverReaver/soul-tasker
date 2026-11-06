@@ -9,7 +9,6 @@ import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/dust_vanish.dart';
 import '../../ui/hold_button.dart';
-import '../../ui/strike_result_sheet.dart';
 import '../../ui/strike_sweep_view.dart';
 import '../../ui/task_row_tile.dart';
 import 'strike_sweep.dart';
@@ -23,7 +22,6 @@ class HoldToStrike extends ConsumerStatefulWidget {
     required this.weight,
     required this.isDone,
     required this.onStrike,
-    this.onTried,
     this.tapMode = false,
     this.onOpenActions,
     this.onHint,
@@ -35,11 +33,9 @@ class HoldToStrike extends ConsumerStatefulWidget {
   final String title;
   final Weight weight;
   final bool isDone;
-  final VoidCallback onStrike;
 
-  /// When set, a finished hold first asks Strike or Tried; Tried calls this.
-  /// When null, a finished hold strikes at once.
-  final VoidCallback? onTried;
+  /// A finished hold strikes at once; nothing is asked after.
+  final VoidCallback onStrike;
   final bool tapMode;
 
   /// Tapping the row away from the hold button.
@@ -140,26 +136,7 @@ class _HoldToStrikeState extends ConsumerState<HoldToStrike>
       case Weight.bossTier:
         haptics.doubleHeavy();
     }
-    if (widget.onTried == null) return _strike();
-    _playThenAsk();
-  }
-
-  /// The beats play first, then the sheet asks; nothing is written until
-  /// the player chooses (D8).
-  Future<void> _playThenAsk() async {
-    await _play();
-    if (!mounted) return;
-    final clean = await showStrikeResultSheet(context, widget.title);
-    if (!mounted) return;
-    switch (clean) {
-      case true:
-        widget.onStrike();
-      case false:
-        _progress.value = 0;
-        widget.onTried?.call();
-      case null:
-        _progress.value = 0;
-    }
+    _strike();
   }
 
   Future<void> _play() async {

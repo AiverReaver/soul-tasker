@@ -25,7 +25,6 @@ void main() {
               isDone: false,
               tapMode: false,
               onStrike: () {},
-              onTried: () {},
             ),
           ),
         ),
