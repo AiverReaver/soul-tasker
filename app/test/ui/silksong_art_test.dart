@@ -73,17 +73,47 @@ void main() {
 
     test('repaints when the line boils or a hit lands, not otherwise', () {
       final p = Biome.pharloom.palette;
-      final a = BossArtPainter(boilFrame: 0, hit: 0, palette: p);
+      final a = BossArtPainter(
+        design: BossDesign.porcelain,
+        boilFrame: 0,
+        seconds: 0,
+        hit: 0,
+        palette: p,
+      );
       expect(
-        a.shouldRepaint(BossArtPainter(boilFrame: 0, hit: 0, palette: p)),
+        a.shouldRepaint(
+          BossArtPainter(
+            design: BossDesign.porcelain,
+            boilFrame: 0,
+            seconds: 0,
+            hit: 0,
+            palette: p,
+          ),
+        ),
         false,
       );
       expect(
-        a.shouldRepaint(BossArtPainter(boilFrame: 1, hit: 0, palette: p)),
+        a.shouldRepaint(
+          BossArtPainter(
+            design: BossDesign.porcelain,
+            boilFrame: 1,
+            seconds: 0,
+            hit: 0,
+            palette: p,
+          ),
+        ),
         true,
       );
       expect(
-        a.shouldRepaint(BossArtPainter(boilFrame: 0, hit: 1, palette: p)),
+        a.shouldRepaint(
+          BossArtPainter(
+            design: BossDesign.porcelain,
+            boilFrame: 0,
+            seconds: 0,
+            hit: 1,
+            palette: p,
+          ),
+        ),
         true,
       );
     });
@@ -174,6 +204,7 @@ void main() {
             progressLabel: 'Chapter 1 of 2',
             health: 1,
             isPinned: pinned,
+            design: BossDesign.rotBloom,
             onTap: () {},
             onLongPress: () {},
           ),
@@ -181,6 +212,10 @@ void main() {
         await pump(true);
         expect(edge(tester), p.deep);
         expect(find.byType(BossArt), findsOneWidget);
+        expect(
+          tester.widget<BossArt>(find.byType(BossArt)).design,
+          BossDesign.rotBloom,
+        );
         await pump(false);
         expect(edge(tester), isNull);
       },
@@ -200,6 +235,26 @@ void main() {
     final builders = buildTheme().pageTransitionsTheme.builders;
     expect(builders[TargetPlatform.android], isA<SilkPageTransitions>());
     expect(builders[TargetPlatform.iOS], isA<SilkPageTransitions>());
+  });
+
+  test('the ground has silk glows in two corners and a mote glow between', () {
+    final p = Biome.pharloom.palette;
+    final glows = groundGlows(p, isDark: true);
+    expect(glows, hasLength(3));
+    expect(glows[0].at, const Offset(.12, 0));
+    expect(glows[0].color, p.silk.withValues(alpha: .34));
+    expect(glows[1].at, const Offset(.95, .62));
+    expect(glows[1].color, p.mote.withValues(alpha: .22));
+    expect(glows[2].at, const Offset(.2, 1));
+    expect(glows[2].color, p.silk.withValues(alpha: .28));
+  });
+
+  test('a light biome keeps the glows faint, so it stays clean', () {
+    final p = Biome.choral.palette;
+    expect(
+      groundGlows(p, isDark: false)[0].color.a,
+      closeTo(groundGlows(p, isDark: true)[0].color.a * .4, .01),
+    );
   });
 
   testWidgets('PharloomBackdrop paints behind its child', (tester) async {

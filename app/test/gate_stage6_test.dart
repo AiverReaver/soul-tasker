@@ -56,13 +56,11 @@ void main() {
       'Zorblax the Unnamed',
     );
     await tester.pump();
-    for (var i = 0; i < 3; i++) {
-      await tester.tap(find.text('Next'));
-      await settle(tester);
-    }
+    await tester.tap(find.text('Next'));
+    await settle(tester);
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
+    expect(find.text('Today’s tasks'), findsOneWidget);
     await close();
     final bossId = (await h.bosses.loadAll()).single.boss.id;
     at(1, 20);

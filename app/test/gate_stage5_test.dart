@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hearthrise/ui/glass_switch.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/day_dao.dart';
 import 'package:hearthrise/data/enums.dart';
@@ -24,8 +23,8 @@ void main() {
     void at(int day, [int hour = 9]) =>
         h.clock.now = DateTime(2026, 10, 13 + day, hour);
 
-    // 1. Install, day 1: onboarding to a saved boss with two phases and two
-    // daily foes, reminder on.
+    // 1. Install, day 1: onboarding to a saved boss (title only; the next
+    // step is optional), with no reminder asked.
     at(1);
     await pumpApp(tester, h, onboarded: false, reminders: reminders);
     expect(find.text("Failing is fine. Quitting isn't."), findsOneWidget);
@@ -38,39 +37,34 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Next'));
     await settle(tester);
-    await tester.tap(find.text('Next')); // keep both suggested phases
-    await settle(tester);
-    final dailies = find.byWidgetPredicate(
-      (w) => w is TextFormField && w.key.toString().contains('daily-'),
-    );
-    await tester.enterText(dailies, 'Walk');
-    await tester.tap(find.text('Add a daily task'));
-    await settle(tester);
-    await tester.enterText(dailies.last, 'Flashcards');
-    await tester.tap(find.text('Next'));
-    await settle(tester);
-    await tester.tap(find.byType(GlassSwitch));
-    await tester.pump();
     await tester.tap(find.text('Begin'));
     await settle(tester);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
-    expect(find.text('Walk'), findsOneWidget);
-    expect(find.text('Flashcards'), findsOneWidget);
-    expect(reminders.calls, contains('schedule:1260'));
+    expect(find.text('Today’s tasks'), findsOneWidget);
+    expect(reminders.calls, isNot(contains('permission')));
     // Leave the app view; keep the database for the rest of the script.
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 10));
 
-    // One task in each phase, Heavy (the editor's job, done by the DAO).
+    // Two chapters with one Heavy task each and two light dailies (the
+    // editor's job, done by the DAO).
     final bossId = (await h.bosses.loadAll()).single.boss.id;
     final draft = BossDraft.fromView(await h.reload(bossId));
     await h.bosses.saveBoss(
       draft.copyWith(
         phases: [
-          for (final (i, p) in draft.phases.indexed)
-            p.copyWith(tasks: [TaskDraft(title: 'Chapter task ${i + 1}')]),
+          for (final (i, name) in ['Learn the pattern', 'The fight'].indexed)
+            PhaseDraft(
+              name: name,
+              tasks: [TaskDraft(title: 'Chapter task ${i + 1}')],
+            ),
+        ],
+        standalone: [
+          for (final t in ['Walk', 'Flashcards'])
+            TaskDraft(
+              title: t,
+              weight: Weight.light,
+              recurrence: Recurrence.daily,
+            ),
         ],
       ),
     );
@@ -108,11 +102,11 @@ void main() {
     );
     await tester.tap(holdButton('Chapter task 1'));
     await settle(tester);
-    await tester.tap(find.text('Clean strike'));
+    // The "It is done · Undo" bar covers the next row until it goes.
+    ScaffoldMessenger.of(tester.element(holdButton('Chapter task 2')))
+        .hideCurrentSnackBar();
     await settle(tester);
     await tester.tap(holdButton('Chapter task 2'));
-    await settle(tester);
-    await tester.tap(find.text('Clean strike'));
     await settle(tester);
     await tester.tap(find.text('Defeated'));
     await settle(tester);

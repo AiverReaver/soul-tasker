@@ -10,16 +10,14 @@ import 'nav_icon.dart';
 /// above the bottom inset. The selected tab is bone on the brighter glass
 /// with a silk diamond; the rest are ash. Values in, taps out.
 class GlassTabBar extends StatelessWidget {
-  const GlassTabBar({
-    super.key,
-    required this.selected,
-    required this.onTap,
-    this.labels = const ['Home', 'Today', 'Bonfire', 'Profile'],
-  });
+  const GlassTabBar({super.key, required this.selected, required this.onTap});
 
   final int selected;
   final ValueChanged<int> onTap;
-  final List<String> labels;
+
+  /// The tabs in bar order, each with its [NavIcon] glyph: Today a blade,
+  /// Bosses a mask, Profile a gem.
+  static const tabs = [('Today', 1), ('Bosses', 0), ('Profile', 3)];
 
   /// Bottom padding tab screens add so content can scroll under the bar.
   static const clearance = 100.0;
@@ -45,8 +43,8 @@ class GlassTabBar extends StatelessWidget {
             child: Row(
               spacing: 2,
               children: [
-                for (final (i, label) in labels.indexed)
-                  Expanded(child: _tab(context, i, label)),
+                for (final (i, (label, glyph)) in tabs.indexed)
+                  Expanded(child: _tab(context, i, label, glyph)),
               ],
             ),
           ),
@@ -55,7 +53,7 @@ class GlassTabBar extends StatelessWidget {
     ),
   );
 
-  Widget _tab(BuildContext context, int i, String label) {
+  Widget _tab(BuildContext context, int i, String label, int glyph) {
     final p = context.palette;
     final isSelected = i == selected;
     final color = isSelected ? p.bone : p.ash;
@@ -94,7 +92,11 @@ class GlassTabBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 2,
                 children: [
-                  NavIcon(key: ValueKey('nav-icon-$i'), index: i, color: color),
+                  NavIcon(
+                    key: ValueKey('nav-icon-$i'),
+                    index: glyph,
+                    color: color,
+                  ),
                   Text(
                     label,
                     style: TextStyle(

@@ -76,6 +76,7 @@ void main() {
         'open_from_attempt': 1,
         'created_at': '2026-10-10T00:00:00.000Z',
         'defeated_at': null,
+        'design': null,
       },
     ),
   ]);

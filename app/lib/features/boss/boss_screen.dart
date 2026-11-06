@@ -11,7 +11,9 @@ import '../../data/providers.dart';
 import '../fallen/fallen_screen.dart';
 import '../../core/clock.dart';
 import '../../core/days_left.dart';
+import '../../ui/action_row.dart';
 import '../../ui/boss_actions_sheet.dart';
+import '../../ui/day_panel.dart';
 import '../../ui/flash_line.dart';
 import '../../ui/glass_alert.dart';
 import '../../ui/glass_circle_button.dart';
@@ -20,6 +22,7 @@ import '../../ui/needle_frame.dart';
 import '../../ui/shard_meter.dart';
 import '../../ui/stroke_icon.dart';
 import '../../ui/thread_divider.dart';
+import '../boss_edit/new_foe_sheet.dart';
 import 'boss_stage.dart';
 import 'rule_of_three_sheet.dart';
 import 'task_row.dart';
@@ -112,6 +115,14 @@ class _BossScreenState extends ConsumerState<BossScreen> {
       case BossAction.victory:
         await confirmDefeat(context, ref, boss.id);
       case BossAction.failed:
+        final choice = await showGlassAlert(
+          context,
+          label: boss.title,
+          title: 'End attempt ${boss.attemptNumber}?',
+          body: 'Your embers stay. ${boss.title} waits for the next attempt.',
+          actions: const ['Keep fighting', 'End attempt'],
+        );
+        if (choice != 1 || !mounted) return;
         await _fall();
     }
   }
@@ -158,7 +169,12 @@ class _BossScreenState extends ConsumerState<BossScreen> {
         Expanded(
           child: Center(
             child: Text(
-              (view == null ? null : _phaseLabel(view)) ?? '',
+              switch (view) {
+                    null => null,
+                    final v when v.isDay => 'The default boss',
+                    final v => _phaseLabel(v),
+                  } ??
+                  '',
               style: Theme.of(context).textTheme.labelSmall,
             ),
           ),
@@ -187,6 +203,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
       bossName: boss.title,
     );
 
+    if (view.isDay) return _dayBody(context, view, row);
     final current = view.currentPhase;
     // The boss kneels between phases: an earlier phase is done and the
     // next has not been touched yet.
@@ -217,7 +234,11 @@ class _BossScreenState extends ConsumerState<BossScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  BossStage(health: view.health, felled: isFelled),
+                  BossStage(
+                    health: view.health,
+                    design: boss.design ?? bossDesignFor(boss.id),
+                    felled: isFelled,
+                  ),
                   const SizedBox(height: Space.sm),
                   Text(boss.title, style: text.displaySmall),
                   if (boss.defeatMeaning case final meaning?) ...[
@@ -281,7 +302,8 @@ class _BossScreenState extends ConsumerState<BossScreen> {
             isFelled
                 ? '${boss.title} kneels. Chapter '
                       '${romanNumeral(view.phases.indexOf(current) + 1)} awaits.'
-                : 'Each strike takes shards from ${_withThe(boss.title)}.',
+                // No title here: "the {title}" misreads for most titles.
+                : 'Each strike takes shards from this boss.',
             style: text.bodySmall?.copyWith(color: p.ash),
           )
         else
@@ -293,19 +315,69 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           else
             _header2(context, ph.phase.name, isDone: ph.isDone),
           for (final t in ph.tasks) row(t),
+          _addTask(view, phaseId: ph.phase.id),
         ],
         if (view.standalone.isNotEmpty) ...[
-          _header2(context, 'Beyond the chapters'),
+          _header2(context, 'Other tasks'),
           for (final t in view.standalone) row(t),
         ],
+        // Other tasks, or the first task of a boss with no chapters.
+        if (view.standalone.isNotEmpty || view.phases.isEmpty) _addTask(view),
       ],
     );
   }
 
-  /// "the Certification" for "The Certification", "the Habit" for "Habit".
-  static String _withThe(String title) =>
-      title.startsWith('The ') ? 'the ${title.substring(4)}' : 'the $title';
+  /// The Day (v4.2 DayBoss board): its panel, today's tasks and a quick add.
+  /// No stage, chapters or hint: it never ends in victory or a fall.
+  Widget _dayBody(
+    BuildContext context,
+    BossView view,
+    Widget Function(TaskView) row,
+  ) {
+    final text = Theme.of(context).textTheme;
+    final tasks = view.allTasks;
+    final struck = tasks.where((t) => t.isStruck).length;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+      children: [
+        DayPanel(open: tasks.length - struck, total: tasks.length),
+        FlashLine(_flash),
+        if (tasks.isNotEmpty) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Text(
+                  'Today’s tasks',
+                  style: text.titleMedium!.copyWith(fontSize: 22),
+                ),
+              ),
+              Text('$struck of ${tasks.length} struck', style: text.bodySmall),
+            ],
+          ),
+          const SizedBox(height: Space.sm),
+          const ThreadDivider(),
+          const SizedBox(height: Space.sm),
+          for (final t in tasks) row(t),
+        ],
+        const SizedBox(height: Space.sm),
+        ActionRow(
+          label: 'Add a quick task',
+          onTap: () => showNewFoeSheet(context, ref, bosses: [view]),
+        ),
+      ],
+    );
+  }
 
+  /// The inline add under a chapter ([phaseId]) or under Other tasks.
+  Widget _addTask(BossView view, {String? phaseId}) => ActionRow(
+    label: 'Add a task',
+    onTap: () =>
+        showNewFoeSheet(context, ref, bosses: [view], phaseId: phaseId),
+  );
+
+  /// "the Certification" for "The Certification", "the Habit" for "Habit".
   Widget _currentHeading(BuildContext context, PhaseView ph) {
     final text = Theme.of(context).textTheme;
     final struck = ph.tasks.where((t) => t.isStruck).length;
@@ -320,7 +392,7 @@ class _BossScreenState extends ConsumerState<BossScreen> {
           ),
           const SizedBox(height: Space.xs),
           Text(
-            '$struck of ${ph.tasks.length} struck · hold to strike',
+            '$struck of ${ph.tasks.length} struck · hold the needle on a task to strike it off',
             style: text.bodySmall,
           ),
           const SizedBox(height: Space.sm),

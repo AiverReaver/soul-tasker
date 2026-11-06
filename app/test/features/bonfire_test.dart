@@ -40,14 +40,22 @@ void main() {
     expect(find.text('BONFIRE'), findsOneWidget);
     expect(find.text('Rest a while.'), findsOneWidget);
     expect(
-      find.text('Night 1 at the hearth. Tell it how the day went.'),
+      find.text(
+        'Night 1 at the hearth. Resting ends the day and banks your embers.',
+      ),
       findsOneWidget,
     );
     expect(find.text('How did today go?'), findsOneWidget);
     for (final l in ['Fought well', 'Held on', 'I fell']) {
       expect(find.text(l), findsOneWidget);
     }
-    expect(find.text('Flasks restored'), findsOneWidget);
+    expect(find.text('Flasks after rest'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'each covers a missed day or buys a deadline more time',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('One thing for tomorrow'), findsOneWidget);
     expect(find.text('Write before noon'), findsOneWidget);
     expect(find.text('Tomorrow’s tasks'), findsOneWidget);
@@ -70,7 +78,9 @@ void main() {
     expect(tester.getSize(restButton()).width, greaterThan(width - 60));
     expect(find.byType(ThreadDivider), findsOneWidget);
     final subtitle = tester.widget<Text>(
-      find.text('Night 1 at the hearth. Tell it how the day went.'),
+      find.text(
+        'Night 1 at the hearth. Resting ends the day and banks your embers.',
+      ),
     );
     expect(subtitle.style?.color, Biome.pharloom.palette.ash);
     await tearDownApp(tester, h);
@@ -98,7 +108,9 @@ void main() {
     await tearDownApp(tester, h);
   });
 
-  testWidgets('Rest saves the lesson, banks, and goes Home', (tester) async {
+  testWidgets('Rest saves the lesson, banks, recaps, then goes Home', (
+    tester,
+  ) async {
     await h.attempts.strike(taskNamed(view, 'Flashcards').task.id);
     await h.settings.setReminder(enabled: true, minutes: 1260);
     final haptics = RecordingHaptics();
@@ -125,8 +137,15 @@ void main() {
     final embers = await h.db.select(h.db.emberEvents).get();
     expect(embers.where((e) => e.kind == EmberKind.bank).single.amount, 1);
     expect(haptics.events, contains('medium'));
-    expect(find.text('Today’s tasks'), findsOneWidget); // Home
     expect(restButton(), findsNothing);
+    expect(find.text('Night 1.'), findsOneWidget);
+    expect(find.text('1 task struck. 1 ember kept.'), findsOneWidget);
+    expect(find.text('Tomorrow: Plan earlier.'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Back to today'));
+    await tester.tap(find.text('Back to today'));
+    await settle(tester);
+    expect(find.text('Today’s tasks'), findsOneWidget); // Home
     await tearDownApp(tester, h);
   });
 
@@ -134,18 +153,10 @@ void main() {
     await DayDao(h.db, h.clock.call, h.attempts).rest();
     await pumpApp(tester, h, location: '/bonfire', tall: true);
 
-    expect(find.text('You have rested.'), findsOneWidget);
+    expect(find.text('Night 1.'), findsOneWidget);
+    expect(find.text('You’ve rested. See you tomorrow.'), findsOneWidget);
     expect(restButton(), findsNothing);
     expect(find.byType(TextField), findsNothing);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('the Bonfire tab opens the bonfire', (tester) async {
-    await pumpApp(tester, h);
-
-    await tester.tap(find.text('Bonfire'));
-    await settle(tester);
-    expect(find.text('BONFIRE'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 

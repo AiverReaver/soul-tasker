@@ -48,15 +48,6 @@ class BossDraft {
     this.standalone = const [],
   });
 
-  /// A new boss starts with two suggested phases (§6.2).
-  factory BossDraft.fresh(ResetOnFail reset) => BossDraft(
-    resetOnFail: reset,
-    phases: const [
-      PhaseDraft(name: 'Learn the pattern'),
-      PhaseDraft(name: 'The fight'),
-    ],
-  );
-
   factory BossDraft.fromView(BossView view) {
     TaskDraft task(TaskView t) => TaskDraft(
       id: t.task.id,
@@ -97,6 +88,14 @@ class BossDraft {
   bool get canSave =>
       isNamed &&
       (standalone.isNotEmpty || phases.any((p) => p.tasks.isNotEmpty));
+
+  /// Why [canSave] is false, in words for the Save button; null when it can.
+  String? get missing {
+    if (title.trim().isEmpty) return 'Name the boss first.';
+    if (!isNamed) return 'Name every chapter, or remove the empty one.';
+    if (!canSave) return 'Add a task to fight.';
+    return null;
+  }
 
   /// Removes the task with [taskId] from wherever it is.
   BossDraft withoutTask(String taskId) => copyWith(

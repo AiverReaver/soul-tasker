@@ -10,6 +10,7 @@ import '../../data/providers.dart';
 import '../../ui/confirm_dialog.dart';
 import '../../ui/deadline_chip.dart';
 import '../../ui/foe_actions_sheet.dart';
+import '../../ui/strike_done_bar.dart';
 import '../commit/commit_flow.dart';
 import '../fallen/health_fall.dart';
 import '../strike/boss_vanish.dart';
@@ -50,15 +51,47 @@ class TaskRow extends ConsumerWidget {
 
   Future<void> _strike(BuildContext context, WidgetRef ref) async {
     final health = ref.read(healthDaoProvider);
+    final attempts = ref.read(attemptDaoProvider);
+    final messenger = ScaffoldMessenger.of(context);
     final wasAlive = !await health.isDeadToday();
-    final result = await ref.read(attemptDaoProvider).strike(view.task.id);
+    final result = await attempts.strike(view.task.id);
     // Settling a passed deadline first can deal the final blow.
     if (wasAlive && await health.isDeadToday()) {
       final day = await health.today();
       if (context.mounted) await showHealthFall(context, ref, day);
     }
     if (!context.mounted) return;
-    if (!result.isVanquished) return onMessage('It is done.');
+    onMessage(''); // the hold hint is answered
+    if (!result.isVanquished) {
+      // A wrong strike is one tap from undone; a defeat has its own confirm.
+      final id = view.task.id;
+      Future<void> partly() async {
+        messenger.hideCurrentSnackBar();
+        await attempts.undoStrike(result);
+        if (context.mounted) return _act(context, ref, _Action.tried);
+        // shortcut: the struck row is usually rebuilt by now, so no
+        // rule-of-three prompt here, and a fall waits for the day resolver
+        // on next resume; route both through the host screen if that bites.
+        await attempts.tried(id);
+        onMessage('You tried. That counts.');
+      }
+
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: StrikeDoneBar(
+              onPartly: partly,
+              onUndo: () {
+                messenger.hideCurrentSnackBar();
+                attempts.undoStrike(result);
+              },
+            ),
+          ),
+        );
+      return;
+    }
     await confirmDefeat(context, ref, _bossId);
   }
 
@@ -148,7 +181,7 @@ class TaskRow extends ConsumerWidget {
       compact: compact,
       tapMode: tapMode,
       onStrike: () => _strike(context, ref),
-      onTried: () => _act(context, ref, _Action.tried),
+      onHint: () => onMessage('Press and hold to strike.'),
       deadline: label == null
           ? null
           : DeadlineChip(label: label.text, isSoon: label.isSoon),

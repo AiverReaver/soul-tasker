@@ -17,7 +17,6 @@ void main() {
     group(biome.name, () {
       for (final (name, location) in const [
         ('home', '/'),
-        ('today', '/today'),
         ('bonfire', '/bonfire'),
         ('profile', '/profile'),
         ('bosses', '/bosses'),

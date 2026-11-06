@@ -14,7 +14,8 @@ import 'pump.dart';
 const _heavy = 'HapticFeedbackType.heavyImpact';
 
 Future<void> _declareFall(WidgetTester tester) async {
-  await tapBossAction(tester, 'This attempt failed', settleAfter: false);
+  await tapBossAction(tester, 'This attempt failed');
+  await tester.tap(find.text('End attempt'));
 }
 
 /// Lowest opacity among the fade transitions around the fallen text.
@@ -72,7 +73,7 @@ void main() {
     );
     expect(find.widgetWithText(EmberButton, 'Rise'), findsOneWidget);
     expect(
-      find.text('Attempt 1 ends. The Certification remains, and so do you.'),
+      find.text('Attempt 1 ends. “The Certification” remains, and so do you.'),
       findsOneWidget,
     );
     expect(find.text('What did this teach you?'), findsOneWidget);
@@ -227,11 +228,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Attempt 3 ends. The Certification remains, and so do you.'),
+      find.text('Attempt 3 ends. “The Certification” remains, and so do you.'),
       findsOneWidget,
     );
     expect(find.text('Rest, then rise.'), findsNothing);
-    expect(find.text('2 / 5'), findsOneWidget);
+    expect(find.text('Health 2/5'), findsOneWidget);
     expect(find.text('1,240'), findsOneWidget);
     expect(find.text('Embers kept'), findsOneWidget);
     expect(tester.widget<Text>(find.text('Fallen.')).style?.letterSpacing, 8);

@@ -95,6 +95,7 @@ void main() {
         'open_from_attempt': 1,
         'created_at': '2026-10-01T00:00:00.000Z',
         'defeated_at': null,
+        'design': null,
       },
       'phases': {
         'name': 'Remote phase',
@@ -440,6 +441,25 @@ void main() {
         3,
       );
       expect(await outbox.pending(), isEmpty);
+    });
+
+    test('a newer boss row with no design keeps the design drawn here', () async {
+      final bossId = await saveBoss();
+      await service.sync();
+      final design = await cell('SELECT design FROM bosses WHERE id = ?', [
+        bossId,
+      ]);
+      expect(design, isNotNull);
+      await asRemote([
+        remote('bosses', bossId, {'title': 'Renamed'}, updatedAt: _newer),
+      ]);
+      await service.sync();
+      expect(
+        await rows('SELECT title, design FROM bosses WHERE id = ?', [bossId]),
+        [
+          {'title': 'Renamed', 'design': design},
+        ],
+      );
     });
 
     test('last write wins: older loses, newer wins', () async {

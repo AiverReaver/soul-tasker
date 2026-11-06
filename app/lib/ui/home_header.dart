@@ -12,8 +12,8 @@ String greetingFor(int hour) => hour >= 5 && hour < 12
     ? 'Afternoon.'
     : 'Evening.';
 
-/// Home's top: the date and a serif greeting on the left, the profile and
-/// settings circles on the right, then the level badge. Values in, taps out.
+/// Today's top: the date and a serif greeting on the left, the settings
+/// circle on the right, then the level badge. Values in, taps out.
 class HomeHeader extends StatelessWidget {
   const HomeHeader({
     super.key,
@@ -23,7 +23,6 @@ class HomeHeader extends StatelessWidget {
     required this.level,
     required this.levelBars,
     required this.percentToNext,
-    required this.onProfile,
     required this.onSettings,
   });
 
@@ -35,7 +34,6 @@ class HomeHeader extends StatelessWidget {
   /// 0 to 5 lit bars.
   final int levelBars;
   final int percentToNext;
-  final VoidCallback onProfile;
   final VoidCallback onSettings;
 
   @override
@@ -52,12 +50,6 @@ class HomeHeader extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text('Hearthrise', style: text.labelSmall)),
-              GlassCircleButton(
-                icon: StrokeIcons.profile,
-                semanticLabel: 'Your profile',
-                onTap: onProfile,
-              ),
-              const SizedBox(width: Space.sm),
               GlassCircleButton(
                 icon: StrokeIcons.settings,
                 semanticLabel: 'Settings',

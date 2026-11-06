@@ -21,7 +21,7 @@ class BiomeChoiceRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Biome', style: text.bodyMedium),
+        Text('Biome · the look of the world', style: text.bodyMedium),
         const SizedBox(height: Space.sm),
         for (final b in Biome.values)
           Padding(

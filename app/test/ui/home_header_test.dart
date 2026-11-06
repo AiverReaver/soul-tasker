@@ -5,7 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 void main() {
   testWidgets(
-    'date line, serif greeting, embers and a level badge and the profile and settings circles',
+    'date line, serif greeting, embers, a level badge and only the settings circle',
     (tester) async {
       final taps = <String>[];
       await tester.pumpWidget(
@@ -19,7 +19,6 @@ void main() {
               level: 4,
               levelBars: 3,
               percentToNext: 30,
-              onProfile: () => taps.add('profile'),
               onSettings: () => taps.add('settings'),
             ),
           ),
@@ -35,9 +34,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const ValueKey('level-bar-on')), findsNWidgets(3));
-      await tester.tap(find.bySemanticsLabel('Your profile'));
+      // Profile is a tab now, not a header circle too (audit #9).
+      expect(find.bySemanticsLabel('Your profile'), findsNothing);
       await tester.tap(find.bySemanticsLabel('Settings'));
-      expect(taps, ['profile', 'settings']);
+      expect(taps, ['settings']);
     },
   );
 
@@ -55,7 +55,6 @@ void main() {
             level: 4,
             levelBars: 3,
             percentToNext: 30,
-            onProfile: () {},
             onSettings: () {},
           ),
         ),

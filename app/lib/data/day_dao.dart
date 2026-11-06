@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show immutable;
 
 import '../core/clock.dart';
 import '../core/missed_days.dart';
+import '../core/week_streak.dart';
 import 'attempt_dao.dart';
 import 'database.dart';
 import 'ember_dao.dart';
@@ -38,6 +39,7 @@ class DaySummaryData {
     required this.falls,
     required this.lessons,
     required this.embers,
+    this.banked = 0,
     this.dayLesson,
   });
 
@@ -46,6 +48,9 @@ class DaySummaryData {
   final int falls;
   final List<String> lessons;
   final EmberTally embers;
+
+  /// Embers today's rest made permanent; 0 before the rest.
+  final int banked;
 
   /// The lesson written at today's bonfire rest, if any.
   final String? dayLesson;
@@ -165,6 +170,39 @@ class DayDao {
     return true;
   });
 
+  /// The unbroken run and this week's row. A day is kept by the same cover
+  /// that spares a boss: a rest, a flask, or a strike.
+  Future<WeekStreak> weekStreak() async {
+    final logs = await _db.select(_db.dayLogs).get();
+    final strikes = {
+      for (final a in await (_db.select(
+        _db.attempts,
+      )..where((a) => a.outcome.equalsValue(Outcome.strike))).get())
+        a.day,
+    };
+    return weekStreakOn(
+      today: await _today(),
+      kept: {
+        for (final l in logs)
+          if (_isCover(l.kind)) l.day,
+        ...strikes,
+      },
+    );
+  }
+
+  Stream<WeekStreak> watchWeekStreak() async* {
+    yield await weekStreak();
+    yield* _db
+        .tableUpdates(
+          TableUpdateQuery.onAllTables([
+            _db.dayLogs,
+            _db.attempts,
+            _db.userSettings,
+          ]),
+        )
+        .asyncMap((_) => weekStreak());
+  }
+
   Future<DaySummaryData> summary() async {
     final day = await _today();
     final rows = await (_db.select(
@@ -176,8 +214,14 @@ class DayDao {
               (l) => l.day.equals(day) & l.kind.equalsValue(DayKind.bonfire),
             ))
             .get();
+    final banks =
+        await (_db.select(_db.emberEvents)..where(
+              (e) => e.day.equals(day) & e.kind.equalsValue(EmberKind.bank),
+            ))
+            .get();
     return DaySummaryData(
       dayLesson: rested.map((l) => l.lesson).nonNulls.firstOrNull,
+      banked: banks.fold(0, (n, e) => n + e.amount),
       strikes: count(Outcome.strike),
       tried: count(Outcome.tried),
       falls: count(Outcome.fallen),
@@ -215,7 +259,8 @@ class DayDao {
     return true;
   });
 
-  /// Marks today a light day. It counts only if a task is struck (D8).
+  /// Marks today a light day. Any strike now keeps a day, so the row is a
+  /// record only.
   Future<bool> markLight() => _db.transaction(() async {
     final day = await _today();
     if ((await _kindsOn(day)).contains(DayKind.light)) return false;
@@ -243,7 +288,6 @@ class DayDao {
       lastResolved: last,
       today: today,
       restedDays: daysOf(_isCover),
-      lightDays: daysOf((k) => k == DayKind.light),
       strikeDays: {for (final a in strikes) a.day},
     );
   }
@@ -272,7 +316,7 @@ class DayDao {
     ];
   }
 
-  /// The days that ended with no rest, flask or valid light day, and the
+  /// The days that ended with no rest, flask or strike, and the
   /// bosses that would fall for them. Reads only.
   Future<PendingDays> pending() async {
     final s = await _db.select(_db.settings).getSingle();

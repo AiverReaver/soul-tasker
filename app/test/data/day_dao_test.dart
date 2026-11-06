@@ -28,6 +28,29 @@ void main() {
     12,
   );
 
+  group('weekStreak', () {
+    test('rests and flasks count; a day with no cover ends it', () async {
+      await h.seed();
+      expect((await days.weekStreak()).days, 0);
+      await days.rest();
+      expect((await days.weekStreak()).days, 1);
+      nextDay();
+      expect((await days.weekStreak()).days, 1, reason: 'today is still open');
+      await days.skipToday();
+      expect((await days.weekStreak()).days, 2);
+      nextDay();
+      nextDay();
+      expect((await days.weekStreak()).days, 0);
+    });
+
+    test('a strike keeps the day at once, with no rest', () async {
+      final view = await h.seed();
+      expect((await days.weekStreak()).days, 0);
+      await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+      expect((await days.weekStreak()).days, 1);
+    });
+  });
+
   group('rest', () {
     test('writes a bonfire row, banks the carried embers, saves the lesson '
         '(trimmed)', () async {
@@ -140,6 +163,16 @@ void main() {
       final s = await days.summary();
       expect(s.dayLesson, 'Plan earlier.');
       expect(s.lessons, isEmpty);
+    });
+
+    test('counts the embers today\'s rest banked', () async {
+      final view = await h.seed();
+      await h.attempts.strike(taskNamed(view, 'Read chapter 4').task.id);
+      expect((await days.summary()).banked, 0);
+      await days.rest();
+      expect((await days.summary()).banked, 3);
+      h.clock.now = h.clock.now.add(const Duration(days: 1));
+      expect((await days.summary()).banked, 0);
     });
 
     test('leaves out other days, and follows the rollover hour', () async {

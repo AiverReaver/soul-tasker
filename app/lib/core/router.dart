@@ -29,17 +29,13 @@ GoRouter buildRouter([String initialLocation = '/']) => GoRouter(
           HearthShell(location: state.uri.path, child: child),
       routes: [
         _tab('/', const StartGate(child: DayResolver(child: HomeScreen()))),
-        _tab(
-          '/today',
-          const StartGate(
-            child: DayResolver(child: HomeScreen(showToday: true)),
-          ),
-        ),
-        _tab('/bonfire', const BonfireScreen()),
+        _tab('/bosses', const BossesScreen()),
         _tab('/profile', const ProfileScreen()),
       ],
     ),
-    GoRoute(path: '/bosses', builder: (_, _) => const BossesScreen()),
+    // Today was its own tab before Home and Today merged.
+    GoRoute(path: '/today', redirect: (_, _) => '/'),
+    GoRoute(path: '/bonfire', builder: (_, _) => const BonfireScreen()),
     GoRoute(path: '/welcome', builder: (_, _) => const OnboardingFlow()),
     GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     GoRoute(

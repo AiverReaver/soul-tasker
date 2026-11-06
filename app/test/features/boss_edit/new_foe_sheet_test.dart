@@ -35,7 +35,7 @@ void main() {
     expect(find.text('Name the task'), findsOneWidget);
     for (final w in Weight.values) {
       expect(find.text(w.label), findsOneWidget);
-      expect(find.text('+${w.embers} embers'), findsOneWidget);
+      expect(find.text(w.emberNote), findsOneWidget);
     }
     expect(find.text('Strikes at'), findsOneWidget);
     expect(find.text('The Certification'), findsWidgets);
@@ -69,7 +69,44 @@ void main() {
     );
     expect(added.weight, Weight.heavy);
     expect(find.text('A new task'), findsNothing);
+    await tester.scrollUntilVisible(
+      find.text('Call the bank'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Call the bank'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a new task is one-time unless Repeat daily is on', (
+    tester,
+  ) async {
+    await open(tester);
+    expect(find.text('Repeat daily'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'Call the bank');
+    await tester.pump();
+    await tester.tap(find.text('Add to today'));
+    await settle(tester);
+    var added = (await standalone()).firstWhere(
+      (t) => t.title == 'Call the bank',
+    );
+    expect(added.recurrence, Recurrence.none);
+
+    await tester.tap(find.byKey(const ValueKey('new-foe')));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField), 'Stretch');
+    await tester.pump();
+    await tester.tap(find.text('Repeat daily'));
+    await tester.pump();
+    await tester.tap(find.text('Add to today'));
+    await settle(tester);
+    added = (await standalone()).firstWhere((t) => t.title == 'Stretch');
+    expect(added.recurrence, Recurrence.daily);
     await tearDownApp(tester, h);
   });
 
@@ -117,13 +154,16 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Add to today'));
     await settle(tester);
-    final titles = (await h.reload(other)).standalone.map((t) => t.task.title);
-    expect(titles, contains('Stretch'));
+    // No chapters yet: a one-time task opens First steps, so it has health.
+    final after = await h.reload(other);
+    expect(after.phases.single.phase.name, 'First steps');
+    expect(after.segments.single.task.title, 'Stretch');
+    expect(after.standalone.map((t) => t.task.title), ['Walk']);
     await tearDownApp(tester, h);
   });
 
   testWidgets(
-    'with The Day around it is the default boss, and tasks are daily',
+    'with The Day around it is the default boss, and tasks are one-time',
     (tester) async {
       await h.bosses.ensureDayBoss();
       await open(tester);
@@ -136,7 +176,7 @@ void main() {
       final day = await h.reload(dayBossId);
       final task = day.standalone.single.task;
       expect(task.title, 'Water plants');
-      expect(task.recurrence, Recurrence.daily);
+      expect(task.recurrence, Recurrence.none);
       await tearDownApp(tester, h);
     },
   );

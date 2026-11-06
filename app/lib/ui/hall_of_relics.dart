@@ -32,7 +32,7 @@ class HallOfRelics extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: Space.md),
         child: Text(
-          'No bosses vanquished yet. The first relic awaits.',
+          'No relics yet. Beat a boss to keep one here.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );

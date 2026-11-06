@@ -22,17 +22,48 @@ void main() {
   });
 
   test(
-    'addQuickTask adds a daily standalone task, creating the boss',
+    'addQuickTask adds a one-time standalone task, creating the boss',
     () async {
-      final id = await h.bosses.addQuickTask('Water plants');
+      final id = await h.bosses.addQuickTask('Call the bank');
       final day = (await h.bosses.loadBoss(dayBossId))!;
       final task = day.standalone.single.task;
       expect(task.id, id);
-      expect(task.title, 'Water plants');
-      expect(task.recurrence, Recurrence.daily);
+      expect(task.title, 'Call the bank');
+      expect(task.recurrence, Recurrence.none);
       expect(task.weight, Weight.light);
     },
   );
+
+  test('addQuickTask makes a daily task only when asked', () async {
+    await h.bosses.addQuickTask('Water plants', recurrence: Recurrence.daily);
+    final day = (await h.bosses.loadBoss(dayBossId))!;
+    expect(day.standalone.single.task.recurrence, Recurrence.daily);
+  });
+
+  test('a struck quick task stays today and is gone tomorrow', () async {
+    final done = await h.bosses.addQuickTask('Call the bank');
+    await h.bosses.addQuickTask('Book the room');
+    await h.attempts.strike(done);
+    var day = (await h.bosses.loadBoss(dayBossId))!;
+    expect(day.allTasks, hasLength(2));
+    expect(day.health, 0.5);
+
+    h.clock.now = h.clock.now.add(const Duration(days: 1));
+    day = (await h.bosses.loadBoss(dayBossId))!;
+    expect(day.allTasks.map((t) => t.task.title), ['Book the room']);
+    expect(day.health, 1);
+  });
+
+  test('a daily quick task comes back tomorrow', () async {
+    final id = await h.bosses.addQuickTask(
+      'Water plants',
+      recurrence: Recurrence.daily,
+    );
+    await h.attempts.strike(id);
+    h.clock.now = h.clock.now.add(const Duration(days: 1));
+    final day = (await h.bosses.loadBoss(dayBossId))!;
+    expect(day.allTasks.single.isStruck, isFalse);
+  });
 
   test('health follows today, and refills tomorrow', () async {
     for (final t in ['a', 'b', 'c', 'd']) {

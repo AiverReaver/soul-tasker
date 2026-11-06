@@ -11,7 +11,6 @@ import '../../core/level.dart';
 import '../../ui/accuracy_line.dart';
 import '../../ui/flask_pips.dart';
 import '../../ui/hall_of_relics.dart';
-import '../../ui/glass_circle_button.dart';
 import '../../ui/profile_level.dart';
 import '../../ui/thread_divider.dart';
 import '../../ui/player_health_bar.dart';
@@ -35,17 +34,8 @@ class ProfileScreen extends ConsumerWidget {
             : ListView(
                 padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.xl),
                 children: [
-                  Row(
-                    spacing: Space.sm + 4,
-                    children: [
-                      GlassCircleButton(
-                        icon: StrokeIcons.back,
-                        semanticLabel: 'Back',
-                        onTap: () => context.go('/'),
-                      ),
-                      Text('PROFILE', style: text.labelSmall),
-                    ],
-                  ),
+                  // A root tab: no back button (audit #9).
+                  Text('PROFILE', style: text.labelSmall),
                   const SizedBox(height: Space.lg),
                   ProfileLevel(
                     level: profile.level.level,

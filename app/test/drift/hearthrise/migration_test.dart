@@ -6,6 +6,7 @@ import 'package:hearthrise/data/database.dart';
 
 import 'generated/schema.dart';
 import 'generated/schema_v1.dart' as v1;
+import 'generated/schema_v9.dart' as v9;
 
 const _tables = ['bosses', 'phases', 'tasks', 'attempts', 'settings'];
 
@@ -43,6 +44,37 @@ void main() {
       });
     }
   });
+
+  test(
+    'v9 to v10 hands existing bosses designs in the order they came',
+    () async {
+      final schema = await verifier.schemaAt(9);
+      final oldDb = v9.DatabaseAtV9(schema.newConnection());
+      for (final (id, at) in [
+        ('b2', '2026-10-02T09:00:00.000'),
+        ('b1', '2026-10-01T09:00:00.000'),
+        ('boss-the-day', '2026-09-01T09:00:00.000'),
+        ('b3', '2026-10-03T09:00:00.000'),
+      ]) {
+        await oldDb.customStatement(
+          "INSERT INTO bosses (id, title, status, reset_on_fail, "
+          "created_at, updated_at) VALUES ('$id', '$id', 0, 0, '$at', '$at')",
+        );
+      }
+      await oldDb.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 10);
+      final rows = await db
+          .customSelect('SELECT id, design FROM bosses ORDER BY id')
+          .get();
+      expect(
+        {for (final r in rows) r.data['id']: r.data['design']},
+        {'b1': 0, 'b2': 1, 'b3': 2, 'boss-the-day': null},
+      );
+      await db.close();
+    },
+  );
 
   test('v1 to v2 keeps every row; haptics on, attempt weight null', () async {
     final schema = await verifier.schemaAt(1);

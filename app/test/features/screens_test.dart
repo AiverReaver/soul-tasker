@@ -3,6 +3,7 @@ import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/features/boss_edit/boss_edit_screen.dart';
 import 'package:hearthrise/features/boss/boss_stage.dart';
+import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/ui/pharloom_backdrop.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -18,6 +19,14 @@ void main() {
 
     expect(find.text('No boss stands before you.'), findsOneWidget);
     expect(find.text('Name a new boss'), findsOneWidget);
+    // The button sits under the line, centred, not pinned to the left edge.
+    expect(
+      tester.getCenter(find.text('Name a new boss')).dx,
+      moreOrLessEquals(
+        tester.getCenter(find.text('No boss stands before you.')).dx,
+        epsilon: 1,
+      ),
+    );
     await tearDownApp(tester, h);
   });
 
@@ -46,6 +55,13 @@ void main() {
       greaterThan(pinnedY.dy),
     );
     expect(other.boss.id, isNot(pinned.boss.id));
+    // Each card and the pinned panel wear their boss's stored design, and
+    // two bosses never share one while designs are left.
+    expect(pinned.boss.design, isNot(other.boss.design));
+    expect(
+      tester.widgetList<BossArt>(find.byType(BossArt)).map((a) => a.design),
+      containsAll([pinned.boss.design, other.boss.design]),
+    );
     await tearDownApp(tester, h);
   });
 
@@ -78,18 +94,6 @@ void main() {
     await tester.tap(find.text('Waiting (1)'));
     await settle(tester);
     expect(find.text('The Certification'), findsOneWidget);
-    await tearDownApp(tester, h);
-  });
-
-  testWidgets('the back circle leaves the list', (tester) async {
-    final h = Harness();
-    await h.seed();
-    await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('All bosses · 1 active'));
-    await settle(tester);
-    await tester.tap(find.bySemanticsLabel('Back'));
-    await settle(tester);
-    expect(find.text('All bosses · 1 active'), findsOneWidget);
     await tearDownApp(tester, h);
   });
 
@@ -134,6 +138,7 @@ void main() {
     expect(find.textContaining('Attempt 1'), findsOneWidget);
 
     await tapBossAction(tester, 'This attempt failed');
+    await tester.tap(find.text('End attempt'));
     await settle(tester);
     await tester.enterText(
       find.byType(TextField),
@@ -186,7 +191,8 @@ void main() {
     final h2 = Harness();
     await h2.seed();
     await pumpApp(tester, h2, tall: true);
-    await tester.tap(find.text('Today'));
+    // Health, embers and the hint sit above the list now; bring it up.
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
     await settle(tester);
     expect(find.text('Book the room'), findsOneWidget);
     expect(find.text('Walk'), findsOneWidget);

@@ -66,12 +66,9 @@ void main() {
     expect(await flasks(), 3); // already at the cap
     expect((await picks.picksFor('2026-10-14')).map((p) => p.task.id), planned);
 
-    // Day 2: strike one task, no rest.
-    at(2);
-    await h.attempts.strike(idOf(b, 'Read chapter 4'));
-    expect((await embers.tally()).carried, 3);
+    // Day 2: no strike, no rest. (A strike alone would keep the day.)
 
-    // Day 3, 05:00: open. Day 2 went unrested. The flask is used at the
+    // Day 3, 05:00: open. Day 2 went untouched. The flask is used at the
     // prompt, so nothing falls.
     at(3, 5);
     var pending = await days.pending();
@@ -87,9 +84,11 @@ void main() {
     expect(await flasks(), 2);
     expect(await lastResolved(), '2026-10-14');
 
-    // Day 3, later: strike a Light task, then rest. One more bank event, and
-    // the flask is restored (2 plus 1). A second rest the same day does nothing.
+    // Day 3, later: strike a Heavy and a Light task, then rest. One more bank
+    // event, and the flask is restored (2 plus 1). A second rest the same day
+    // does nothing.
     at(3);
+    await h.attempts.strike(idOf(b, 'Read chapter 4'));
     await h.attempts.strike(idOf(b, 'Flashcards'));
     expect((await embers.tally()).carried, 4);
     expect(await days.rest(), isTrue);

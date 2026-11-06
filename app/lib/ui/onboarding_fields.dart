@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../core/roman.dart';
 import '../core/theme.dart';
 
 /// The underlined one-line input used by onboarding and the bonfire.
@@ -46,115 +45,6 @@ class LineField extends StatelessWidget {
           decoration: inscriptionDecoration(context.palette, hint),
           onChanged: onChanged,
         ),
-      ],
-    );
-  }
-}
-
-/// One editable line in a [NameListEditor]; [id] keeps its field stable when
-/// others are removed.
-class NameListItem {
-  const NameListItem({required this.id, required this.text});
-
-  final int id;
-  final String text;
-}
-
-/// A short list of names to edit, add to (up to [max]) and remove from.
-/// [keyPrefix] names the fields for tests: `<keyPrefix>-<id>`.
-class NameListEditor extends StatelessWidget {
-  const NameListEditor({
-    super.key,
-    required this.items,
-    required this.keyPrefix,
-    required this.hint,
-    required this.removeLabel,
-    required this.addLabel,
-    required this.max,
-    required this.onChanged,
-    required this.onRemove,
-    required this.onAdd,
-    this.autofocusId,
-    this.help,
-  });
-
-  /// One line above the rows.
-  final String? help;
-
-  final List<NameListItem> items;
-  final String keyPrefix;
-  final String hint;
-
-  /// Tooltip prefix for the remove button: "Remove phase" gives
-  /// "Remove phase 1".
-  final String removeLabel;
-  final String addLabel;
-  final int max;
-  final void Function(int id, String text) onChanged;
-  final ValueChanged<int> onRemove;
-  final VoidCallback onAdd;
-
-  /// The row (by id) that takes focus when it appears, e.g. one just added.
-  final int? autofocusId;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (help case final line?)
-          Padding(
-            padding: const EdgeInsets.only(bottom: Space.sm),
-            child: Text(line, style: text.bodyMedium),
-          ),
-        for (final (i, item) in items.indexed)
-          Row(
-            children: [
-              SizedBox(
-                width: 30,
-                child: Text(
-                  romanNumeral(i + 1),
-                  style: text.labelSmall?.copyWith(color: context.palette.silk),
-                ),
-              ),
-              Expanded(
-                child: TextFormField(
-                  key: ValueKey('$keyPrefix-${item.id}'),
-                  initialValue: item.text,
-                  autofocus: item.id == autofocusId,
-                  maxLength: 60,
-                  style: text.bodyLarge,
-                  cursorColor: context.palette.silk,
-                  decoration: inscriptionDecoration(
-                    context.palette,
-                    hint,
-                  ).copyWith(counterText: ''),
-                  onChanged: (t) => onChanged(item.id, t),
-                ),
-              ),
-              IconButton(
-                tooltip: '$removeLabel ${i + 1}',
-                constraints: const BoxConstraints(
-                  minWidth: kMinTarget,
-                  minHeight: kMinTarget,
-                ),
-                icon: Icon(Icons.close, color: context.palette.ash),
-                onPressed: () => onRemove(item.id),
-              ),
-            ],
-          ),
-        if (items.length < max)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              onPressed: onAdd,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(kMinTarget, kMinTarget),
-              ),
-              child: Text(addLabel),
-            ),
-          ),
       ],
     );
   }

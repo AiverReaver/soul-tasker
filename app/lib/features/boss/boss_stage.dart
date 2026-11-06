@@ -15,12 +15,16 @@ class BossStage extends StatefulWidget {
   const BossStage({
     super.key,
     required this.health,
+    this.design = BossDesign.porcelain,
     this.stamp = false,
     this.felled = false,
   });
 
   /// Remaining health, 0..1.
   final double health;
+
+  /// Which of the cast this boss is drawn as.
+  final BossDesign design;
 
   /// Stamp "Struck" on the boss: 700 ms in 4 held steps, ending at -5 degrees.
   final bool stamp;
@@ -125,6 +129,8 @@ class _BossStageState extends State<BossStage> with TickerProviderStateMixin {
                     children: [
                       BossArt(
                         boilFrame: boil,
+                        design: widget.design,
+                        seconds: Atmosphere.secondsOf(context),
                         hit: isWhite ? 1 : 0,
                         width: 165,
                       ),

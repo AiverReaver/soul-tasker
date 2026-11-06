@@ -12,10 +12,24 @@ import 'signal_dao.dart';
 
 /// What the UI should show after a strike.
 class StrikeResult {
-  const StrikeResult({required this.isVanquished});
+  const StrikeResult({
+    required this.isVanquished,
+    this.attemptId,
+    this.earnId,
+    this.promise,
+  });
 
   /// The strike drained the last segment: show the defeat prompt (D3).
   final bool isVanquished;
+
+  /// What [AttemptDao.undoStrike] takes back; null when nothing was written.
+  final String? attemptId;
+
+  /// The ember earn this strike wrote; null when it paid nothing new.
+  final String? earnId;
+
+  /// The promise as it was before this strike closed it.
+  final Commitment? promise;
 }
 
 const _maxLesson = 120;
@@ -28,7 +42,8 @@ String? cleanLesson(String? raw) {
       : trimmed.substring(0, trimmed.length.clamp(0, _maxLesson));
 }
 
-/// Strikes, tries and falls. Attempt rows are only ever inserted.
+/// Strikes, tries and falls. Attempt rows are only inserted, except a
+/// strike taken back by undo.
 class AttemptDao {
   AttemptDao(this._db, this._bosses, this._clock);
 
@@ -123,26 +138,69 @@ class AttemptDao {
               _db.commitments,
             )..where((c) => c.id.equals(commitmentId))).getSingleOrNull();
       final outcome = promise?.outcome;
-      await _insert(
+      final earnId = systemId([taskId, await _strikePeriod(task, before, now)]);
+      // Another phone may have paid this period already; undo leaves that.
+      final paid = await (_db.select(
+        _db.emberEvents,
+      )..where((e) => e.id.equals(earnId))).getSingleOrNull();
+      final attemptId = await _insert(
         boss: before.boss,
         outcome: Outcome.strike,
         now: now,
         taskId: taskId,
         weight: task.weight,
         isLate: promise != null && _paysLate.contains(outcome),
-        earnId: systemId([taskId, await _strikePeriod(task, before, now)]),
+        earnId: earnId,
       );
-      if (promise != null && outcome == null) {
-        await _close(promise, CommitmentOutcome.kept, now);
-      } else if (promise != null &&
-          (outcome == CommitmentOutcome.missed ||
-              outcome == CommitmentOutcome.frozen)) {
-        await _close(promise, CommitmentOutcome.lateStrike, now);
+      final closes =
+          promise != null &&
+          (outcome == null ||
+              outcome == CommitmentOutcome.missed ||
+              outcome == CommitmentOutcome.frozen);
+      if (closes) {
+        await _close(
+          promise,
+          outcome == null
+              ? CommitmentOutcome.kept
+              : CommitmentOutcome.lateStrike,
+          now,
+        );
       }
       final after = await _bosses.loadBoss(task.bossId);
       return StrikeResult(
         isVanquished: !before.isVanquished && after!.isVanquished,
+        attemptId: attemptId,
+        earnId: paid == null ? earnId : null,
+        promise: closes ? promise : null,
       );
+    });
+  }
+
+  /// Takes back a strike [result] wrote: the attempt, its earn and the
+  /// promise it closed. A no-op for a strike that wrote nothing.
+  Future<void> undoStrike(StrikeResult result) {
+    final attemptId = result.attemptId;
+    if (attemptId == null) return Future.value();
+    return _db.transaction(() async {
+      await (_db.delete(
+        _db.attempts,
+      )..where((a) => a.id.equals(attemptId))).go();
+      if (result.earnId case final earnId?) {
+        await (_db.delete(
+          _db.emberEvents,
+        )..where((e) => e.id.equals(earnId))).go();
+      }
+      if (result.promise case final promise?) {
+        await (_db.update(
+          _db.commitments,
+        )..where((c) => c.id.equals(promise.id))).write(
+          CommitmentsCompanion(
+            outcome: Value(promise.outcome),
+            resolvedAt: Value(promise.resolvedAt),
+            updatedAt: Value(_clock()),
+          ),
+        );
+      }
     });
   }
 

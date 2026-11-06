@@ -7,9 +7,8 @@ import '../../data/boss_view.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/collapsible_section.dart';
-import '../../ui/glass_circle_button.dart';
+import '../../ui/glass_tab_bar.dart';
 import '../../ui/glass_pill_button.dart';
-import '../../ui/stroke_icon.dart';
 import 'boss_card.dart';
 
 /// Every boss: the pinned one first, then the other active ones, with the
@@ -24,21 +23,13 @@ class BossesScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.md),
-            child: Row(
-              spacing: Space.sm + 4,
-              children: [
-                GlassCircleButton(
-                  icon: StrokeIcons.back,
-                  semanticLabel: 'Back',
-                  onTap: () => context.pop(),
-                ),
-                Expanded(
-                  child: Text(
-                    'All bosses',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-              ],
+            // A root tab: no back button (audit #9).
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'All bosses',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
           ),
           Expanded(
@@ -68,20 +59,22 @@ class _BossList extends StatefulWidget {
 class _BossListState extends State<_BossList> {
   bool _showWaiting = false;
 
+  // The Day lives on Home, not in this list.
   List<BossView> _with(BossStatus status) =>
-      widget.bosses.where((b) => b.boss.status == status).toList();
+      widget.bosses.where((b) => b.boss.status == status && !b.isDay).toList();
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final active = _with(BossStatus.active);
     final waiting = _with(BossStatus.waiting);
+    final newBossButton = GlassPillButton(
+      label: 'Name a new boss',
+      onTap: () => context.push('/boss/new'),
+    );
     final newBoss = Align(
       alignment: Alignment.centerLeft,
-      child: GlassPillButton(
-        label: 'Name a new boss',
-        onTap: () => context.push('/boss/new'),
-      ),
+      child: newBossButton,
     );
 
     // Defeated bosses live on as relics, not here (Stage 5 plan D8).
@@ -92,14 +85,19 @@ class _BossListState extends State<_BossList> {
           children: [
             Text('No boss stands before you.', style: text.bodyLarge),
             const SizedBox(height: Space.md),
-            newBoss,
+            newBossButton,
           ],
         ),
       );
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        GlassTabBar.clearance + Space.md,
+      ),
       children: [
         for (final b in active) BossCard(view: b),
         const SizedBox(height: Space.sm),

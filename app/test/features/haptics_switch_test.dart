@@ -72,8 +72,6 @@ void main() {
 
     await tester.tap(holdButton('Read chapter 4'));
     await settle(tester);
-    await tester.tap(find.text('Clean strike'));
-    await settle(tester);
 
     expect(sent, isEmpty);
     expect(await h.db.select(h.db.attempts).get(), hasLength(1));
@@ -102,8 +100,6 @@ void main() {
     final sentBeforeFlip = sent.length;
     await tester.pump(Weight.bossTier.holdDuration);
     await gesture.up();
-    await settle(tester);
-    await tester.tap(find.text('Clean strike'));
     await settle(tester);
 
     expect(sent, hasLength(sentBeforeFlip));

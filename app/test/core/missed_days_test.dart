@@ -5,13 +5,11 @@ List<String> _missed({
   String lastResolved = '2026-10-10',
   String today = '2026-10-14',
   Set<String> rested = const {},
-  Set<String> light = const {},
   Set<String> struck = const {},
 }) => missedDays(
   lastResolved: lastResolved,
   today: today,
   restedDays: rested,
-  lightDays: light,
   strikeDays: struck,
 );
 
@@ -34,19 +32,11 @@ void main() {
     );
   });
 
-  test('a light day covers only with a strike that day', () {
-    const day = '2026-10-13';
+  test('a strike covers its day, with or without a rest', () {
     expect(
-      _missed(lastResolved: '2026-10-12', light: {day}, struck: {day}),
+      _missed(lastResolved: '2026-10-12', struck: {'2026-10-13'}),
       isEmpty,
     );
-    expect(_missed(lastResolved: '2026-10-12', light: {day}), [day]);
-  });
-
-  test('striking without a rest does not cover a day (D3)', () {
-    expect(_missed(lastResolved: '2026-10-12', struck: {'2026-10-13'}), [
-      '2026-10-13',
-    ]);
   });
 
   test('today is never judged', () {

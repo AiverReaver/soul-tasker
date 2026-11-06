@@ -39,6 +39,27 @@ void main() {
     await tester.pumpWidget(const SizedBox()); // stop the ticker
   });
 
+  testWidgets('the idle clock is still at zero, live it counts seconds', (
+    tester,
+  ) async {
+    double? seconds;
+    Widget clock() => Builder(
+      builder: (context) {
+        seconds = Atmosphere.secondsOf(context);
+        return const SizedBox();
+      },
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: Atmosphere(isStill: true, child: clock())),
+    );
+    await tester.pumpAndSettle();
+    expect(seconds, 0);
+    await tester.pumpWidget(MaterialApp(home: Atmosphere(child: clock())));
+    await tester.pump(const Duration(milliseconds: 1500));
+    expect(seconds, closeTo(1.5, 0.05));
+    await tester.pumpWidget(const SizedBox()); // stop the ticker
+  });
+
   testWidgets('the ambient clock changes at most 30 times a second', (
     tester,
   ) async {

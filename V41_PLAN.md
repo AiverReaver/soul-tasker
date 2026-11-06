@@ -3,7 +3,7 @@
 Source: the "Hearthrise v4.1" design canvas (https://claude.ai/artifact/5bU9fETFefqgD6a1UAeZfM). It has 13 screens (Home, Boss, Struck, Settings, Profile, Relic, All bosses, Bonfire, Fallen, Victory, New foe, Leave the fight), 7 strike frames, the shape system and the five biome variants.
 Builds on: `THEME_PLAN.md` (palette, biomes, needle-cut). The colors and the 8 / 6 / 4 cut tiers stay as they are.
 Method: TDD (see `STAGES.md`, Development method). Every step lists its tests first, then the code. UI follows `STAGES.md`, "UI components".
-Status: not started. The questions are answered (section 5). Three boards were added to the canvas for them: "Boss actions · A", "Boss actions · B" (not chosen) and "Tomorrow’s three · sheet". The "Tomorrow’s foes" row was added to "Bonfire check-in".
+Status: phases A to C built (commits tagged A2b, C1 to C18 and D8) and D1 docs done. Open: the D2 manual gate in section 6, Phase D (devices, all five biomes, 200% text, Increase contrast, Android frame time). The questions were answered in section 5.
 
 ---
 

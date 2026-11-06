@@ -22,6 +22,7 @@ import '../../ui/needle_text_field.dart';
 import '../../ui/tomorrow_pick_sheet.dart';
 import '../../ui/tomorrow_row.dart';
 import '../../ui/reminder_invite.dart';
+import '../../ui/rest_recap.dart';
 import '../../ui/plan_banner.dart';
 import '../ritual/reminder_coordinator.dart';
 
@@ -106,9 +107,8 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
     final days = ref.read(dayDaoProvider);
     final didRest = await days.rest(lesson: _lesson.text);
     if (!didRest || !mounted) return;
+    ref.invalidate(restCountProvider); // "Night {n}." counts this rest
     await _inviteReminder(days);
-    // A flash (reminder refused) stays readable here; otherwise on to Home.
-    if (mounted && _flash == null) context.go('/');
   }
 
   Future<void> _checkIn(CheckInAnswer? answer) async {
@@ -173,8 +173,10 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
                       children: [
                         GlassCircleButton(
                           icon: StrokeIcons.back,
-                          semanticLabel: 'Back to bosses',
-                          onTap: () => context.go('/'),
+                          semanticLabel: 'Back',
+                          onTap: () => context.canPop()
+                              ? context.pop()
+                              : context.go('/'),
                         ),
                         Text('BONFIRE', style: text.labelSmall),
                       ],
@@ -184,8 +186,14 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xl),
                       children: [
-                        if (isRested) ...[
-                          Text('You have rested.', style: text.titleMedium),
+                        if (isRested && !isFallen) ...[
+                          RestRecap(
+                            night: ref.watch(restCountProvider).value ?? 1,
+                            strikes: summary.strikes,
+                            kept: summary.banked,
+                            tomorrow: summary.dayLesson,
+                            onDone: () => context.go('/'),
+                          ),
                           FlashLine(_flash),
                           const SizedBox(height: Space.md),
                         ],
@@ -259,7 +267,7 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
       ),
       const SizedBox(height: Space.sm),
       Text(
-        'Night $night at the hearth. Tell it how the day went.',
+        'Night $night at the hearth. Resting ends the day and banks your embers.',
         textAlign: TextAlign.center,
         style: text.bodyMedium?.copyWith(color: context.palette.ash),
       ),
@@ -283,11 +291,11 @@ class _BonfireScreenState extends ConsumerState<BonfireScreen>
               spacing: 2,
               children: [
                 Text(
-                  'Flasks restored',
+                  'Flasks after rest',
                   style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  '$flasks of $kFlaskCap · ready for tomorrow',
+                  '$flasks of $kFlaskCap · each covers a missed day or buys a deadline more time',
                   style: text.bodySmall,
                 ),
               ],

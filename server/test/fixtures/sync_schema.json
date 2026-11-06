@@ -12,7 +12,8 @@
       "last_fought_at": "timestamptz",
       "open_from_attempt": "integer",
       "created_at": "timestamptz",
-      "defeated_at": "timestamptz"
+      "defeated_at": "timestamptz",
+      "design": "integer"
     },
     "phases": {
       "boss_id": "text",

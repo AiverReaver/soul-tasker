@@ -20,14 +20,27 @@ class PlayerHealthBar extends StatelessWidget {
     return Semantics(
       label: health == 0 ? 'Fallen. $label' : label,
       excludeSemantics: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      // Wraps the label under the pips on narrow screens rather than overflow.
+      child: Wrap(
+        spacing: Space.sm,
+        runSpacing: Space.xs,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          for (var i = 0; i < max ~/ 2; i++)
-            Padding(
-              padding: const EdgeInsets.only(right: Space.xs),
-              child: _pip(context, (health - i * 2).clamp(0, 2)),
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < max ~/ 2; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: Space.xs),
+                  child: _pip(context, (health - i * 2).clamp(0, 2)),
+                ),
+            ],
+          ),
+          Text(
+            'Health ${formatHealth(health)}/${formatHealth(max)}',
+            style: Theme.of(context).textTheme.labelSmall
+                ?.copyWith(color: context.palette.ash),
+          ),
         ],
       ),
     );

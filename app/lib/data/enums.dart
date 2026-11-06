@@ -3,6 +3,7 @@
 // Weathering and kInscriptionMax live in core/ so lib/ui can use them
 // without importing data.
 export '../core/check_in.dart' show CheckInAnswer;
+export '../core/boss_design.dart';
 export '../core/weathering.dart';
 
 enum BossStatus { active, waiting, defeated }
@@ -48,6 +49,9 @@ enum Weight {
 
   /// Embers a strike earns (Stage 3 plan D7); a try earns half, rounded up.
   final int embers;
+
+  /// "+1 ember", "+3 embers": the reward line on task pickers and rows.
+  String get emberNote => '+$embers ${embers == 1 ? 'ember' : 'embers'}';
 
   /// Selection ticks during the hold, spread evenly.
   final int buildUpTicks;

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hearthrise/ui/boss_art.dart';
 import 'package:hearthrise/data/boss_draft.dart';
 import 'package:hearthrise/data/enums.dart';
 import 'package:hearthrise/data/profile_dao.dart';
@@ -25,6 +26,82 @@ void main() {
     expect(find.bySemanticsLabel('Back'), findsOneWidget);
     expect(find.text('Chapter I of II'), findsOneWidget);
     expect(find.bySemanticsLabel('Boss actions'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('each chapter has an inline Add a task that adds to it', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tester.ensureVisible(find.text('Add a task').first);
+    await settle(tester);
+    await tester.tap(find.text('Add a task').first);
+    await settle(tester);
+    expect(find.text('What will you do?'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).last, 'Mock exam');
+    await tester.pump();
+    await tester.tap(find.text('Add to today'));
+    await settle(tester);
+
+    final after = await h.reload(id);
+    expect(
+      after.phases.first.tasks.map((t) => t.task.title),
+      contains('Mock exam'),
+    );
+    expect(
+      after.standalone.map((t) => t.task.title),
+      isNot(contains('Mock exam')),
+    );
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('tasks outside a chapter sit under Other tasks', (tester) async {
+    final draft = BossDraft.fromView(await h.reload(id));
+    await h.bosses.saveBoss(
+      draft.withTask(const TaskDraft(title: 'Stretch'), null),
+    );
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tester.scrollUntilVisible(
+      find.text('Stretch'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('OTHER TASKS'), findsOneWidget);
+    expect(find.textContaining('Beyond the chapters'), findsNothing);
+    // Its own inline add sits under it.
+    await tester.scrollUntilVisible(
+      find.text('Add a task').last,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('a boss with no chapters adds its first task to First steps', (
+    tester,
+  ) async {
+    final bare = await h.bosses.saveBoss(
+      const BossDraft(title: 'File my taxes', resetOnFail: ResetOnFail.nothing),
+      allowEmpty: true,
+    );
+    await pumpApp(tester, h, location: '/boss/$bare', tall: true);
+    await tester.tap(find.text('Add a task'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField).last, 'Gather receipts');
+    await tester.pump();
+    await tester.tap(find.text('Add to today'));
+    await settle(tester);
+
+    final after = await h.reload(bare);
+    expect(after.phases.single.phase.name, 'First steps');
+    expect(after.segments.single.task.title, 'Gather receipts');
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('the boss wears its stored design', (tester) async {
+    final second = (await h.seed()).boss; // not the first, default design
+    await pumpApp(tester, h, location: '/boss/${second.id}', tall: true);
+    expect(tester.widget<BossArt>(find.byType(BossArt)).design, second.design);
     await tearDownApp(tester, h);
   });
 
@@ -80,12 +157,18 @@ void main() {
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
     expect(find.text('Learn'), findsOneWidget);
-    expect(find.text('0 of 3 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('0 of 3 struck · hold the needle on a task to strike it off'),
+      findsOneWidget,
+    );
     await h.attempts.strike(
       (await h.reload(id)).phases.first.tasks.first.task.id,
     );
     await settle(tester);
-    expect(find.text('1 of 3 struck · hold to strike'), findsOneWidget);
+    expect(
+      find.text('1 of 3 struck · hold the needle on a task to strike it off'),
+      findsOneWidget,
+    );
     await tearDownApp(tester, h);
   });
 
@@ -94,7 +177,7 @@ void main() {
   ) async {
     await pumpApp(tester, h, location: '/boss/$id', tall: true);
     expect(
-      find.text('Each strike takes shards from the Certification.'),
+      find.text('Each strike takes shards from this boss.'),
       findsOneWidget,
     );
     final view = await h.reload(id);
@@ -165,6 +248,30 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('This attempt failed asks first; Keep fighting changes nothing', (
+    tester,
+  ) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tapBossAction(tester, 'This attempt failed');
+    expect(find.text('End attempt 1?'), findsOneWidget);
+    expect(find.text('Fallen.'), findsNothing);
+
+    await tester.tap(find.text('Keep fighting'));
+    await settle(tester);
+    expect(find.text('Fallen.'), findsNothing);
+    expect((await h.reload(id)).boss.attemptNumber, 1);
+    await tearDownApp(tester, h);
+  });
+
+  testWidgets('End attempt opens the fallen moment', (tester) async {
+    await pumpApp(tester, h, location: '/boss/$id', tall: true);
+    await tapBossAction(tester, 'This attempt failed');
+    await tester.tap(find.text('End attempt'));
+    await settle(tester);
+    expect(find.text('Fallen.'), findsOneWidget);
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('Keep fighting closes the alert and changes nothing', (
     tester,
   ) async {
@@ -182,7 +289,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester, h, tall: true);
-    await tester.tap(find.text('All bosses · 1 active'));
+    await tester.tap(find.text('Bosses'));
     await settle(tester);
     await tester.tap(find.text('The Certification'));
     await settle(tester);

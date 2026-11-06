@@ -43,8 +43,6 @@ void main() {
 
       await tester.tap(holdButton('Sit the exam'));
       await settle(tester);
-      await tester.tap(find.text('Clean strike'));
-      await settle(tester);
       await tester.tap(find.text('Defeated'));
       await settle(tester);
 
@@ -67,6 +65,7 @@ void main() {
       );
 
       await tapBossAction(tester, 'This attempt failed');
+      await tester.tap(find.text('End attempt'));
       await settle(tester);
 
       expect(player.calls, isOn ? ['play:fallen'] : isEmpty);
@@ -80,13 +79,14 @@ void main() {
     final player = FakeSoundPlayer();
     final h = Harness();
     await h.settings.setSound(true);
+    h.clock.now = DateTime(2026, 10, 13, 19); // the card shows in the evening
     await pumpApp(tester, h, overrides: [player.asOverride]);
 
-    await tester.tap(find.text('Bonfire'));
+    await tester.tap(find.text('Rest at the bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.bySemanticsLabel('Back'));
     await settle(tester);
     expect(player.calls, ['hum:start', 'hum:stop']);
     await tearDownApp(tester, h);
@@ -96,8 +96,9 @@ void main() {
     final player = FakeSoundPlayer();
     final h = Harness();
     await h.settings.setSound(true);
+    h.clock.now = DateTime(2026, 10, 13, 19); // the card shows in the evening
     await pumpApp(tester, h, overrides: [player.asOverride]);
-    await tester.tap(find.text('Bonfire'));
+    await tester.tap(find.text('Rest at the bonfire'));
     await settle(tester);
     expect(player.calls, ['hum:start']);
 

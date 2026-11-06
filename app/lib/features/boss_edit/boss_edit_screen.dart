@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../data/boss_draft.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
+import '../../ui/glass_alert.dart';
 import '../../ui/glass_circle_button.dart';
 import '../../ui/glass_pill_button.dart';
 import '../../ui/needle_text_field.dart';
@@ -31,6 +32,12 @@ class BossEditScreen extends ConsumerStatefulWidget {
 class _BossEditScreenState extends ConsumerState<BossEditScreen> {
   BossDraft? _draft;
   String? _error;
+
+  /// Set by a refused Save, so the screen says what is missing.
+  bool _triedSave = false;
+
+  /// Any edit since load; leaving then asks first.
+  bool _dirty = false;
   final _title = TextEditingController();
   final _meaning = TextEditingController();
 
@@ -95,8 +102,26 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
     );
   }
 
-  void _update(BossDraft Function(BossDraft d) change) =>
-      setState(() => _draft = change(_draft!));
+  void _update(BossDraft Function(BossDraft d) change) => setState(() {
+    _draft = change(_draft!);
+    _dirty = true;
+  });
+
+  /// Leaves the screen; with unsaved edits, only after "Discard".
+  Future<void> _leave() async {
+    if (_dirty) {
+      final choice = await showGlassAlert(
+        context,
+        label: widget.bossId == null ? 'A new boss' : 'Edit boss',
+        title: 'Discard changes?',
+        body: 'What you changed here is not saved.',
+        actions: const ['Keep editing', 'Discard'],
+      );
+      if (choice != 1 || !mounted) return;
+      setState(() => _dirty = false);
+    }
+    if (mounted) context.canPop() ? context.pop() : context.go('/');
+  }
 
   Future<void> _save() async {
     try {
@@ -171,47 +196,70 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
   Widget build(BuildContext context) {
     final draft = _draft;
     final text = Theme.of(context).textTheme;
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.sm),
-              child: Row(
-                spacing: Space.sm + 4,
-                children: [
-                  GlassCircleButton(
-                    icon: StrokeIcons.back,
-                    semanticLabel: 'Back',
-                    onTap: () =>
-                        context.canPop() ? context.pop() : context.go('/'),
-                  ),
-                  Expanded(
+    // A swipe or system back asks too.
+    return PopScope(
+      canPop: !_dirty,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _leave();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, Space.sm),
+                child: Row(
+                  spacing: Space.sm + 4,
+                  children: [
+                    GlassCircleButton(
+                      icon: StrokeIcons.back,
+                      semanticLabel: 'Back',
+                      onTap: _leave,
+                    ),
+                    Expanded(
+                      child: Text(
+                        widget.bossId == null ? 'A new boss' : 'Edit boss',
+                        style: text.titleMedium?.copyWith(
+                          fontSize: 26,
+                          height: 30 / 26,
+                        ),
+                      ),
+                    ),
+                    GlassPillButton(
+                      label: 'Save',
+                      onTap: draft == null
+                          ? null
+                          : draft.canSave
+                          ? _save
+                          : () => setState(() => _triedSave = true),
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: ThreadDivider(),
+              ),
+              if (_triedSave && draft?.missing != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, Space.sm, 20, 0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
                     child: Text(
-                      widget.bossId == null ? 'A new boss' : 'Edit boss',
-                      style: text.titleMedium?.copyWith(
-                        fontSize: 26,
-                        height: 30 / 26,
+                      draft!.missing!,
+                      style: text.bodyMedium?.copyWith(
+                        color: context.palette.silk,
                       ),
                     ),
                   ),
-                  GlassPillButton(
-                    label: 'Save',
-                    onTap: draft != null && draft.canSave ? _save : null,
-                  ),
-                ],
+                ),
+              Expanded(
+                child: draft == null
+                    ? Center(child: Text(_error ?? ''))
+                    : _form(context, draft),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: ThreadDivider(),
-            ),
-            Expanded(
-              child: draft == null
-                  ? Center(child: Text(_error ?? ''))
-                  : _form(context, draft),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -312,7 +360,7 @@ class _BossEditScreenState extends ConsumerState<BossEditScreen> {
           child: const Text('Add a chapter'),
         ),
         const SizedBox(height: Space.lg),
-        Text('Beyond the chapters', style: _serifHead(text)),
+        Text('Other tasks', style: _serifHead(text)),
         const SizedBox(height: Space.xs),
         Text(
           'Tasks that belong to the boss but no chapter, like daily habits.',

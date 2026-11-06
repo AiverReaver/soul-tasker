@@ -27,6 +27,7 @@ void main() {
     }
     await tester.tap(find.text('Moss Grotto'));
     expect(picked, Biome.moss);
+    expect(find.text('Biome · the look of the world'), findsOneWidget);
   });
 
   testWidgets('the selected row has a silk edge, the others seam', (

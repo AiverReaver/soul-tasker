@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/roman.dart';
 import '../../core/theme.dart';
 import '../../data/boss_view.dart';
+import '../../data/day_boss.dart';
 import '../../data/enums.dart';
 import '../../data/providers.dart';
 import '../../ui/ember_tally.dart';
@@ -23,9 +25,16 @@ import '../boss/task_row.dart';
 /// One run of rows under a label: a boss's dailies, its current chapter, or
 /// its tasks beyond the chapters.
 class TodayGroup {
-  const TodayGroup(this.label, this.tasks, this.struck, this.total);
+  const TodayGroup(
+    this.label,
+    this.tasks,
+    this.struck,
+    this.total, {
+    required this.bossId,
+  });
 
   final String label;
+  final String bossId;
   final List<TaskView> tasks;
 
   /// Struck and all tasks of the group, shown rows or not.
@@ -33,7 +42,9 @@ class TodayGroup {
   final int total;
 
   /// "N of M" struck, over every task of the group.
-  String get count => '$struck of $total';
+  String get count => total == 0
+      ? (bossId == dayBossId ? 'For one-off tasks today' : 'No tasks yet')
+      : '$struck of $total';
 }
 
 /// The day's groups for one boss, in Today order (plan §8.3): dailies, then
@@ -56,10 +67,15 @@ List<TodayGroup> todayGroups(
       shown,
       all.where((t) => t.isStruck).length,
       all.length,
+      bossId: view.boss.id,
     );
   }
 
   final title = view.boss.title;
+  // An empty Day keeps a bare label: on Home it is the way to its screen.
+  if (view.isDay && view.allTasks.isEmpty) {
+    return [TodayGroup(title, const [], 0, 0, bossId: view.boss.id)];
+  }
   final current = view.currentPhase;
   return [
     group('$title · daily', view.allTasks.where((t) => t.isDaily).toList()),
@@ -84,18 +100,21 @@ class TodayView extends ConsumerStatefulWidget {
     required this.bosses,
     required this.tapMode,
     this.leading = const [],
-    this.onNewFoe,
+    this.trailing = const [],
+    required this.onNewFoe,
   });
 
   final List<BossView> bosses;
   final bool tapMode;
 
-  /// Shown above the list (Home's header and panels).
+  /// Shown above the list (the header and panels).
   final List<Widget> leading;
 
-  /// When set, the title row carries a "New foe" button and the count line
-  /// reads "N of M struck" (Home); otherwise Today's long form.
-  final VoidCallback? onNewFoe;
+  /// Shown below the list (the week streak).
+  final List<Widget> trailing;
+
+  /// The title row's "New task" button.
+  final VoidCallback onNewFoe;
 
   @override
   ConsumerState<TodayView> createState() => _TodayViewState();
@@ -145,12 +164,17 @@ class _TodayViewState extends ConsumerState<TodayView> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final active = widget.bosses
-        .where((b) => b.boss.status == BossStatus.active)
-        .toList();
+    // The Day leads: its chip and its group come first.
+    final active = [
+      for (final b in widget.bosses)
+        if (b.boss.status == BossStatus.active && b.isDay) b,
+      for (final b in widget.bosses)
+        if (b.boss.status == BossStatus.active && !b.isDay) b,
+    ];
     final tally = ref.watch(emberTallyProvider).value;
     final health = ref.watch(healthProvider).value;
     final picks = ref.watch(todayPicksProvider).value ?? const [];
+    final isRested = ref.watch(dayStatusProvider).value?.isRested ?? false;
     final groups = [
       for (final b in active)
         if (_filter == null || _filter == b.boss.id)
@@ -163,29 +187,23 @@ class _TodayViewState extends ConsumerState<TodayView> {
     // still in the fight, and matches the group headers.
     final struck = groups.fold(0, (n, g) => n + g.struck);
     final total = groups.fold(0, (n, g) => n + g.total);
-    final isHome = widget.onNewFoe != null;
     return ListView(
-      padding: EdgeInsets.fromLTRB(
-        isHome ? 0 : 20,
-        0,
-        isHome ? 0 : 20,
-        GlassTabBar.clearance + Space.md,
-      ),
+      padding: const EdgeInsets.only(bottom: GlassTabBar.clearance + Space.md),
       children: [
         ...widget.leading,
-        if (health != null && !isHome)
+        if (health != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: Space.sm),
+            padding: const EdgeInsets.fromLTRB(20, Space.xs, 20, Space.sm),
             child: PlayerHealthBar(health: health, max: kMaxHealthHalfPoints),
           ),
-        if (tally != null && !isHome)
+        if (tally != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: Space.sm),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.sm),
             child: EmberTally(carried: tally.carried, banked: tally.banked),
           ),
-        if (picks.isNotEmpty && !isHome)
+        if (picks.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: Space.md),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.md),
             child: PlanBanner(
               items: [
                 for (final p in picks)
@@ -198,47 +216,47 @@ class _TodayViewState extends ConsumerState<TodayView> {
             ),
           ),
         if (active.length > 1)
-          FilterChips<String>(
-            padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
-            labels: {
-              null: 'All',
-              for (final b in active) b.boss.id: b.boss.title,
-            },
-            selected: _filter,
-            onChanged: (id) => setState(() => _filter = id),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: FilterChips<String>(
+              labels: {
+                null: 'All',
+                for (final b in active) b.boss.id: b.boss.title,
+              },
+              selected: _filter,
+              onChanged: (id) => setState(() => _filter = id),
+            ),
           ),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: FlashLine(_flash),
         ),
-        if (isHome)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xs),
-            child: FoesHeader(
-              countLabel: '$struck of $total struck',
-              onNewFoe: widget.onNewFoe!,
-            ),
-          )
-        else ...[
-          Text('Today’s tasks', style: text.titleMedium),
-          if (total > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: Space.xs, bottom: Space.sm),
-              child: Text(
-                '$struck of $total struck · hold to strike',
-                style: text.bodySmall,
-              ),
-            ),
-        ],
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
-          child: const ThreadDivider(),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.xs),
+          child: FoesHeader(
+            countLabel: '$struck of $total struck',
+            onNewFoe: widget.onNewFoe,
+          ),
+        ),
+        if (total > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, Space.sm),
+            child: Text(
+              'Hold the needle on a task to strike it off',
+              style: text.bodySmall,
+            ),
+          ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: ThreadDivider(),
         ),
         if (open == 0)
           Padding(
-            padding: const EdgeInsets.only(top: Space.xl),
+            padding: const EdgeInsets.fromLTRB(20, Space.xl, 20, 0),
             child: Text(
-              struck > 0
+              isRested
+                  ? 'You’ve rested. See you tomorrow.'
+                  : struck > 0
                   ? 'All tasks struck. Rest at the bonfire'
                   : 'Nothing stands in your way today.',
               textAlign: TextAlign.center,
@@ -247,11 +265,15 @@ class _TodayViewState extends ConsumerState<TodayView> {
           ),
         for (final g in groups)
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: isHome ? 20 : 0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TaskGroupHeader(label: g.label, count: g.count),
+                TaskGroupHeader(
+                  label: g.label,
+                  count: g.count,
+                  onTap: () => context.push('/boss/${g.bossId}'),
+                ),
                 for (final t in g.tasks)
                   TaskRow(
                     key: ValueKey(t.task.id),
@@ -263,6 +285,7 @@ class _TodayViewState extends ConsumerState<TodayView> {
               ],
             ),
           ),
+        ...widget.trailing,
       ],
     );
   }

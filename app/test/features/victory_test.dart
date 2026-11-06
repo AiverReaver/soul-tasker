@@ -25,8 +25,6 @@ Future<String> _oneTaskBoss(Harness h) => h.bosses.saveBoss(
 Future<void> _strikeAndConfirm(WidgetTester tester) async {
   await tester.tap(holdButton('Sit the exam'));
   await settle(tester);
-  await tester.tap(find.text('Clean strike'));
-  await settle(tester);
   await tester.tap(find.text('Defeated'));
   await settle(tester);
 }
@@ -89,8 +87,6 @@ void main() {
     await pumpApp(tester, h, location: '/boss/$id');
 
     await tester.tap(holdButton('Sit the exam'));
-    await settle(tester);
-    await tester.tap(find.text('Clean strike'));
     await settle(tester);
     await tester.tap(find.text('Not yet'));
     await settle(tester);
@@ -209,9 +205,6 @@ void main() {
 
     expect(find.text('The Certification'), findsNothing);
     expect(find.text('VANQUISHED (1)'), findsNothing);
-    expect(find.text('All bosses · 0 active'), findsOneWidget);
-    await tester.tap(find.text('Today'));
-    await settle(tester);
     expect(find.text('Sit the exam'), findsNothing);
     await tearDownApp(tester, h);
   });

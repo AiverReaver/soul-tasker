@@ -561,7 +561,11 @@ class SyncService {
     ];
     final update = [
       for (final n in names)
-        if (!key.contains(n)) '$n = excluded.$n',
+        if (!key.contains(n))
+          // A boss row from a phone before designs has none; keep ours.
+          table == 'bosses' && n == 'design'
+              ? '$n = COALESCE(excluded.$n, $n)'
+              : '$n = excluded.$n',
     ];
     try {
       await _db.customStatement(

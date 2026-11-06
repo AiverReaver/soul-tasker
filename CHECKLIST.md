@@ -50,12 +50,12 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [x] Tap fallback setting
 - [x] Palette, typography, slow fades
 - [x] Fallen screen dim and quiet line
-- [ ] Haptics off switch (settings, schema v2)
-- [ ] Haptic profile by weight (Light / Heavy / Boss-tier)
-- [ ] Scroll-safe hold (moving finger cancels)
-- [ ] Strike landing sweep (longer for Boss-tier)
-- [ ] Tests for dim, health bar drain, fallen dim and haptic
-- [ ] Feel report (counts only, copy to clipboard)
+- [x] Haptics off switch (settings, schema v2)
+- [x] Haptic profile by weight (Light / Heavy / Boss-tier)
+- [x] Scroll-safe hold (moving finger cancels)
+- [x] Strike landing sweep (longer for Boss-tier)
+- [x] Tests for dim, health bar drain, fallen dim and haptic
+- [x] Feel report (counts only, copy to clipboard); later replaced by the tester report
 - [ ] Tester build (Android release APK)
 - [ ] Developer pass on a real phone
 - [ ] Test with 3 to 5 testers
@@ -139,17 +139,17 @@ Method for every item below: test first (red, green, refactor). A box is ticked 
 - [ ] **Gate passed**
 
 ## Stage 7: Backend and sync
-- [ ] Node.js API with PostgreSQL
-- [ ] Schema mirroring §9
-- [ ] OpenAPI spec
-- [ ] Generated Dart client
-- [ ] Google sign-in with token verification
-- [ ] Batch push endpoint
-- [ ] Changes-since pull endpoint
-- [ ] Last-updated time and synced marker on records
-- [ ] Event-derived embers and health on server
-- [ ] One active bloodstain per boss enforced
-- [ ] **Gate passed:** two-device offline merge without loss
+- [x] Node.js API with PostgreSQL
+- [x] Schema mirroring §9
+- [x] OpenAPI spec
+- [x] Generated Dart client
+- [x] Google sign-in with token verification
+- [x] Batch push endpoint
+- [x] Changes-since pull endpoint
+- [x] Last-updated time and synced marker on records
+- [x] Event-derived embers and health on server (the server stores the events; each device derives the totals, STAGE7_PLAN section 2)
+- [x] One active bloodstain per boss enforced
+- [ ] **Gate passed:** two-device offline merge without loss (scripted gate passes; step 12 on a hosted server and devices is open)
 
 ## Stage 8: Hardcore mode and launch
 - [ ] Mode setting (gentle / hardcore)

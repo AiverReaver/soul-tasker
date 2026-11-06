@@ -144,6 +144,33 @@ describe('last write wins (D5)', () => {
   });
 });
 
+describe('an app from before boss designs', () => {
+  const old = (id: string, values: Record<string, unknown>, at: string): Change => {
+    const change = upsert('bosses', id, values, at);
+    delete change.row!.design;
+    return change;
+  };
+
+  test('may omit the design and keeps the one stored', async () => {
+    await push([upsert('bosses', 'b1', { design: 3 }, T0)]);
+    expect(statuses(await push([old('b1', { title: 'Renamed' }, T1)], 'dev-b'))).toEqual(['applied']);
+    const boss = await current('bosses', 'b1');
+    expect(boss!.row!.title).toBe('Renamed');
+    expect(boss!.row!.design).toBe(3);
+  });
+
+  test('a new boss from it has no design', async () => {
+    expect(statuses(await push([old('b2', {}, T0)]))).toEqual(['applied']);
+    expect((await current('bosses', 'b2'))!.row!.design).toBeNull();
+  });
+
+  test('any other missing column is still malformed', async () => {
+    const change = upsert('bosses', 'b3', {}, T0);
+    delete change.row!.title;
+    expect(await push([change])).toMatchObject([{ status: 'rejected', reason: 'malformed' }]);
+  });
+});
+
 describe('attempts are last write wins', () => {
   test('a lesson added later on one phone reaches the server', async () => {
     await push([upsert('bosses', 'b1'), upsert('attempts', 'a1', { boss_id: 'b1', lesson: null }, T0)]);

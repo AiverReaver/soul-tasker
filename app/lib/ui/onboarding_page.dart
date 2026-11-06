@@ -16,9 +16,13 @@ class OnboardingPage extends StatelessWidget {
     this.total = 5,
     this.isLast = false,
     this.canAdvance = true,
+    this.kicker,
   });
 
   final String line;
+
+  /// Optional plain sentence above the line (what the app is, on step 1).
+  final String? kicker;
   final Widget body;
   final VoidCallback onNext;
   final VoidCallback onSkip;
@@ -54,6 +58,15 @@ class OnboardingPage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: Space.md),
+                  if (kicker != null) ...[
+                    Text(
+                      kicker!,
+                      style: text.bodyMedium?.copyWith(
+                        color: context.palette.ash,
+                      ),
+                    ),
+                    const SizedBox(height: Space.sm),
+                  ],
                   Text(line, style: text.displaySmall),
                   const SizedBox(height: Space.lg),
                   body,
@@ -74,15 +87,12 @@ class OnboardingPage extends StatelessWidget {
                     style: TextStyle(color: context.palette.ash),
                   ),
                 ),
-                canAdvance
-                    ? EmberButton(
-                        label: isLast ? 'Begin' : 'Next',
-                        onPressed: onNext,
-                      )
-                    : TextButton(
-                        onPressed: null,
-                        child: Text(isLast ? 'Begin' : 'Next'),
-                      ),
+                // Same button dimmed when disabled, so Skip never moves
+                // under a thumb aimed at Next.
+                EmberButton(
+                  label: isLast ? 'Begin' : 'Next',
+                  onPressed: canAdvance ? onNext : null,
+                ),
               ],
             ),
           ),

@@ -74,14 +74,16 @@ class BossCard extends ConsumerWidget {
     final boss = view.boss;
     if (boss.isPinned && boss.status == BossStatus.active) {
       return PinnedBossPanel(
+        label: 'Boss · ${bossProgressLabel(view)}',
         title: boss.title,
         subtitle: [
-          bossProgressLabel(view),
           'Attempt ${boss.attemptNumber}',
           ?daysLeftLabel(boss.targetDate, ref.read(clockProvider)()),
         ].join(' · '),
         health: view.health,
         boilFrame: Atmosphere.boilFrameOf(context),
+        design: boss.design ?? bossDesignFor(boss.id),
+        seconds: Atmosphere.secondsOf(context),
         onEnter: () => context.push('/boss/${boss.id}'),
         onLongPress: () => _actions(context, ref),
       );
@@ -94,6 +96,8 @@ class BossCard extends ConsumerWidget {
       isPinned: boss.isPinned,
       showHealth: boss.status == BossStatus.active && view.hasSegments,
       boilFrame: Atmosphere.boilFrameOf(context),
+      design: boss.design ?? bossDesignFor(boss.id),
+      seconds: Atmosphere.secondsOf(context),
       onTap: () => context.push('/boss/${boss.id}'),
       onLongPress: () => _actions(context, ref),
     );

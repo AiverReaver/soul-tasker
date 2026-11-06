@@ -19,9 +19,9 @@ final _p = Biome.pharloom.palette;
 void main() {
   group('NeedleFrame', () {
     for (final (tier, radius) in [
-      (Cut.lg, 8.0),
-      (Cut.md, 6.0),
-      (Cut.sm, 4.0),
+      (Cut.lg, 16.0),
+      (Cut.md, 12.0),
+      (Cut.sm, 6.0),
     ]) {
       testWidgets('NeedleTextField caption is a 15 px semibold line', (
         tester,
@@ -65,6 +65,36 @@ void main() {
       expect(edge(), _p.seam);
       await _pump(tester, NeedleFrame(edge: _p.silk, child: const Text('x')));
       expect(edge(), _p.silk);
+    });
+
+    testWidgets('panels and rows have depth: an ink line and a soft shadow', (
+      tester,
+    ) async {
+      List<BoxShadow>? shadows() =>
+          (tester
+                      .widget<DecoratedBox>(
+                        find.byKey(const ValueKey('needle-edge')),
+                      )
+                      .decoration
+                  as BoxDecoration)
+              .boxShadow;
+      await _pump(tester, const NeedleFrame(child: Text('x')));
+      final ink = shadows()!.last;
+      expect(ink.color, _p.ink);
+      expect(ink.spreadRadius, 2);
+      final soft = shadows()!.first;
+      expect(soft.offset, const Offset(0, 8));
+      expect(soft.blurRadius, 18);
+      await _pump(tester, const NeedleFrame(tier: Cut.md, child: Text('x')));
+      expect(shadows(), hasLength(2));
+    });
+
+    testWidgets('a tag stays flat', (tester) async {
+      await _pump(tester, const NeedleFrame(tier: Cut.sm, child: Text('x')));
+      final box = tester.widget<DecoratedBox>(
+        find.byKey(const ValueKey('needle-edge')),
+      );
+      expect((box.decoration as BoxDecoration).boxShadow, isNull);
     });
 
     testWidgets('focus is a 2 px bone ring outside the clip', (tester) async {
