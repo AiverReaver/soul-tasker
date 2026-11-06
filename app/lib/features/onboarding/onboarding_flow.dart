@@ -138,8 +138,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       required Widget body,
       bool isLast = false,
       bool canAdvance = true,
+      String? kicker,
     }) => OnboardingPage(
       step: ++step,
+      kicker: kicker,
       line: line,
       body: body,
       isLast: isLast,
@@ -155,6 +157,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         physics: const NeverScrollableScrollPhysics(),
         children: [
           page(
+            kicker:
+                'Turn the goal you keep avoiding into a boss. '
+                'Fight it a little every day.',
             line: "Failing is fine. Quitting isn't.",
             body: Text(
               'Hearthrise keeps the story of the fight: every fall becomes a '

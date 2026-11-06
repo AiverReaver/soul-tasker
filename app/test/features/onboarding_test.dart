@@ -41,6 +41,21 @@ void main() {
     await tearDownApp(tester, h);
   });
 
+  testWidgets('the welcome says what the app is, above the line', (
+    tester,
+  ) async {
+    final h = Harness();
+    await pumpApp(tester, h, onboarded: false);
+    final pitch = find.text(
+      'Turn the goal you keep avoiding into a boss. '
+      'Fight it a little every day.',
+    );
+    expect(pitch, findsOneWidget);
+    final line = find.text("Failing is fine. Quitting isn't.");
+    expect(tester.getTopLeft(pitch).dy, lessThan(tester.getTopLeft(line).dy));
+    await tearDownApp(tester, h);
+  });
+
   testWidgets('an upgraded database opens Home', (tester) async {
     final h = Harness();
     await pumpApp(tester, h);
